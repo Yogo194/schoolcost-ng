@@ -1,0 +1,31 @@
+---
+description: Never use em dashes in SchoolCost NG copy or UI text
+alwaysApply: true
+---
+
+# No Em Dashes
+
+Do not use the em dash character (Unicode U+2014) anywhere in this project.
+
+## Applies to
+- User-facing copy (headlines, body, CTAs, metadata, OG tags)
+- UI placeholder and empty states
+- Comments and docs we write for this repo
+
+## Prefer instead
+- A comma, period, or colon
+- A spaced hyphen: ` - `
+- Two short sentences
+
+```text
+BAD:  Compare fees by course [em dash] including hidden charges.
+GOOD: Compare fees by course, including hidden charges.
+
+BAD:  SchoolCost NG [em dash] Know the True Cost
+GOOD: SchoolCost NG: Know the True Cost
+
+BAD:  {value ?? "[em dash]"}
+GOOD: {value ?? "-"}
+```
+
+Do not use en dashes (U+2013) as a workaround in prose. Use normal punctuation.

@@ -163,6 +163,10 @@
   animation: logo-marquee 28s linear infinite;
 }
 
+@utility animate-skyline-marquee {
+  animation: logo-marquee 55s linear infinite;
+}
+
 @utility animate-hero-rise {
   animation: hero-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -181,6 +185,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-logo-marquee,
+  .animate-skyline-marquee,
   .animate-hero-rise,
   .animate-deco-float,
   .animate-deco-float-alt,

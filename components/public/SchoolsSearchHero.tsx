@@ -23,13 +23,34 @@ export function SchoolsSearchHero() {
 
       {/* Campus strip pinned to the bottom of the hero, same pattern as homepage */}
       <div className="relative z-0 w-full shrink-0">
+        {/* Mobile: taller, slow auto-scrolling strip so buildings stay legible on narrow screens */}
+        <div className="overflow-hidden sm:hidden">
+          <div className="flex w-max animate-skyline-marquee items-end">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/figma/schools-listing-skyline.avif"
+              alt=""
+              className="h-40 w-auto shrink-0 object-cover object-bottom"
+              aria-hidden
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/figma/schools-listing-skyline.avif"
+              alt=""
+              className="h-40 w-auto shrink-0 object-cover object-bottom"
+              aria-hidden
+            />
+          </div>
+        </div>
+
+        {/* Tablet/desktop: static full width, matches the design as approved */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/figma/schools-listing-skyline.avif"
           alt=""
           width={2880}
           height={528}
-          className="h-auto w-full object-contain object-bottom"
+          className="hidden h-auto w-full object-contain object-bottom sm:block"
           aria-hidden
         />
       </div>

@@ -36,23 +36,15 @@ export function AnnouncementBar({
   if (!visible) return null;
 
   return (
-    <div className="flex w-full items-center justify-between gap-4 bg-brand-amber px-4 py-2.5 sm:px-10 lg:px-20">
-      <button
-        type="button"
-        onClick={dismiss}
-        aria-label="Dismiss announcement"
-        className="flex size-6 shrink-0 items-center justify-center text-brand-ink/70 transition-colors hover:text-brand-ink"
-      >
-        <X className="size-5" strokeWidth={1.75} />
-      </button>
-      <p className="flex-1 text-center text-sm tracking-[-0.02em] text-brand-ink sm:text-base">
+    <div className="relative flex w-full items-center justify-center gap-4 bg-brand-amber px-4 py-2.5 sm:px-10 lg:px-20">
+      <p className="px-8 text-center text-sm tracking-[-0.02em] text-brand-ink sm:text-base">
         {message}
       </p>
       <button
         type="button"
         onClick={dismiss}
         aria-label="Dismiss announcement"
-        className="flex size-6 shrink-0 items-center justify-center text-brand-ink/70 transition-colors hover:text-brand-ink"
+        className="absolute right-4 flex size-6 shrink-0 items-center justify-center text-brand-ink/70 transition-colors hover:text-brand-ink sm:right-10 lg:right-20"
       >
         <X className="size-5" strokeWidth={1.75} />
       </button>

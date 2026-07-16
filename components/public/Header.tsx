@@ -17,9 +17,10 @@ const NAV_LINKS = [
 export function Header() {
   const pathname = usePathname();
   const isHome = pathname === "/";
+  const isSchoolsIndex = pathname === "/schools";
   const isSchoolProfile = /^\/schools\/[^/]+$/.test(pathname);
   const isFeeDetail = /^\/schools\/[^/]+\/fees\//.test(pathname);
-  const overlayNav = isHome || isSchoolProfile || isFeeDetail;
+  const overlayNav = isHome || isSchoolsIndex || isSchoolProfile || isFeeDetail;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (

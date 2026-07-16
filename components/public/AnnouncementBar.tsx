@@ -36,8 +36,8 @@ export function AnnouncementBar({
   if (!visible) return null;
 
   return (
-    <div className="relative flex w-full items-center justify-center gap-4 bg-brand-amber px-4 py-2.5 sm:px-10 lg:px-20">
-      <p className="px-8 text-center text-sm tracking-[-0.02em] text-brand-ink sm:text-base">
+    <div className="relative flex w-full items-center bg-brand-amber px-4 py-2.5 pr-12 sm:justify-center sm:px-10 sm:pr-10 lg:px-20 lg:pr-20">
+      <p className="text-left text-sm tracking-[-0.02em] text-brand-ink sm:px-8 sm:text-center sm:text-base">
         {message}
       </p>
       <button

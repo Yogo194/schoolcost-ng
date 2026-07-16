@@ -1,3 +1,5 @@
+import { SkylineMarquee } from "@/components/public/SkylineMarquee";
+
 export function SchoolsSearchHero() {
   return (
     <section className="relative isolate flex h-[48vh] min-h-[360px] flex-col overflow-hidden bg-brand-lime sm:h-[60vh] sm:min-h-[420px]">
@@ -10,8 +12,8 @@ export function SchoolsSearchHero() {
         aria-hidden
       />
 
-      {/* Center copy */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[920px] flex-1 flex-col items-center justify-center px-4 pb-8 pt-24 text-center sm:px-10 sm:pt-32 lg:pt-[120px]">
+      {/* Copy sits just above the skyline on mobile; centered on larger screens */}
+      <div className="relative z-10 mx-auto flex w-full max-w-[920px] flex-1 flex-col items-center justify-end px-4 pb-3 pt-28 text-center sm:justify-center sm:px-10 sm:pb-8 sm:pt-32 lg:pt-[120px]">
         <h1 className="text-[2.5rem] font-medium leading-none tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[60px]">
           Find any school&apos;s fees.
         </h1>
@@ -23,25 +25,10 @@ export function SchoolsSearchHero() {
 
       {/* Campus strip pinned to the bottom of the hero, same pattern as homepage */}
       <div className="relative z-0 w-full shrink-0">
-        {/* Mobile: taller, slow auto-scrolling strip so buildings stay legible on narrow screens */}
-        <div className="overflow-hidden sm:hidden">
-          <div className="flex w-max animate-skyline-marquee items-end">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/schools-listing-skyline.avif"
-              alt=""
-              className="h-40 w-auto shrink-0 object-cover object-bottom"
-              aria-hidden
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/schools-listing-skyline.avif"
-              alt=""
-              className="h-40 w-auto shrink-0 object-cover object-bottom"
-              aria-hidden
-            />
-          </div>
-        </div>
+        <SkylineMarquee
+          src="/figma/schools-listing-skyline.avif"
+          className="sm:hidden"
+        />
 
         {/* Tablet/desktop: static full width, matches the design as approved */}
         {/* eslint-disable-next-line @next/next/no-img-element */}

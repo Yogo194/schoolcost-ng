@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { SearchBar } from "@/components/public/SearchBar";
+import { SkylineMarquee } from "@/components/public/SkylineMarquee";
 
 const SEARCH_SUGGESTIONS = [
   "Babcock University",
@@ -53,25 +54,7 @@ export function HomeHero() {
 
       {/* Illustrated campus skyline, pinned to the bottom of the hero */}
       <div className="relative z-0 w-full shrink-0">
-        {/* Mobile: taller, slow auto-scrolling strip so buildings stay legible on narrow screens */}
-        <div className="overflow-hidden sm:hidden">
-          <div className="flex w-max animate-skyline-marquee items-end">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/hero-skyline.avif"
-              alt=""
-              className="h-40 w-auto shrink-0 object-cover object-bottom"
-              aria-hidden
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/hero-skyline.avif"
-              alt=""
-              className="h-40 w-auto shrink-0 object-cover object-bottom"
-              aria-hidden
-            />
-          </div>
-        </div>
+        <SkylineMarquee src="/figma/hero-skyline.avif" className="sm:hidden" />
 
         {/* Tablet/desktop: static full width */}
         <Image

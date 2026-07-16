@@ -1,6 +1,6 @@
 export function SchoolsSearchHero() {
   return (
-    <section className="relative isolate flex h-[60vh] min-h-[420px] flex-col overflow-hidden bg-brand-lime">
+    <section className="relative isolate flex h-[48vh] min-h-[360px] flex-col overflow-hidden bg-brand-lime">
       {/* Full-bleed hero background (grid wash) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -11,7 +11,7 @@ export function SchoolsSearchHero() {
       />
 
       {/* Center copy */}
-      <div className="relative z-10 mx-auto flex w-full max-w-[920px] flex-1 flex-col items-center justify-center px-4 pb-8 pt-28 text-center sm:px-10 sm:pt-32 lg:pt-[120px]">
+      <div className="relative z-10 mx-auto flex w-full max-w-[920px] flex-1 flex-col items-center justify-center px-4 pb-8 pt-24 text-center sm:px-10 sm:pt-28 lg:pt-24">
         <h1 className="text-[2.5rem] font-medium leading-none tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[60px]">
           Find any school&apos;s fees.
         </h1>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown, Info, Plus, X } from "lucide-react";
 import type { FeeDetailRecord } from "@/lib/mock/fee-detail";
 import {
@@ -90,6 +90,16 @@ const METRICS: Array<{
   },
 ];
 
+const MOBILE_METRICS = METRICS.filter((metric) =>
+  [
+    "firstYearTotal",
+    "returningYearTotal",
+    "compulsoryTotal",
+    "accommodationTotal",
+    "estimatedDegreeTotal",
+  ].includes(metric.key)
+);
+
 export function FeeCourseCompareMatrix({
   record,
   level,
@@ -98,11 +108,29 @@ export function FeeCourseCompareMatrix({
     () => getCourseCompareColumns(record, level),
     [record, level]
   );
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    setSelectedIds(allColumns.slice(0, 2).map((column) => column.id));
-  }, [allColumns]);
+  return (
+    <FeeCourseCompareContent
+      key={`${record.id}-${level}`}
+      record={record}
+      level={level}
+      allColumns={allColumns}
+    />
+  );
+}
+
+function FeeCourseCompareContent({
+  record,
+  level,
+  allColumns,
+}: {
+  record: FeeDetailRecord;
+  level: string;
+  allColumns: CourseCompareColumn[];
+}) {
+  const [selectedIds, setSelectedIds] = useState<string[]>(() =>
+    allColumns.slice(0, 2).map((column) => column.id)
+  );
 
   const columns = allColumns.filter((column) =>
     selectedIds.includes(column.id)
@@ -189,7 +217,9 @@ export function FeeCourseCompareMatrix({
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
+      <MobileComparison columns={columns} />
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white md:block">
         <table className="w-full min-w-[940px] border-collapse text-left">
           <thead>
             <tr>
@@ -303,6 +333,129 @@ export function FeeCourseCompareMatrix({
         </p>
       </div>
     </div>
+  );
+}
+
+function MobileComparison({ columns }: { columns: CourseCompareColumn[] }) {
+  if (columns.length === 0) return null;
+
+  return (
+    <div className="space-y-3 md:hidden">
+      <div className="rounded-2xl border border-[#e5ebe5] bg-white px-4 py-4">
+        <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+          Compare at a glance
+        </p>
+        <p className="mt-1 text-sm leading-5 text-brand-ink/65">
+          First-year totals are shown first. Open each metric to see exactly
+          where the difference comes from.
+        </p>
+      </div>
+
+      {MOBILE_METRICS.map((metric) => (
+        <MobileMetricCard key={metric.key} metric={metric} columns={columns} />
+      ))}
+
+      <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4">
+        <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+          Data quality
+        </p>
+        <div className="mt-3 space-y-3">
+          {columns.map((column) => (
+            <div
+              key={column.id}
+              className="rounded-xl border border-[#edf0ed] bg-[#fafcfa] p-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-brand-ink">
+                    {column.schoolName}
+                  </p>
+                  <p className="mt-0.5 text-xs text-brand-ink/55">
+                    {column.session} · reviewed {column.lastReviewedLabel}
+                  </p>
+                </div>
+                <SourceBadge sourceType={column.source_type} compact />
+              </div>
+              <div className="mt-3">
+                <ConfidenceDisplay
+                  level={parseConfidenceLevel(column.confidenceLabel)}
+                  compact
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileMetricCard({
+  metric,
+  columns,
+}: {
+  metric: (typeof METRICS)[number];
+  columns: CourseCompareColumn[];
+}) {
+  const values = columns.map((column) => Number(column[metric.key]));
+  const lowest = values.length > 1 ? Math.min(...values) : null;
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white">
+      <div className="border-b border-[#edf0ed] bg-[#fef8f0] px-4 py-3.5">
+        <p className="text-base font-semibold tracking-[-0.03em] text-brand-ink">
+          {metric.label}
+        </p>
+        {metric.note && (
+          <p className="mt-0.5 text-sm leading-5 text-brand-ink/65">
+            {metric.note}
+          </p>
+        )}
+      </div>
+
+      <div className="divide-y divide-[#edf0ed]">
+        {columns.map((column) => {
+          const value = Number(column[metric.key]);
+          const isLowest = lowest != null && value === lowest;
+
+          return (
+            <div
+              key={column.id}
+              className={cn(
+                "flex items-center justify-between gap-4 px-4 py-4",
+                isLowest && "bg-brand-lime-light/45"
+              )}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-lime text-xs font-semibold text-brand-ink">
+                  {(column.abbreviation || column.schoolName.slice(0, 2))
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-brand-ink">
+                    {column.schoolName}
+                  </p>
+                  <p className="mt-0.5 text-xs text-brand-ink/55">
+                    {column.abbreviation || column.state}
+                  </p>
+                </div>
+              </div>
+              <div className="shrink-0 text-right">
+                <p className="text-base font-semibold tracking-[-0.03em] text-[#355955]">
+                  {formatCurrency(value)}
+                </p>
+                {isLowest && (
+                  <span className="mt-1 inline-flex rounded-[8px] bg-brand-lime px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
+                    Lowest
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

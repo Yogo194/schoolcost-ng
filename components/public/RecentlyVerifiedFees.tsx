@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -69,71 +69,130 @@ function FeesTable({ rows }: { rows: RecentFeeRow[] }) {
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-hidden rounded-2xl border border-[#e5ebe5] bg-white">
-      <Table className="min-w-[960px]">
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            {(
-              [
-                "Institution",
-                "Course",
-                "Level",
-                "First-year total",
-                "Academic session",
-                "Source",
-              ] as const
-            ).map((heading, i) => (
-              <TableHead
-                key={heading}
-                className={cn(
-                  "h-14 bg-[#f2ac5b] px-4 text-[18px] font-medium tracking-[-0.25px] text-[#002c15]",
-                  i === 0 ? "text-left" : "text-center"
-                )}
-              >
-                {heading}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((fee) => {
-            const href = `/schools/${fee.institutions.slug}/fees/${fee.id}`;
+    <>
+      <div className="space-y-3 md:hidden">
+        {rows.map((fee) => (
+          <MobileFeeCard key={fee.id} fee={fee} />
+        ))}
+      </div>
 
-            return (
-              <TableRow key={fee.id} className="group h-[72px]">
-                <TableCell className="whitespace-normal px-4 py-4 align-middle">
-                  <Link href={href} className="block">
-                    <p className="text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955] group-hover:underline">
-                      {fee.institutions.name}
-                    </p>
-                    <p className="mt-0.5 text-base leading-[1.4] tracking-[-0.02em] text-brand-ink/80">
-                      {institutionMeta(fee)}
-                    </p>
-                  </Link>
-                </TableCell>
-                <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
-                  <Link href={href}>{fee.courses.name}</Link>
-                </TableCell>
-                <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
-                  <Link href={href}>{fee.level ?? "-"}</Link>
-                </TableCell>
-                <TableCell className="px-4 py-4 text-center text-base font-semibold tracking-[-0.25px] text-[#355955]">
-                  <Link href={href}>{formatCurrency(fee.first_year_total)}</Link>
-                </TableCell>
-                <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
-                  <Link href={href}>{fee.academic_sessions.name}</Link>
-                </TableCell>
-                <TableCell className="px-4 py-4 text-center">
-                  <Link href={href} className="inline-flex justify-center">
-                    <SourceBadge sourceType={fee.source_type} compact />
-                  </Link>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+      <div className="hidden overflow-x-auto overflow-y-hidden rounded-2xl border border-[#e5ebe5] bg-white md:block">
+        <Table className="min-w-[960px]">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              {(
+                [
+                  "Institution",
+                  "Course",
+                  "Level",
+                  "First-year total",
+                  "Academic session",
+                  "Source",
+                ] as const
+              ).map((heading, i) => (
+                <TableHead
+                  key={heading}
+                  className={cn(
+                    "h-14 bg-[#f2ac5b] px-4 text-[18px] font-medium tracking-[-0.25px] text-[#002c15]",
+                    i === 0 ? "text-left" : "text-center"
+                  )}
+                >
+                  {heading}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((fee) => {
+              const href = `/schools/${fee.institutions.slug}/fees/${fee.id}`;
+
+              return (
+                <TableRow key={fee.id} className="group h-[72px]">
+                  <TableCell className="whitespace-normal px-4 py-4 align-middle">
+                    <Link href={href} className="block">
+                      <p className="text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955] group-hover:underline">
+                        {fee.institutions.name}
+                      </p>
+                      <p className="mt-0.5 text-base leading-[1.4] tracking-[-0.02em] text-brand-ink/80">
+                        {institutionMeta(fee)}
+                      </p>
+                    </Link>
+                  </TableCell>
+                  <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
+                    <Link href={href}>{fee.courses.name}</Link>
+                  </TableCell>
+                  <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
+                    <Link href={href}>{fee.level ?? "-"}</Link>
+                  </TableCell>
+                  <TableCell className="px-4 py-4 text-center text-base font-semibold tracking-[-0.25px] text-[#355955]">
+                    <Link href={href}>{formatCurrency(fee.first_year_total)}</Link>
+                  </TableCell>
+                  <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
+                    <Link href={href}>{fee.academic_sessions.name}</Link>
+                  </TableCell>
+                  <TableCell className="px-4 py-4 text-center">
+                    <Link href={href} className="inline-flex justify-center">
+                      <SourceBadge sourceType={fee.source_type} compact />
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </>
+  );
+}
+
+function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
+  const href = `/schools/${fee.institutions.slug}/fees/${fee.id}`;
+
+  return (
+    <Link
+      href={href}
+      className="group block rounded-2xl border border-[#e5ebe5] bg-white p-5 shadow-[0_1px_2px_rgba(3,48,42,0.04)] transition-[transform,box-shadow] active:scale-[0.99]"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-lg font-semibold leading-tight tracking-[-0.03em] text-[#355955]">
+            {fee.institutions.name}
+          </p>
+          <p className="mt-1 text-sm leading-5 text-brand-ink/65">
+            {institutionMeta(fee)}
+          </p>
+        </div>
+        <ChevronRight
+          className="mt-1 size-5 shrink-0 text-brand-ink/35 transition-transform group-hover:translate-x-0.5"
+          aria-hidden
+        />
+      </div>
+
+      <div className="mt-5 flex items-end justify-between gap-4 border-t border-[#edf0ed] pt-4">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+            {fee.courses.name}
+          </p>
+          <p className="mt-1 text-sm text-brand-ink/65">
+            {fee.level ?? "Level pending"} <span aria-hidden>·</span>{" "}
+            {fee.academic_sessions.name}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+            First year
+          </p>
+          <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[#355955]">
+            {formatCurrency(fee.first_year_total)}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between">
+        <SourceBadge sourceType={fee.source_type} compact />
+        <span className="text-sm font-medium text-brand-ink/65">View breakdown</span>
+      </div>
+    </Link>
   );
 }
 

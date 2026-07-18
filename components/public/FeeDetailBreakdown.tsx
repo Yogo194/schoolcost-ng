@@ -10,6 +10,7 @@ import {
   linesForLevel,
   semesterTotals,
   studentTypeForLevel,
+  type FeeBreakdownLine,
   type FeeDetailRecord,
   type StudentType,
 } from "@/lib/mock/fee-detail";
@@ -27,6 +28,12 @@ import type { ReactNode } from "react";
 
 interface FeeDetailBreakdownProps {
   record: FeeDetailRecord;
+}
+
+interface VerificationRow {
+  label: string;
+  note?: string;
+  value: ReactNode;
 }
 
 export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
@@ -54,11 +61,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
     ? record.firstYearTotal
     : record.returningYearTotal;
 
-  const verificationRows: Array<{
-    label: string;
-    note?: string;
-    value: ReactNode;
-  }> = [
+  const verificationRows: VerificationRow[] = [
     {
       label: "Verification status",
       value: formatStatus(record.verification_status),
@@ -92,7 +95,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
   ];
 
   return (
-    <section className="bg-brand-lime-light px-4 pb-16 pt-10 sm:px-10 sm:pb-20 sm:pt-12 lg:px-20">
+    <section className="bg-brand-lime-light px-4 pb-14 pt-8 sm:px-10 sm:pb-20 sm:pt-12 lg:px-20">
       <div className="mx-auto max-w-[1280px]">
         <div className="mb-8 flex justify-center">
           <DetailViewTabs activeView={activeView} onChange={setActiveView} />
@@ -157,10 +160,20 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
               </div>
             </div>
 
-            <div
-              id="breakdown"
-              className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white"
-            >
+            <div id="breakdown" className="mt-7 md:hidden">
+              <MobileFeeBreakdown
+                compulsoryLines={compulsoryLines}
+                optionalLines={optionalLines}
+                paymentPlan={paymentPlan}
+                semTotals={semTotals}
+                isFresh={isFresh}
+                heroLabel={heroLabel}
+                heroAmount={heroAmount}
+                accommodationTotal={totals?.accommodation ?? 0}
+              />
+            </div>
+
+            <div className="mt-8 hidden overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white md:block">
               <table className="w-full min-w-[840px] border-collapse text-left">
                 <thead>
                   <tr>
@@ -317,7 +330,11 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
               </p>
             </div>
 
-            <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
+            <div className="mt-7 md:hidden">
+              <MobileVerificationList rows={verificationRows} />
+            </div>
+
+            <div className="mt-8 hidden overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white md:block">
               <table className="w-full min-w-[640px] border-collapse text-left">
                 <thead>
                   <tr>
@@ -429,6 +446,199 @@ function formatStatus(status: FeeDetailRecord["verification_status"]): string {
   if (status === "reported") return "Reported";
   if (status === "outdated") return "Possibly outdated";
   return "Disputed";
+}
+
+function MobileFeeBreakdown({
+  compulsoryLines,
+  optionalLines,
+  paymentPlan,
+  semTotals,
+  isFresh,
+  heroLabel,
+  heroAmount,
+  accommodationTotal,
+}: {
+  compulsoryLines: FeeBreakdownLine[];
+  optionalLines: FeeBreakdownLine[];
+  paymentPlan: string;
+  semTotals: { first: number; second: number };
+  isFresh: boolean;
+  heroLabel: string;
+  heroAmount: number;
+  accommodationTotal: number;
+}) {
+  const compulsoryTotal =
+    paymentPlan === "semester"
+      ? semTotals.first + semTotals.second
+      : heroAmount;
+
+  return (
+    <div className="space-y-5">
+      <section className="overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white">
+        <div className="border-b border-[#edf0ed] bg-[#fef8f0] px-5 py-4">
+          <p className="text-base font-semibold tracking-[-0.03em] text-brand-ink">
+            Compulsory fees
+          </p>
+          <p className="mt-1 text-sm text-brand-ink/65">
+            Required charges for this {isFresh ? "fresh" : "returning"} student record
+          </p>
+        </div>
+        <div className="divide-y divide-[#edf0ed]">
+          {compulsoryLines.map((line) => (
+            <MobileFeeLine
+              key={line.id}
+              line={line}
+              category="Compulsory"
+              amount={lineAmountForPlan(line.amount, line.due, paymentPlan)}
+              note={
+                paymentPlan === "semester" && line.due === "both"
+                  ? `${line.note} · shown per semester`
+                  : line.note
+              }
+            />
+          ))}
+        </div>
+        <MobileFeeTotal
+          label={paymentPlan === "semester" ? "Semester totals" : heroLabel}
+          note={
+            paymentPlan === "semester"
+              ? `1st ${formatCurrency(semTotals.first)} · 2nd ${formatCurrency(semTotals.second)}`
+              : isFresh
+                ? "Fresh student"
+                : "Returning student"
+          }
+          amount={compulsoryTotal}
+          tone="amber"
+        />
+      </section>
+
+      {optionalLines.length > 0 && (
+        <section className="overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white">
+          <div className="border-b border-[#edf0ed] bg-[#fef8f0] px-5 py-4">
+            <p className="text-base font-semibold tracking-[-0.03em] text-brand-ink">
+              Accommodation and extras
+            </p>
+            <p className="mt-1 text-sm text-brand-ink/65">
+              Optional costs not included in the compulsory total
+            </p>
+          </div>
+          <div className="divide-y divide-[#edf0ed]">
+            {optionalLines.map((line) => (
+              <MobileFeeLine
+                key={line.id}
+                line={line}
+                category="Optional"
+                amount={line.amount}
+                note={line.note}
+              />
+            ))}
+          </div>
+          <MobileFeeTotal
+            label="Total with accommodation"
+            note="Compulsory fees plus listed accommodation"
+            amount={compulsoryTotal + accommodationTotal}
+          />
+        </section>
+      )}
+    </div>
+  );
+}
+
+function MobileFeeLine({
+  line,
+  category,
+  amount,
+  note,
+}: {
+  line: FeeBreakdownLine;
+  category: string;
+  amount: number;
+  note: string;
+}) {
+  return (
+    <div className="px-5 py-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-base font-semibold leading-5 tracking-[-0.03em] text-[#355955]">
+            {line.name}
+          </p>
+          <p className="mt-1 text-sm leading-5 text-brand-ink/65">{note}</p>
+        </div>
+        <p className="shrink-0 text-base font-semibold tracking-[-0.03em] text-[#355955]">
+          {formatCurrency(amount)}
+        </p>
+      </div>
+      <div className="mt-3 flex items-center gap-2 text-xs font-medium text-brand-ink/55">
+        <span className="rounded-full bg-brand-lime-light px-2.5 py-1">
+          {category}
+        </span>
+        <span>Due {dueLabel(line.due)}</span>
+      </div>
+    </div>
+  );
+}
+
+function MobileFeeTotal({
+  label,
+  note,
+  amount,
+  tone = "cream",
+}: {
+  label: string;
+  note: string;
+  amount: number;
+  tone?: "amber" | "cream";
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-end justify-between gap-4 border-t border-[#edf0ed] px-5 py-4",
+        tone === "amber" ? "bg-[rgba(242,172,91,0.09)]" : "bg-[#fef8f0]"
+      )}
+    >
+      <div className="min-w-0">
+        <p className="text-base font-semibold tracking-[-0.03em] text-[#355955]">
+          {label}
+        </p>
+        <p className="mt-1 text-sm leading-5 text-brand-ink/65">{note}</p>
+      </div>
+      <p className="shrink-0 text-lg font-semibold tracking-[-0.03em] text-[#355955]">
+        {formatCurrency(amount)}
+      </p>
+    </div>
+  );
+}
+
+function MobileVerificationList({ rows }: { rows: VerificationRow[] }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white">
+      <div className="border-b border-[#edf0ed] bg-[#fef8f0] px-5 py-4">
+        <p className="text-base font-semibold tracking-[-0.03em] text-brand-ink">
+          Record details
+        </p>
+        <p className="mt-1 text-sm text-brand-ink/65">
+          The evidence and review context behind these figures
+        </p>
+      </div>
+      <dl className="divide-y divide-[#edf0ed]">
+        {rows.map((row) => (
+          <div key={row.label} className="px-5 py-4">
+            <dt className="text-sm font-semibold tracking-[-0.02em] text-[#355955]">
+              {row.label}
+            </dt>
+            {row.note && (
+              <p className="mt-1 text-sm leading-5 text-brand-ink/60">
+                {row.note}
+              </p>
+            )}
+            <dd className="mt-2 text-sm font-medium text-brand-ink">
+              {row.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
 }
 
 function FilterSelect({

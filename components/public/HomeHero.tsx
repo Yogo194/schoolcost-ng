@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Suspense } from "react";
 import { SearchBar } from "@/components/public/SearchBar";
 import { SkylineMarquee } from "@/components/public/SkylineMarquee";
@@ -54,18 +53,29 @@ export function HomeHero() {
 
       {/* Illustrated campus skyline, pinned to the bottom of the hero */}
       <div className="relative z-0 w-full shrink-0">
-        <SkylineMarquee src="/figma/hero-skyline.avif" className="sm:hidden" />
-
-        {/* Tablet/desktop: static full width */}
-        <Image
-          src="/figma/hero-skyline.avif"
-          alt=""
-          width={2880}
-          height={522}
-          className="hidden h-auto w-full object-cover object-bottom sm:block"
-          aria-hidden
-          priority
+        <SkylineMarquee
+          src="/figma/hero-skyline.webp"
+          frameHeightClass="h-56"
+          className="sm:hidden"
         />
+
+        {/* Tablet/desktop: static full width. AVIF when supported,
+            WebP fallback for Firefox and others that struggle with this AVIF. */}
+        <div className="hidden sm:block">
+          <picture>
+            <source srcSet="/figma/hero-skyline.avif" type="image/avif" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/figma/hero-skyline.webp"
+              alt=""
+              width={2880}
+              height={522}
+              className="h-auto w-full object-cover object-bottom"
+              aria-hidden
+              fetchPriority="high"
+            />
+          </picture>
+        </div>
       </div>
     </section>
   );

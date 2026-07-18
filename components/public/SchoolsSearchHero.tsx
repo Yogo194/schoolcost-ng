@@ -26,20 +26,30 @@ export function SchoolsSearchHero() {
       {/* Campus strip pinned to the bottom of the hero, same pattern as homepage */}
       <div className="relative z-0 w-full shrink-0">
         <SkylineMarquee
-          src="/figma/schools-listing-skyline.avif"
+          src="/figma/schools-listing-skyline.webp"
+          frameHeightClass="h-56"
           className="sm:hidden"
         />
 
-        {/* Tablet/desktop: static full width, matches the design as approved */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/figma/schools-listing-skyline.avif"
-          alt=""
-          width={2880}
-          height={528}
-          className="hidden h-auto w-full object-contain object-bottom sm:block"
-          aria-hidden
-        />
+        {/* Tablet/desktop: static full width. AVIF for supporting browsers,
+            WebP fallback for Firefox and others that struggle with this AVIF. */}
+        <div className="hidden sm:block">
+          <picture>
+            <source
+              srcSet="/figma/schools-listing-skyline.avif"
+              type="image/avif"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/figma/schools-listing-skyline.webp"
+              alt=""
+              width={2880}
+              height={528}
+              className="h-auto w-full object-contain object-bottom"
+              aria-hidden
+            />
+          </picture>
+        </div>
       </div>
     </section>
   );

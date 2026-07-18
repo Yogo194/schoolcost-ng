@@ -4,13 +4,18 @@ import { useEffect, useRef, useState } from "react";
 
 type SkylineMarqueeProps = {
   src: string;
+  /** Visible strip height. Taller = more skyline detail on mobile. */
   frameHeightClass?: string;
   className?: string;
 };
 
+/**
+ * Mobile skyline strip: zooms into the building band (these assets have a
+ * lot of empty sky/ground) so landmarks read clearly while scrolling.
+ */
 export function SkylineMarquee({
   src,
-  frameHeightClass = "h-40",
+  frameHeightClass = "h-52",
   className,
 }: SkylineMarqueeProps) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -54,6 +59,11 @@ export function SkylineMarquee({
     };
   }, [src]);
 
+  const frameClass =
+    // ~2x phone width so object-cover zooms into landmarks instead of
+    // fitting the whole panorama into a tiny strip.
+    `${frameHeightClass} w-[200vw] max-w-none shrink-0 object-cover object-[center_72%]`;
+
   return (
     <div className={`overflow-hidden ${frameHeightClass} ${className ?? ""}`}>
       <div
@@ -68,7 +78,7 @@ export function SkylineMarquee({
           loading="eager"
           decoding="async"
           fetchPriority="high"
-          className={`${frameHeightClass} w-auto shrink-0 object-cover object-bottom`}
+          className={frameClass}
         />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -77,7 +87,7 @@ export function SkylineMarquee({
           loading="eager"
           decoding="async"
           fetchPriority="high"
-          className={`${frameHeightClass} w-auto shrink-0 object-cover object-bottom`}
+          className={frameClass}
         />
       </div>
     </div>

@@ -18,9 +18,11 @@ export function Header() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isSchoolsIndex = pathname === "/schools";
+  const isHowItWorks = pathname === "/how-it-works";
   const isSchoolProfile = /^\/schools\/[^/]+$/.test(pathname);
   const isFeeDetail = /^\/schools\/[^/]+\/fees\//.test(pathname);
-  const overlayNav = isHome || isSchoolsIndex || isSchoolProfile || isFeeDetail;
+  const overlayNav =
+    isHome || isSchoolsIndex || isSchoolProfile || isFeeDetail || isHowItWorks;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (

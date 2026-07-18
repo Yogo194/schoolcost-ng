@@ -194,14 +194,122 @@
   animation: star-twinkle 3.2s ease-in-out infinite;
 }
 
+@keyframes step-progress {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Duration must match STEP_DURATION_MS in HowItWorksProcess.tsx */
+@utility animate-step-progress {
+  animation: step-progress 6s linear both;
+  transform-origin: top;
+}
+
+@keyframes step-fade {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-step-fade {
+  animation: step-fade 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes step-image-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-step-image-fade {
+  animation: step-image-fade 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-badge-pop {
+  animation: badge-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes card-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(36px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@utility animate-card-slide-in {
+  animation: card-slide-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes bar-fill {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@utility animate-bar-fill {
+  animation: bar-fill 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-logo-marquee,
   .animate-skyline-marquee,
   .animate-hero-rise,
   .animate-deco-float,
   .animate-deco-float-alt,
-  .animate-star-twinkle {
+  .animate-star-twinkle,
+  .animate-step-progress,
+  .animate-step-fade,
+  .animate-step-image-fade,
+  .animate-badge-pop,
+  .animate-card-slide-in,
+  .animate-bar-fill {
     animation: none !important;
+  }
+
+  .animate-step-progress,
+  .animate-step-fade,
+  .animate-step-image-fade,
+  .animate-badge-pop,
+  .animate-card-slide-in,
+  .animate-bar-fill {
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   .animate-hero-rise {

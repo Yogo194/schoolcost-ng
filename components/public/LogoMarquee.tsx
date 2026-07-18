@@ -14,16 +14,32 @@ export interface LogoItem {
 interface LogoMarqueeProps {
   logos: readonly LogoItem[];
   className?: string;
+  /** Edge fade color. Defaults to brand lime for the homepage hero. */
+  fadeFrom?: string;
 }
 
-export function LogoMarquee({ logos, className }: LogoMarqueeProps) {
+export function LogoMarquee({
+  logos,
+  className,
+  fadeFrom = "#e4f67e",
+}: LogoMarqueeProps) {
   const track = [...logos, ...logos];
 
   return (
     <div className={className}>
       <div className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-10 bg-gradient-to-r from-[#e4f67e] to-transparent sm:w-14" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-10 bg-gradient-to-l from-[#e4f67e] to-transparent sm:w-14" />
+        <div
+          className="pointer-events-none absolute inset-y-0 left-0 z-[1] w-10 to-transparent sm:w-14"
+          style={{
+            backgroundImage: `linear-gradient(to right, ${fadeFrom}, transparent)`,
+          }}
+        />
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 z-[1] w-10 to-transparent sm:w-14"
+          style={{
+            backgroundImage: `linear-gradient(to left, ${fadeFrom}, transparent)`,
+          }}
+        />
 
         <div className="flex w-max animate-logo-marquee items-center gap-10 py-1 sm:gap-14">
           {track.map((logo, i) => {

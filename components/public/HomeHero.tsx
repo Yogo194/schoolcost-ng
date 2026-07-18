@@ -52,10 +52,10 @@ export function HomeHero() {
       </div>
 
       {/* Illustrated campus skyline, pinned to the bottom of the hero */}
-      <div className="relative z-0 w-full shrink-0">
+      <div className="relative z-0 -mb-px w-full shrink-0 leading-none">
         <SkylineMarquee
           src="/figma/hero-skyline.webp"
-          frameHeightClass="h-56"
+          frameHeightClass="h-40"
           className="sm:hidden"
         />
 

@@ -31,25 +31,16 @@ export function SchoolsSearchHero() {
           className="sm:hidden"
         />
 
-        {/* Tablet/desktop: static full width. AVIF for supporting browsers,
-            WebP fallback for Firefox and others that struggle with this AVIF. */}
-        <div className="hidden sm:block">
-          <picture>
-            <source
-              srcSet="/figma/schools-listing-skyline.avif"
-              type="image/avif"
-            />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/figma/schools-listing-skyline.webp"
-              alt=""
-              width={2880}
-              height={528}
-              className="h-auto w-full object-contain object-bottom"
-              aria-hidden
-            />
-          </picture>
-        </div>
+        {/* Tablet/desktop: static full width (WebP: reliable in Firefox + Chrome) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/figma/schools-listing-skyline.webp"
+          alt=""
+          width={2880}
+          height={528}
+          className="hidden h-auto w-full object-contain object-bottom sm:block"
+          aria-hidden
+        />
       </div>
     </section>
   );

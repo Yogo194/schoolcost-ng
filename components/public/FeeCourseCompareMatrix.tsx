@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ChevronDown, Info, Plus, Sparkles, Trophy, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChevronDown,
+  Info,
+  Repeat2,
+  Plus,
+  Sparkles,
+  X,
+} from "lucide-react";
 import type { FeeDetailRecord } from "@/lib/mock/fee-detail";
 import {
   getCourseCompareColumns,
@@ -23,8 +30,10 @@ interface FeeCourseCompareMatrixProps {
    * Standalone compare page: start with no schools selected (slot-based
    * empty state) and let every column be removed. Embedded contexts (fee
    * detail page) keep the pre-filled behavior with the current school pinned.
-   */
+  */
   startEmpty?: boolean;
+  /** Returns the standalone comparison flow to its course picker. */
+  onChangeCourse?: () => void;
 }
 
 type MetricKey =
@@ -111,6 +120,7 @@ export function FeeCourseCompareMatrix({
   record,
   level,
   startEmpty = false,
+  onChangeCourse,
 }: FeeCourseCompareMatrixProps) {
   const allColumns = useMemo(
     () => getCourseCompareColumns(record, level),
@@ -124,6 +134,7 @@ export function FeeCourseCompareMatrix({
       level={level}
       allColumns={allColumns}
       startEmpty={startEmpty}
+      onChangeCourse={onChangeCourse}
     />
   );
 }
@@ -133,15 +144,19 @@ function FeeCourseCompareContent({
   level,
   allColumns,
   startEmpty,
+  onChangeCourse,
 }: {
   record: FeeDetailRecord;
   level: string;
   allColumns: CourseCompareColumn[];
   startEmpty: boolean;
+  onChangeCourse?: () => void;
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
     startEmpty ? [] : allColumns.slice(0, 2).map((column) => column.id)
   );
+  const stickySentinelRef = useRef<HTMLDivElement>(null);
+  const [headerStuck, setHeaderStuck] = useState(false);
 
   const columns = allColumns.filter((column) =>
     selectedIds.includes(column.id)
@@ -150,6 +165,20 @@ function FeeCourseCompareContent({
     (column) => !selectedIds.includes(column.id)
   );
   const isEmpty = columns.length === 0;
+
+  useEffect(() => {
+    const sentinel = stickySentinelRef.current;
+    if (!sentinel || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeaderStuck(!entry.isIntersecting);
+      },
+      { threshold: 0 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [columns.length]);
 
   function removeColumn(id: string) {
     setSelectedIds((ids) => ids.filter((selectedId) => selectedId !== id));
@@ -166,23 +195,28 @@ function FeeCourseCompareContent({
   return (
     <div className="space-y-8 sm:space-y-10">
       <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4 sm:p-5">
-        {isEmpty && <EmptySteps course={record.course} />}
-
-        <div
-          className={cn(
-            "flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between",
-            isEmpty && "mt-6"
-          )}
-        >
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+            <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-brand-ink/45">
               Schools in this comparison
             </p>
-            <p className="mt-1 text-sm tracking-[-0.02em] text-brand-ink/65">
-              {record.course} · {level} · up to {MAX_SCHOOLS} schools
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+              <p className="text-[15px] tracking-[-0.02em] text-brand-ink/65">
+                {record.course} · {level} · up to {MAX_SCHOOLS} schools
+              </p>
+              {onChangeCourse && (
+                <button
+                  type="button"
+                  onClick={onChangeCourse}
+                  className="inline-flex items-center gap-1.5 text-[15px] font-semibold tracking-[-0.02em] text-[#c56d20] transition-colors hover:text-[#8f4d16]"
+                >
+                  <Repeat2 className="size-3.5" aria-hidden />
+                  Switch course
+                </button>
+              )}
+            </div>
           </div>
-          <p className="text-sm tracking-[-0.02em] text-brand-ink/50">
+          <p className="text-[15px] tracking-[-0.02em] text-brand-ink/50">
             {columns.length}/{MAX_SCHOOLS} added
           </p>
         </div>
@@ -243,22 +277,37 @@ function FeeCourseCompareContent({
         )}
       </div>
 
-      {columns.length >= 2 && <VerdictCard columns={columns} />}
-
       <MobileComparison columns={columns} />
 
       {columns.length > 0 && (
-        <div className="hidden overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white md:block">
-          <table className="w-full min-w-[940px] border-collapse text-left">
+        <div className="relative hidden max-w-full rounded-2xl border border-[#e5ebe5] bg-white motion-reduce:animate-none md:block animate-compare-table-flow [--compare-sticky-top:0px] [--compare-school-row-height:4rem]">
+          {/* Sentinel: when this leaves the viewport, the School header is stuck.
+              Absolutely positioned so it doesn't push the header down and expose
+              the card's rounded corners. */}
+          <div
+            ref={stickySentinelRef}
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            aria-hidden
+          />
+          <table className="w-full table-fixed border-collapse text-left">
             <thead>
               <tr>
-                <th className="h-14 w-[280px] min-w-[280px] bg-[#f2ac5b] px-5 text-left text-[18px] font-medium tracking-[-0.25px] text-[#002c15]">
+                <th
+                  className={cn(
+                    "sticky top-[var(--compare-sticky-top)] z-20 h-16 w-[min(280px,28%)] rounded-tl-2xl bg-[#F2AC5B] px-5 text-left text-[18px] font-medium tracking-[-0.25px] text-brand-ink",
+                    headerStuck && "rounded-tl-none"
+                  )}
+                >
                   School
                 </th>
-                {columns.map((col) => (
+                {columns.map((col, index) => (
                   <th
                     key={col.id}
-                    className="h-14 min-w-[200px] bg-[#f2ac5b] px-4 text-left"
+                    className={cn(
+                      "sticky top-[var(--compare-sticky-top)] z-20 h-16 bg-[#F2AC5B] px-4 text-left",
+                      index === columns.length - 1 && "rounded-tr-2xl",
+                      headerStuck && index === columns.length - 1 && "rounded-tr-none"
+                    )}
                   >
                     <div className="flex items-center gap-2.5">
                       <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-lime text-xs font-semibold text-brand-ink">
@@ -271,7 +320,7 @@ function FeeCourseCompareContent({
                         <p className="truncate text-base font-medium tracking-[-0.02em] text-[#002c15]">
                           {col.abbreviation || col.schoolName}
                         </p>
-                        <p className="truncate text-xs font-normal tracking-[-0.02em] text-[#002c15]/65">
+                        <p className="truncate text-xs font-normal tracking-[-0.02em] text-[#002c15]/70">
                           {col.schoolName}
                         </p>
                       </div>
@@ -303,10 +352,16 @@ function FeeCourseCompareContent({
                 );
               })}
 
-              <tr className="border-t border-[#e5ebe5] bg-[#fef8f0]">
-                <td className="w-[280px] min-w-[280px] px-5 py-4" />
-                {columns.map((col) => (
-                  <td key={`${col.id}-action`} className="px-4 py-4">
+              <tr className="border-t border-[#e5ebe5] bg-white">
+                <td className="rounded-bl-2xl px-5 py-4" />
+                {columns.map((col, index) => (
+                  <td
+                    key={`${col.id}-action`}
+                    className={cn(
+                      "px-4 py-4",
+                      index === columns.length - 1 && "rounded-br-2xl"
+                    )}
+                  >
                     {!startEmpty && col.isCurrent ? (
                       <span className="text-base font-medium tracking-[-0.02em] text-brand-ink/50">
                         Viewing now
@@ -344,44 +399,6 @@ function FeeCourseCompareContent({
   );
 }
 
-/** Three tiny numbered steps shown only before any school is added. */
-function EmptySteps({ course }: { course: string }) {
-  const steps = [
-    {
-      title: "Add schools",
-      detail: "Search and pick up to three",
-    },
-    {
-      title: "Same course, lined up",
-      detail: `We match ${course} at every school`,
-    },
-    {
-      title: "See what you'll pay",
-      detail: "Lowest costs are highlighted",
-    },
-  ];
-
-  return (
-    <ol className="grid grid-cols-1 gap-3 rounded-xl bg-brand-lime-light/60 p-4 sm:grid-cols-3">
-      {steps.map((step, index) => (
-        <li key={step.title} className="flex items-start gap-3">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-brand-lime text-sm font-semibold text-brand-ink">
-            {index + 1}
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-semibold tracking-[-0.02em] text-brand-ink">
-              {step.title}
-            </span>
-            <span className="mt-0.5 block text-xs leading-[1.4] tracking-[-0.02em] text-brand-ink/60">
-              {step.detail}
-            </span>
-          </span>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
 /** Empty slot that adds a school. Primary style for the first empty slot. */
 function AddSchoolSlot({
   course,
@@ -404,7 +421,7 @@ function AddSchoolSlot({
         "relative flex min-h-[72px] cursor-pointer items-center gap-3 rounded-2xl px-4 py-3 transition-colors",
         primary
           ? "border border-[#355955]/45 bg-brand-lime-light/60 hover:border-[#355955]/70 hover:bg-brand-lime-light"
-          : "border border-dashed border-[#355955]/25 bg-white opacity-70 hover:opacity-100",
+          : "border border-dashed border-[#355955]/35 bg-white hover:border-[#355955]/55",
         className
       )}
     >
@@ -419,10 +436,10 @@ function AddSchoolSlot({
         <Plus className="size-4" aria-hidden />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-medium tracking-[-0.02em] text-brand-ink">
+        <span className="block text-[15px] font-medium tracking-[-0.02em] text-brand-ink">
           {primary ? "Add a school" : "Add another school"}
         </span>
-        <span className="mt-0.5 block text-xs tracking-[-0.02em] text-brand-ink/55">
+        <span className="mt-0.5 block text-[13px] tracking-[-0.02em] text-brand-ink/70">
           {course} · {level}
         </span>
       </span>
@@ -457,40 +474,10 @@ function ExampleChip({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-full border border-[#355955]/25 bg-brand-lime-light/60 px-3.5 py-2 text-sm font-medium tracking-[-0.02em] text-brand-ink transition-colors hover:border-[#355955]/50 hover:bg-brand-lime-light"
+      className="rounded-full border border-[#edcfac] bg-[#fef8f0] px-3.5 py-2 text-sm font-medium tracking-[-0.02em] text-brand-ink transition-colors hover:border-[#e7b77e] hover:bg-[#fcebd7]"
     >
       {label}
     </button>
-  );
-}
-
-/** Plain-sentence answer above the table: who costs least and by how much. */
-function VerdictCard({ columns }: { columns: CourseCompareColumn[] }) {
-  const sorted = [...columns].sort(
-    (a, b) => a.estimatedDegreeTotal - b.estimatedDegreeTotal
-  );
-  const lowest = sorted[0];
-  const highest = sorted[sorted.length - 1];
-  const saving = highest.estimatedDegreeTotal - lowest.estimatedDegreeTotal;
-
-  return (
-    <div className="flex items-start gap-3.5 rounded-2xl border border-brand-ink/10 bg-brand-lime px-5 py-4 sm:items-center">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-ink shadow-[0_2px_0_rgba(3,48,42,0.12)]">
-        <Trophy className="size-5" aria-hidden />
-      </span>
-      <p className="text-base leading-[1.45] tracking-[-0.02em] text-brand-ink sm:text-lg">
-        {saving > 0 ? (
-          <>
-            <strong className="font-semibold">{lowest.schoolName}</strong> costs
-            the least here — about{" "}
-            <strong className="font-semibold">{formatCurrency(saving)}</strong>{" "}
-            less than {highest.schoolName} for the whole programme.
-          </>
-        ) : (
-          <>These schools cost about the same for the whole programme.</>
-        )}
-      </p>
-    </div>
   );
 }
 
@@ -508,17 +495,15 @@ function BandedRow({
   return (
     <>
       {showBandHeader && (
-        <tr className="border-t border-[#e5ebe5] bg-[#fef8f0]">
-          <td
+        <tr className="bg-[#fafbf8]">
+          <StickyBandLabel
+            label={BAND_LABELS[metric.band]}
             colSpan={columns.length + 1}
-            className="px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-brand-ink/55"
-          >
-            {BAND_LABELS[metric.band]}
-          </td>
+          />
         </tr>
       )}
-      <tr className="border-t border-[#e5ebe5]">
-        <td className="w-[280px] min-w-[280px] px-5 py-4 align-middle">
+      <tr>
+        <td className="border-t border-[#e5ebe5] px-5 py-4 align-middle">
           <p className="text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955]">
             {metric.label}
           </p>
@@ -538,8 +523,8 @@ function BandedRow({
             <td
               key={`${col.id}-${metric.key}`}
               className={cn(
-                "px-4 py-4 align-middle",
-                isLowest && "bg-[rgba(228,246,126,0.35)]"
+                "border-t border-[#e5ebe5] px-4 py-4 align-middle",
+                isLowest && "bg-[#fcffe7]/45"
               )}
             >
               <MetricCell
@@ -557,11 +542,79 @@ function BandedRow({
   );
 }
 
+/** Band label that only shows a drop shadow while it is the actively pinned sticky band. */
+function StickyBandLabel({
+  label,
+  colSpan,
+}: {
+  label: string;
+  colSpan: number;
+}) {
+  const cellRef = useRef<HTMLTableCellElement>(null);
+  const [pinned, setPinned] = useState(false);
+
+  useEffect(() => {
+    if (!cellRef.current || typeof IntersectionObserver === "undefined") return;
+    const node: HTMLTableCellElement = cellRef.current;
+
+    let observer: IntersectionObserver | null = null;
+
+    function connect() {
+      observer?.disconnect();
+
+      const schoolRowHeight =
+        getComputedStyle(node)
+          .getPropertyValue("--compare-school-row-height")
+          .trim() || "4rem";
+      const probe = document.createElement("div");
+      probe.style.height = schoolRowHeight;
+      probe.style.position = "absolute";
+      probe.style.visibility = "hidden";
+      document.body.appendChild(probe);
+      const pin = probe.getBoundingClientRect().height;
+      document.body.removeChild(probe);
+
+      const bottomCut = Math.max(window.innerHeight - pin - 2, 0);
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          setPinned(entry.isIntersecting);
+        },
+        {
+          // 2px detection line exactly at the band sticky offset under the School row.
+          rootMargin: `-${pin}px 0px -${bottomCut}px 0px`,
+          threshold: 0,
+        }
+      );
+      observer.observe(node);
+    }
+
+    connect();
+    window.addEventListener("resize", connect);
+    return () => {
+      window.removeEventListener("resize", connect);
+      observer?.disconnect();
+    };
+  }, []);
+
+  return (
+    <td
+      ref={cellRef}
+      colSpan={colSpan}
+      className={cn(
+        "sticky top-[calc(var(--compare-sticky-top)+var(--compare-school-row-height))] z-10 border-0 bg-[#fafbf8] px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.08em] text-brand-ink/55",
+        pinned && "shadow-[inset_0_-1px_0_0_rgba(3,48,42,0.08),0_3px_8px_rgba(3,48,42,0.08)]"
+      )}
+    >
+      {label}
+    </td>
+  );
+}
+
 function MobileComparison({ columns }: { columns: CourseCompareColumn[] }) {
   if (columns.length === 0) return null;
 
   return (
-    <div className="space-y-3 md:hidden">
+    <div className="animate-compare-table-flow space-y-3 motion-reduce:animate-none md:hidden">
       <div className="rounded-2xl border border-[#e5ebe5] bg-white px-4 py-4">
         <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
           Compare at a glance
@@ -623,7 +676,7 @@ function MobileMetricCard({
 
   return (
     <section className="overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white">
-      <div className="border-b border-[#edf0ed] bg-[#fef8f0] px-4 py-3.5">
+      <div className="border-b border-[#edf0ed] bg-[#fafbf8] px-4 py-3.5">
         <p className="text-base font-semibold tracking-[-0.03em] text-brand-ink">
           {metric.label}
         </p>
@@ -644,7 +697,7 @@ function MobileMetricCard({
               key={column.id}
               className={cn(
                 "flex items-center justify-between gap-4 px-4 py-4",
-                isLowest && "bg-brand-lime-light/45"
+                isLowest && "bg-[#fcffe7]/45"
               )}
             >
               <div className="flex min-w-0 items-center gap-3">
@@ -667,7 +720,7 @@ function MobileMetricCard({
                   {formatCurrency(value)}
                 </p>
                 {isLowest && (
-                  <span className="mt-1 inline-flex rounded-[8px] bg-brand-lime px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
+                  <span className="mt-1 inline-flex rounded-[8px] border border-[#d8ec8c] bg-white px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
                     Lowest
                   </span>
                 )}
@@ -694,16 +747,16 @@ function SchoolChip({
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm font-medium tracking-[-0.02em] text-brand-ink">
+          <p className="text-[15px] font-medium tracking-[-0.02em] text-brand-ink">
             {column.schoolName}
           </p>
           {column.isCurrent && !onRemove && (
-            <span className="rounded-[8px] bg-brand-lime px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-brand-ink">
+            <span className="rounded-[8px] bg-brand-lime px-2 py-0.5 text-xs font-semibold uppercase tracking-[0.04em] text-brand-ink">
               Current
             </span>
           )}
         </div>
-        <p className="mt-0.5 text-xs tracking-[-0.02em] text-brand-ink/55">
+        <p className="mt-0.5 text-[13px] tracking-[-0.02em] text-brand-ink/55">
           {[column.abbreviation, column.ownership, column.state]
             .filter(Boolean)
             .join(" · ")}
@@ -750,7 +803,7 @@ function MetricCell({
           {formatCurrency(Number(value))}
         </span>
         {isLowest && (
-          <span className="rounded-[8px] bg-brand-lime px-2 py-0.5 text-xs font-semibold tracking-[-0.02em] text-brand-ink">
+          <span className="rounded-[8px] border border-[#d8ec8c] bg-white px-2 py-0.5 text-xs font-semibold tracking-[-0.02em] text-brand-ink">
             Lowest
           </span>
         )}

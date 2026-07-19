@@ -20,12 +20,12 @@ export const feeItemSchema = z.object({
 export const submitFeeSchema = z.object({
   institution_id: z.string().min(1, "Please select a school"),
   course_id: z.string().optional(),
-  academic_session_id: z.string().min(1, "Please select an academic session"),
+  academic_session_id: z.string().min(1, "Which session is this fee for?"),
   level: z.string().optional(),
   student_type: z.enum(["fresh", "returning"]),
   fees: z.array(feeItemSchema).min(1, "Please add at least one fee item"),
   source_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-  submitter_name: z.string().min(1, "Your name is required"),
+  submitter_name: z.string().optional(),
   submitter_email: z.string().email("Please enter a valid email address"),
   notes: z.string().optional(),
 });

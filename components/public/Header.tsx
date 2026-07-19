@@ -18,11 +18,17 @@ export function Header() {
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isSchoolsIndex = pathname === "/schools";
+  const isCompare = pathname === "/compare";
   const isHowItWorks = pathname === "/how-it-works";
   const isSchoolProfile = /^\/schools\/[^/]+$/.test(pathname);
   const isFeeDetail = /^\/schools\/[^/]+\/fees\//.test(pathname);
   const overlayNav =
-    isHome || isSchoolsIndex || isSchoolProfile || isFeeDetail || isHowItWorks;
+    isHome ||
+    isSchoolsIndex ||
+    isCompare ||
+    isSchoolProfile ||
+    isFeeDetail ||
+    isHowItWorks;
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -34,7 +40,7 @@ export function Header() {
           : "sticky top-0 border-b border-gray-200 bg-white/90 backdrop-blur-md"
       )}
     >
-      {isHome && <AnnouncementBar />}
+      {(isHome || isCompare) && <AnnouncementBar />}
 
       <div
         className={cn(

@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -127,6 +127,30 @@
   }
 }
 
+@keyframes compare-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes compare-table-flow {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0 round 1rem);
+    transform: translateY(22px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    clip-path: none;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @keyframes deco-float {
   0%,
   100% {
@@ -180,6 +204,14 @@
 
 @utility animate-hero-rise {
   animation: hero-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-compare-reveal {
+  animation: compare-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility animate-compare-table-flow {
+  animation: compare-table-flow 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @utility animate-deco-float {

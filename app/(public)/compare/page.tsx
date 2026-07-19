@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import {
-  ArrowRight,
   CheckCircle2,
   Scale,
 } from "lucide-react";
-import { FeeCourseCompareMatrix } from "@/components/public/FeeCourseCompareMatrix";
+import { CompareWorkspace } from "@/components/public/CompareWorkspace";
 import { LogoMarquee } from "@/components/public/LogoMarquee";
-import { getMockFeeDetail } from "@/lib/mock/fee-detail";
 
 const UNIVERSITY_LOGOS = [
   {
@@ -40,10 +37,6 @@ export const metadata: Metadata = {
 };
 
 export default function ComparePage() {
-  const record = getMockFeeDetail("unilag-cs-100");
-
-  if (!record) return null;
-
   return (
     <main className="bg-brand-lime-light">
       <section className="relative isolate min-h-[670px] overflow-hidden bg-white sm:h-[672px] sm:min-h-0">
@@ -89,7 +82,7 @@ export default function ComparePage() {
           <CompareExplainer
             icon={<Scale className="size-6" aria-hidden />}
             title="A fair comparison"
-            description={`${record.course} · ${record.defaultLevel} · ${record.session}`}
+            description="Same course · same level · same session"
           />
           <CompareExplainer
             icon={
@@ -108,48 +101,7 @@ export default function ComparePage() {
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-10 sm:py-20 lg:px-20">
-        <div className="mx-auto max-w-[1280px]">
-          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-[-0.04em] text-brand-ink sm:text-3xl">
-                What will I pay?
-              </h2>
-              <p className="mt-1 text-sm leading-5 text-brand-ink/65 sm:text-base">
-                The lowest amount is highlighted. Hostel is optional and shown
-                separately, so you can see the full picture.
-              </p>
-            </div>
-            <p className="text-sm font-medium text-brand-ink/55">
-              Choose up to 3 schools
-            </p>
-          </div>
-
-          <FeeCourseCompareMatrix
-            record={record}
-            level={record.defaultLevel}
-            startEmpty
-          />
-
-          <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#e5ebe5] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-base font-semibold tracking-[-0.02em] text-brand-ink">
-                Looking for another school?
-              </p>
-              <p className="mt-1 text-sm text-brand-ink/65">
-                Browse the directory and add a school to your comparison list.
-              </p>
-            </div>
-            <Link
-              href="/schools"
-              className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[12px] bg-brand-ink px-4 text-sm font-medium text-white transition-colors hover:bg-brand-ink/90"
-            >
-              Find a school
-              <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CompareWorkspace />
     </main>
   );
 }

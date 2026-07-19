@@ -1,75 +1,114 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GitCompare, Plus } from "lucide-react";
-import { ComparisonTable } from "@/components/public/ComparisonTable";
-import { EmptyState } from "@/components/public/EmptyState";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, CheckCircle2, Scale, ShieldCheck } from "lucide-react";
+import { FeeCourseCompareMatrix } from "@/components/public/FeeCourseCompareMatrix";
+import { getMockFeeDetail } from "@/lib/mock/fee-detail";
 
 export const metadata: Metadata = {
-  title: "Compare Schools",
-  description: "Compare the cost of attending up to three Nigerian tertiary institutions side by side.",
+  title: "Compare school costs",
+  description:
+    "Compare the cost of the same course at up to three Nigerian tertiary institutions, including first-year fees, hostel, payment options, and data sources.",
 };
 
-interface PageProps {
-  searchParams: Promise<{ schools?: string }>;
-}
+export default function ComparePage() {
+  const record = getMockFeeDetail("unilag-cs-100");
 
-export default async function ComparePage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const slugs = params.schools
-    ? params.schools.split(",").filter(Boolean).slice(0, 3)
-    : [];
+  if (!record) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Compare Schools</h1>
-        <p className="text-sm text-gray-500">
-          Compare the cost of attending up to three institutions side by side.
-        </p>
-      </div>
-
-      {slugs.length === 0 ? (
-        <EmptyState
-          title="Add up to three schools to compare their costs."
-          description="Browse schools and click 'Add to compare' on each school you want to compare."
-          action={{ label: "Find schools", href: "/schools" }}
-          icon={<GitCompare className="w-10 h-10" />}
-        />
-      ) : (
-        <div className="space-y-6">
-          {/* Slot indicators */}
-          <div className="flex flex-wrap gap-3">
-            {slugs.map((slug) => (
-              <div
-                key={slug}
-                className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full text-sm text-primary font-medium"
-              >
-                {slug}
-              </div>
-            ))}
-            {slugs.length < 3 && (
-              <Link
-                href="/schools"
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-dashed border-gray-300 rounded-full text-sm text-gray-400 hover:border-primary hover:text-primary transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Add school
-              </Link>
-            )}
-          </div>
-
-          {/* Comparison table, populated when data is wired up */}
-          <div className="bg-white border border-gray-200 rounded-xl p-8 text-center">
-            <p className="text-sm text-gray-500">
-              Comparison data will appear here once the database is connected.
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Selected slugs: {slugs.join(", ")}
-            </p>
-          </div>
+    <main className="bg-brand-lime-light px-4 pb-16 pt-28 sm:px-10 sm:pb-20 sm:pt-32 lg:px-20">
+      <div className="mx-auto max-w-[1280px]">
+        <div className="max-w-3xl">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/50">
+            School cost comparison
+          </p>
+          <h1 className="mt-3 text-[2.5rem] font-semibold leading-[1.05] tracking-[-0.05em] text-brand-ink sm:text-5xl lg:text-[60px]">
+            Compare school costs, clearly.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-[1.55] tracking-[-0.02em] text-brand-ink/75 sm:text-lg">
+            See what you are likely to pay at up to three schools before you
+            make a decision. We put the important costs side by side, in plain
+            language.
+          </p>
         </div>
-      )}
+
+        <section className="mt-8 grid gap-3 sm:grid-cols-3" aria-label="How to read this comparison">
+          <CompareExplainer
+            icon={<Scale className="size-4" aria-hidden />}
+            title="A fair comparison"
+            description={`${record.course} · ${record.defaultLevel} · ${record.session}`}
+          />
+          <CompareExplainer
+            icon={<CheckCircle2 className="size-4" aria-hidden />}
+            title="What is included"
+            description="First year, later years, hostel, and total programme cost"
+          />
+          <CompareExplainer
+            icon={<ShieldCheck className="size-4" aria-hidden />}
+            title="How current it is"
+            description="Every figure shows its source and most recent review"
+          />
+        </section>
+
+        <section className="mt-8">
+          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-[-0.04em] text-brand-ink sm:text-3xl">
+                What will I pay?
+              </h2>
+              <p className="mt-1 text-sm leading-5 text-brand-ink/65 sm:text-base">
+                The lowest amount is highlighted. Hostel is optional and shown
+                separately, so you can see the full picture.
+              </p>
+            </div>
+            <p className="text-sm font-medium text-brand-ink/55">
+              Choose up to 3 schools
+            </p>
+          </div>
+
+          <FeeCourseCompareMatrix record={record} level={record.defaultLevel} />
+        </section>
+
+        <div className="mt-8 flex flex-col gap-3 rounded-2xl border border-[#e5ebe5] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-base font-semibold tracking-[-0.02em] text-brand-ink">
+              Looking for another school?
+            </p>
+            <p className="mt-1 text-sm text-brand-ink/65">
+              Browse the directory and add a school to your comparison list.
+            </p>
+          </div>
+          <Link
+            href="/schools"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[12px] bg-brand-ink px-4 text-sm font-medium text-white transition-colors hover:bg-brand-ink/90"
+          >
+            Find a school
+            <ArrowRight className="size-4" aria-hidden />
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function CompareExplainer({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4">
+      <div className="flex size-8 items-center justify-center rounded-full bg-brand-lime text-brand-ink">
+        {icon}
+      </div>
+      <p className="mt-3 text-sm font-semibold tracking-[-0.02em] text-brand-ink">
+        {title}
+      </p>
+      <p className="mt-1 text-sm leading-5 text-brand-ink/65">{description}</p>
     </div>
   );
 }

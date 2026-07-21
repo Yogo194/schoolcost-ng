@@ -12,7 +12,7 @@ const FOOTER_SECTIONS = [
   {
     title: "Contribute",
     links: [
-      { href: "/submit-fees", label: "Submit Fees" },
+      { href: "/submit-fees", label: "Contribute" },
       { href: "/suggest-school", label: "Suggest a School" },
       { href: "/submit-correction", label: "Report an Error" },
     ],

@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: "/schools", label: "Schools" },
   { href: "/compare", label: "Compare" },
   { href: "/how-it-works", label: "How It Works" },
-  { href: "/submit-fees", label: "Submit Fees" },
+  { href: "/submit-fees", label: "Contribute" },
 ];
 
 export function Header() {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Building2, Check, Search } from "lucide-react";
 import type { SchoolsDirectoryItem } from "@/lib/mock/schools-directory";
 import { POPULAR_STATES } from "@/lib/mock/schools-directory";
@@ -11,6 +11,7 @@ import {
   OWNERSHIP_TYPE_LABELS,
 } from "@/types/institution";
 import type { InstitutionType, OwnershipType } from "@/types/database";
+import { createSchoolSearchIndex } from "@/lib/search/school-search";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
 
@@ -37,9 +38,42 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
   const institutionType = searchParams.get("institution_type") ?? "";
   const ownershipType = searchParams.get("ownership_type") ?? "";
 
+  /* The list filters from local state on every keystroke; the URL is synced
+     a moment later so results stay instant but links remain shareable. */
+  const [query, setQuery] = useState(q);
+  const lastSyncedQ = useRef(q);
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (trimmed === q.trim()) return;
+    const timer = window.setTimeout(() => {
+      lastSyncedQ.current = trimmed;
+      const next = new URLSearchParams(searchParams.toString());
+      if (trimmed) next.set("q", trimmed);
+      else next.delete("q");
+      /* No transition here: results already updated locally, so there is
+         nothing to visually "pend" while the URL catches up. */
+      const search = next.toString();
+      router.replace(search ? `/schools?${search}` : "/schools", {
+        scroll: false,
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [query, q, searchParams, router]);
+
+  // Follow external URL changes (back button, links) without clobbering typing.
+  useEffect(() => {
+    if (q !== lastSyncedQ.current) {
+      lastSyncedQ.current = q;
+      setQuery(q);
+    }
+  }, [q]);
+
+  // Built once per dataset; each keystroke is a synchronous ranked lookup.
+  const searchIndex = useMemo(() => createSchoolSearchIndex(schools), [schools]);
+
   const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return schools.filter((school) => {
+    return searchIndex.search(query).filter((school) => {
       if (state && school.state !== state) return false;
       if (institutionType && school.institution_type !== institutionType) {
         return false;
@@ -47,18 +81,13 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
       if (ownershipType && school.ownership_type !== ownershipType) {
         return false;
       }
-      if (!needle) return true;
-      const hay = [
-        school.name,
-        school.abbreviation ?? "",
-        school.city ?? "",
-        school.state,
-      ]
-        .join(" ")
-        .toLowerCase();
-      return hay.includes(needle);
+      return true;
     });
-  }, [schools, q, state, institutionType, ownershipType]);
+  }, [searchIndex, query, state, institutionType, ownershipType]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [query]);
 
   const visible = filtered.slice(0, visibleCount);
   const canShowMore = visibleCount < filtered.length;
@@ -217,22 +246,11 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
             />
             <input
               type="search"
-              defaultValue={q}
-              key={q}
+              value={query}
               placeholder="Search schools, courses, or states"
+              onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  updateParams({
-                    q: event.currentTarget.value.trim() || null,
-                  });
-                }
-              }}
-              onBlur={(event) => {
-                const next = event.currentTarget.value.trim();
-                if (next !== q.trim()) {
-                  updateParams({ q: next || null });
-                }
+                if (event.key === "Enter") event.preventDefault();
               }}
               className="h-[52px] w-full rounded-[14px] border border-[#d9e0dc] bg-white py-3 pl-12 pr-4 text-base tracking-[-0.02em] text-brand-ink outline-none transition-[box-shadow,border-color] placeholder:text-brand-ink/40 focus:border-brand-ink/30 focus:shadow-[0_0_0_3px_rgba(3,48,42,0.08)]"
             />
@@ -241,12 +259,12 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
           <p className="mt-4 text-sm tracking-[-0.02em] text-brand-ink/55">
             {filtered.length}{" "}
             {filtered.length === 1 ? "school" : "schools"}
-            {q.trim() ? (
+            {query.trim() ? (
               <>
                 {" "}
                 matching{" "}
                 <span className="font-medium text-brand-ink">
-                  &ldquo;{q.trim()}&rdquo;
+                  &ldquo;{query.trim()}&rdquo;
                 </span>
               </>
             ) : null}
@@ -269,14 +287,15 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
                 </Link>
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
+                    setQuery("");
                     updateParams({
                       q: null,
                       state: null,
                       institution_type: null,
                       ownership_type: null,
-                    })
-                  }
+                    });
+                  }}
                   className="inline-flex h-11 items-center rounded-[12px] border border-[#e5ebe5] bg-white px-4 text-sm font-medium text-brand-ink"
                 >
                   Clear filters

@@ -5,6 +5,8 @@ export interface SchoolsDirectoryItem {
   name: string;
   slug: string;
   abbreviation: string | null;
+  /** Informal or former names people actually search for. */
+  aliases?: readonly string[];
   city: string | null;
   state: string;
   institution_type: InstitutionType;
@@ -45,6 +47,7 @@ export const MOCK_SCHOOLS_DIRECTORY: SchoolsDirectoryItem[] = [
     name: "Obafemi Awolowo University",
     slug: "obafemi-awolowo-university",
     abbreviation: "OAU",
+    aliases: ["Great Ife", "Ife"],
     city: "Ile-Ife",
     state: "Osun",
     institution_type: "university",
@@ -69,6 +72,7 @@ export const MOCK_SCHOOLS_DIRECTORY: SchoolsDirectoryItem[] = [
     name: "Covenant University",
     slug: "covenant-university",
     abbreviation: "CU",
+    aliases: ["Hebron"],
     city: "Ota",
     state: "Ogun",
     institution_type: "university",
@@ -117,6 +121,7 @@ export const MOCK_SCHOOLS_DIRECTORY: SchoolsDirectoryItem[] = [
     name: "Rivers State University",
     slug: "rivers-state-university",
     abbreviation: "RSU",
+    aliases: ["RSUST"],
     city: "Port Harcourt",
     state: "Rivers",
     institution_type: "university",
@@ -141,6 +146,7 @@ export const MOCK_SCHOOLS_DIRECTORY: SchoolsDirectoryItem[] = [
     name: "Nnamdi Azikiwe University",
     slug: "nnamdi-azikiwe-university",
     abbreviation: "UNIZIK",
+    aliases: ["NAU"],
     city: "Awka",
     state: "Anambra",
     institution_type: "university",
@@ -189,6 +195,7 @@ export const MOCK_SCHOOLS_DIRECTORY: SchoolsDirectoryItem[] = [
     name: "Lagos State Polytechnic",
     slug: "lagos-state-polytechnic",
     abbreviation: "LASPOTECH",
+    aliases: ["LASUSTECH"],
     city: "Ikorodu",
     state: "Lagos",
     institution_type: "polytechnic",
@@ -212,36 +219,5 @@ export const POPULAR_STATES = [
   "FCT",
 ] as const;
 
-export function filterSchoolsDirectory(
-  schools: SchoolsDirectoryItem[],
-  params: {
-    q?: string;
-    state?: string;
-    institution_type?: string;
-    ownership_type?: string;
-  }
-): SchoolsDirectoryItem[] {
-  const q = params.q?.trim().toLowerCase() ?? "";
-
-  return schools.filter((school) => {
-    if (params.state && school.state !== params.state) return false;
-    if (params.institution_type && school.institution_type !== params.institution_type) {
-      return false;
-    }
-    if (params.ownership_type && school.ownership_type !== params.ownership_type) {
-      return false;
-    }
-    if (!q) return true;
-
-    const hay = [
-      school.name,
-      school.abbreviation ?? "",
-      school.city ?? "",
-      school.state,
-    ]
-      .join(" ")
-      .toLowerCase();
-
-    return hay.includes(q);
-  });
-}
+/* Query matching lives in lib/search/school-search.ts (ranked and
+   typo-tolerant); this module only supplies the data. */

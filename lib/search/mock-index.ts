@@ -1,10 +1,12 @@
 import { NIGERIA_STATES } from "@/types/institution";
+import { createSchoolSearchIndex } from "./school-search";
 import type { SearchSuggestion } from "./types";
 
 interface MockSchool {
   name: string;
   slug: string;
   abbreviation: string | null;
+  aliases?: readonly string[];
   city: string | null;
   state: string;
   ownership: string;
@@ -132,19 +134,22 @@ function schoolMeta(school: MockSchool): string {
   return [school.abbreviation, school.city, school.ownership].filter(Boolean).join(" · ");
 }
 
-function scoreMatch(text: string, query: string): number {
-  const hay = text.toLowerCase();
-  const needle = query.toLowerCase().trim();
-  if (!needle) return 0;
-  if (hay === needle) return 100;
-  if (hay.startsWith(needle)) return 80;
-  if (hay.includes(needle)) return 60;
-  return 0;
-}
+/* All three suggestion kinds share the ranked, typo-tolerant engine from
+   school-search.ts. Indexes are built once at module load. */
 
-function bestScore(fields: string[], query: string): number {
-  return Math.max(0, ...fields.map((field) => scoreMatch(field, query)));
-}
+const schoolIndex = createSchoolSearchIndex(MOCK_SCHOOLS);
+
+const courseIndex = createSchoolSearchIndex(
+  MOCK_COURSES.map((course) => ({
+    ...course,
+    // The engine matches on name and aliases; a course "aliases" its school.
+    aliases: [course.schoolName],
+  }))
+);
+
+const stateIndex = createSchoolSearchIndex(
+  NIGERIA_STATES.map((state) => ({ name: state }))
+);
 
 export function getMockSearchSuggestions(
   query: string,
@@ -153,43 +158,41 @@ export function getMockSearchSuggestions(
   const q = query.trim();
   if (q.length < 2) return [];
 
-  const schoolHits = MOCK_SCHOOLS.map((school) => ({
-    score: bestScore(
-      [school.name, school.abbreviation ?? "", school.city ?? "", school.state],
-      q
-    ),
+  const schoolHits = schoolIndex.searchScored(q).map(({ item, score }) => ({
+    score,
     suggestion: {
-      id: `school-${school.slug}`,
+      id: `school-${item.slug}`,
       kind: "school" as const,
-      label: school.name,
-      meta: schoolMeta(school),
-      href: `/schools/${school.slug}`,
+      label: item.name,
+      meta: schoolMeta(item),
+      href: `/schools/${item.slug}`,
     },
-  })).filter((hit) => hit.score > 0);
+  }));
 
-  const courseHits = MOCK_COURSES.map((course) => ({
-    score: bestScore([course.name, course.schoolName], q),
+  const courseHits = courseIndex.searchScored(q).map(({ item, score }) => ({
+    score,
     suggestion: {
-      id: `course-${course.schoolSlug}-${course.name.toLowerCase().replace(/\s+/g, "-")}`,
+      id: `course-${item.schoolSlug}-${item.name.toLowerCase().replace(/\s+/g, "-")}`,
       kind: "course" as const,
-      label: course.name,
-      meta: course.schoolName,
-      href: `/schools?q=${encodeURIComponent(course.name)}`,
+      label: item.name,
+      meta: item.schoolName,
+      href: `/schools?q=${encodeURIComponent(item.name)}`,
     },
-  })).filter((hit) => hit.score > 0);
+  }));
 
-  const stateHits = NIGERIA_STATES.map((state) => ({
-    score: scoreMatch(state, q),
+  const stateHits = stateIndex.searchScored(q).map(({ item, score }) => ({
+    score,
     suggestion: {
-      id: `state-${state.toLowerCase().replace(/\s+/g, "-")}`,
+      id: `state-${item.name.toLowerCase().replace(/\s+/g, "-")}`,
       kind: "state" as const,
-      label: state,
+      label: item.name,
       meta: "Filter by state",
-      href: `/schools?state=${encodeURIComponent(state)}`,
+      href: `/schools?state=${encodeURIComponent(item.name)}`,
     },
-  })).filter((hit) => hit.score > 0);
+  }));
 
   const ranked = [...schoolHits, ...courseHits, ...stateHits]
+    .filter((hit) => hit.score > 0)
     .sort(
       (a, b) =>
         b.score - a.score || a.suggestion.label.localeCompare(b.suggestion.label)

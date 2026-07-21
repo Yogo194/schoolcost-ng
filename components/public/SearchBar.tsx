@@ -46,6 +46,7 @@ export function SearchBar({
   const searchParams = useSearchParams();
   const listboxId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [value, setValue] = useState(
@@ -171,7 +172,11 @@ export function SearchBar({
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        !rootRef.current?.contains(target) &&
+        !dropdownRef.current?.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
@@ -256,6 +261,7 @@ export function SearchBar({
       variant={size === "lg" ? "hero" : "default"}
       anchorRect={anchorRect}
       usePortal={size === "lg"}
+      panelRef={dropdownRef}
       onSelect={selectSuggestion}
       onHover={setActiveIndex}
     />

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType, CSSProperties } from "react";
+import type { ComponentType, CSSProperties, RefObject } from "react";
 import { createPortal } from "react-dom";
 import {
   BookOpen,
@@ -59,6 +59,7 @@ interface SearchSuggestionsDropdownProps {
   variant?: "hero" | "default";
   anchorRect?: DOMRect | null;
   usePortal?: boolean;
+  panelRef?: RefObject<HTMLDivElement | null>;
   onSelect: (index: number) => void;
   onHover: (index: number) => void;
 }
@@ -73,6 +74,7 @@ export function SearchSuggestionsDropdown({
   variant = "default",
   anchorRect,
   usePortal = false,
+  panelRef,
   onSelect,
   onHover,
 }: SearchSuggestionsDropdownProps) {
@@ -95,6 +97,7 @@ export function SearchSuggestionsDropdown({
 
   const panel = (
     <div
+      ref={panelRef}
       className={cn(
         "overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white shadow-[0_20px_50px_rgba(3,48,42,0.16)]",
         usePortal

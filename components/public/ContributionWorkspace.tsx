@@ -175,11 +175,30 @@ export function ContributionWorkspace({
 
       <div key={activeTab} className="animate-compare-reveal motion-reduce:animate-none">
         {isFee ? (
-          <SubmitFeeForm
-            institutions={institutions}
-            courses={courses}
-            onSubmit={handleSubmitFee}
-          />
+          institutions.length === 0 ? (
+            <div className="rounded-2xl border border-[#e5ebe5] bg-[#f7faf7] px-5 py-8 text-center">
+              <h2 className="text-lg font-semibold tracking-[-0.02em] text-brand-ink">
+                Schools are not loaded yet
+              </h2>
+              <p className="mx-auto mt-2 max-w-[360px] text-sm leading-[1.55] text-brand-ink/60">
+                Fee submissions need a live school from our directory. You can
+                still suggest a school that is missing.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("school")}
+                className="mt-5 text-sm font-semibold text-[#166d3e] underline underline-offset-2"
+              >
+                Suggest a school
+              </button>
+            </div>
+          ) : (
+            <SubmitFeeForm
+              institutions={institutions}
+              courses={courses}
+              onSubmit={handleSubmitFee}
+            />
+          )
         ) : (
           <SuggestSchoolForm onSubmit={handleSuggestSchool} />
         )}

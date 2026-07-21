@@ -45,6 +45,11 @@ export async function uploadEvidenceFiles(
       });
 
     if (error) {
+      if (/bucket|not found|does not exist/i.test(error.message)) {
+        throw new Error(
+          "Proof uploads are not available yet (storage bucket missing). Apply migration 004, or submit without a file."
+        );
+      }
       throw new Error(`Could not upload “${file.name}”: ${error.message}`);
     }
 

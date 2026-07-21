@@ -2,11 +2,7 @@ import type { Metadata } from "next";
 import { SubmitFeesClient } from "@/components/public/SubmitFeesClient";
 import { SubmitFeeTestimonialPanel } from "@/components/public/SubmitFeeTestimonialPanel";
 import { createServerClient } from "@/lib/supabase/server";
-import {
-  getMockCoursesForSubmit,
-  type SubmitCourseOption,
-} from "@/lib/mock/courses";
-import { MOCK_SCHOOLS_DIRECTORY } from "@/lib/mock/schools-directory";
+import type { SubmitCourseOption } from "@/lib/mock/courses";
 import type { Institution } from "@/types/institution";
 
 export const metadata: Metadata = {
@@ -44,6 +40,7 @@ export default async function SubmitFeesPage({
   );
 }
 
+/** Live institutions only. Never fall back to mock-* IDs (they fail submit FKs). */
 async function getInstitutionsForSubmit(): Promise<Institution[]> {
   try {
     const supabase = await createServerClient();
@@ -55,27 +52,13 @@ async function getInstitutionsForSubmit(): Promise<Institution[]> {
 
     if (!error && data?.length) return data as Institution[];
   } catch {
-    // Fall through to mock data when Supabase is unavailable or empty.
+    // Empty list below.
   }
 
-  return MOCK_SCHOOLS_DIRECTORY.map((school) => ({
-    id: school.id,
-    name: school.name,
-    slug: school.slug,
-    abbreviation: school.abbreviation,
-    logo_url: school.logo_url,
-    institution_type: school.institution_type,
-    ownership_type: school.ownership_type,
-    state: school.state,
-    city: school.city,
-    website_url: null,
-    description: null,
-    is_active: true,
-    created_at: "",
-    updated_at: "",
-  }));
+  return [];
 }
 
+/** Live courses only, matched to live institutions. */
 async function getCoursesForSubmit(): Promise<SubmitCourseOption[]> {
   try {
     const supabase = await createServerClient();
@@ -87,8 +70,8 @@ async function getCoursesForSubmit(): Promise<SubmitCourseOption[]> {
 
     if (!error && data?.length) return data as SubmitCourseOption[];
   } catch {
-    // Fall through to mock data when Supabase is unavailable or empty.
+    // Empty list below.
   }
 
-  return getMockCoursesForSubmit();
+  return [];
 }

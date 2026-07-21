@@ -1,5 +1,9 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { signEvidenceFileUrl } from "@/lib/submissions/evidence";
+import {
+  publishFeeFromSubmission,
+  publishSchoolFromSuggestion,
+} from "@/lib/submissions/publish";
 import type { Evidence } from "@/types/fee";
 import type { SubmissionStatus } from "@/types/database";
 import type { SubmissionWithDetails } from "@/types/submission";
@@ -61,20 +65,61 @@ export async function getSubmissionById(id: string): Promise<{
   };
 }
 
+export type ModerateResult = {
+  feeRecordId?: string;
+  institutionId?: string;
+};
+
 export async function moderateSubmission(
   id: string,
   status: SubmissionStatus,
   feedback?: string
-): Promise<void> {
+): Promise<ModerateResult> {
   const supabase = createServiceClient();
+  const result: ModerateResult = {};
+
+  const { data: submission, error: fetchError } = await supabase
+    .from("submissions")
+    .select(
+      "id, submission_type, institution_id, course_id, submitter_email, submitted_payload, status"
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (fetchError) throw new Error(fetchError.message);
+  if (!submission) throw new Error("Submission not found");
+
+  const shouldPublish =
+    status === "approved" || status === "approved_with_edits";
+
+  if (shouldPublish) {
+    if (submission.submission_type === "new_fee") {
+      const published = await publishFeeFromSubmission(supabase, submission);
+      result.feeRecordId = published.feeRecordId;
+    }
+    if (submission.submission_type === "suggest_school") {
+      const published = await publishSchoolFromSuggestion(supabase, submission);
+      result.institutionId = published.institutionId;
+    }
+  }
+
+  const noteParts = [feedback?.trim()].filter(Boolean) as string[];
+  if (result.feeRecordId) {
+    noteParts.push(`Draft fee record: ${result.feeRecordId}`);
+  }
+  if (result.institutionId) {
+    noteParts.push(`Draft institution: ${result.institutionId}`);
+  }
+
   const { error } = await supabase
     .from("submissions")
     .update({
       status,
-      admin_feedback: feedback?.trim() || null,
+      admin_feedback: noteParts.length ? noteParts.join("\n") : null,
       reviewed_at: new Date().toISOString(),
     })
     .eq("id", id);
 
   if (error) throw new Error(error.message);
+  return result;
 }

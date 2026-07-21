@@ -28,9 +28,11 @@ import {
   type SubmitFeeInput,
 } from "@/lib/validations/submission";
 import type { SubmitCourseOption } from "@/lib/mock/courses";
-import { FEE_CATEGORY_LABELS } from "@/types/fee";
+import { FEE_CATEGORY_LABELS, STUDENT_LEVEL_LABELS, STUDENT_LEVEL_VALUES, STUDENT_TYPE_LABELS } from "@/types/fee";
 import { formatCurrency } from "@/lib/utils/format";
+import { defaultsForFeeCategory } from "@/lib/submissions/fee-defaults";
 import type { Institution } from "@/types/institution";
+import type { FeeCategory } from "@/types/database";
 
 export type SubmitFeePayload = SubmitFeeInput & {
   evidenceFiles: File[];
@@ -67,7 +69,7 @@ const STEPS = [
 const STEP_SCHEMAS = [
   submitFeeSchema.pick({
     institution_id: true,
-    academic_session_id: true,
+    academic_session: true,
     student_type: true,
     course_id: true,
     course_name: true,
@@ -101,16 +103,14 @@ export function SubmitFeeForm({
       institution_id: "",
       course_id: "",
       course_name: "",
-      academic_session_id: "",
+      academic_session: "",
       student_type: "fresh",
       fees: [
         {
           name: "Tuition",
           category: "tuition",
           amount: undefined as unknown as number,
-          is_compulsory: true,
-          frequency: "recurring",
-          applies_to: "all_students",
+          ...defaultsForFeeCategory("tuition"),
         },
       ],
       submitter_name: "",
@@ -293,12 +293,12 @@ export function SubmitFeeForm({
               <div className="space-y-1.5">
                 <Label>Academic session</Label>
                 <Input
-                  {...form.register("academic_session_id")}
+                  {...form.register("academic_session")}
                   placeholder="e.g. 2025/2026"
                 />
-                {form.formState.errors.academic_session_id && (
+                {form.formState.errors.academic_session && (
                   <p className="text-xs text-destructive">
-                    {form.formState.errors.academic_session_id.message}
+                    {form.formState.errors.academic_session.message}
                   </p>
                 )}
               </div>
@@ -317,18 +317,20 @@ export function SubmitFeeForm({
                   <SelectTrigger>
                     <SelectValue placeholder="Select student type">
                       {(value) =>
-                        value === "returning"
-                          ? "Returning students"
-                          : value === "fresh"
-                            ? "Fresh students"
-                            : "Select student type"
+                        value
+                          ? STUDENT_TYPE_LABELS[
+                              value as keyof typeof STUDENT_TYPE_LABELS
+                            ]
+                          : "Select student type"
                       }
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fresh">Fresh students</SelectItem>
+                    <SelectItem value="fresh">
+                      {STUDENT_TYPE_LABELS.fresh}
+                    </SelectItem>
                     <SelectItem value="returning">
-                      Returning students
+                      {STUDENT_TYPE_LABELS.returning}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -354,10 +356,33 @@ export function SubmitFeeForm({
                   Level{" "}
                   <span className="font-normal text-brand-ink/45">(optional)</span>
                 </Label>
-                <Input
-                  {...form.register("level")}
-                  placeholder="e.g. 100 Level"
-                />
+                <Select
+                  value={form.watch("level") || null}
+                  onValueChange={(v) =>
+                    form.setValue("level", (v ?? "") as SubmitFeeInput["level"], {
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select level">
+                      {(value) =>
+                        value
+                          ? STUDENT_LEVEL_LABELS[
+                              value as keyof typeof STUDENT_LEVEL_LABELS
+                            ]
+                          : "Select level"
+                      }
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STUDENT_LEVEL_VALUES.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {STUDENT_LEVEL_LABELS[level]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -449,12 +474,26 @@ export function SubmitFeeForm({
                               value={form.watch(`fees.${idx}.category`)}
                               onValueChange={(v) => {
                                 if (!v) return;
+                                const category = v as FeeCategory;
                                 form.setValue(
                                   `fees.${idx}.category`,
-                                  v as never,
+                                  category,
                                   { shouldValidate: true }
                                 );
-                                if (v === "other") {
+                                const defaults = defaultsForFeeCategory(category);
+                                form.setValue(
+                                  `fees.${idx}.is_compulsory`,
+                                  defaults.is_compulsory
+                                );
+                                form.setValue(
+                                  `fees.${idx}.frequency`,
+                                  defaults.frequency
+                                );
+                                form.setValue(
+                                  `fees.${idx}.applies_to`,
+                                  defaults.applies_to
+                                );
+                                if (category === "other") {
                                   const current = form.getValues(
                                     `fees.${idx}.name`
                                   );
@@ -469,9 +508,7 @@ export function SubmitFeeForm({
                                 } else {
                                   form.setValue(
                                     `fees.${idx}.name`,
-                                    FEE_CATEGORY_LABELS[
-                                      v as keyof typeof FEE_CATEGORY_LABELS
-                                    ],
+                                    FEE_CATEGORY_LABELS[category],
                                     { shouldValidate: true }
                                   );
                                 }
@@ -488,15 +525,18 @@ export function SubmitFeeForm({
                               </SelectTrigger>
                               <SelectContent>
                                 {Object.entries(FEE_CATEGORY_LABELS).map(
-                                  ([k, v]) => {
-                                    const taken = takenCategories.has(k);
+                                  ([key, label]) => {
+                                    const category = key as FeeCategory;
+                                    const taken = takenCategories.has(category);
                                     return (
                                       <SelectItem
-                                        key={k}
-                                        value={k}
+                                        key={category}
+                                        value={category}
                                         disabled={taken}
                                       >
-                                        {taken ? `${v} (already added)` : v}
+                                        {taken
+                                          ? `${label} (already added)`
+                                          : label}
                                       </SelectItem>
                                     );
                                   }
@@ -573,6 +613,7 @@ export function SubmitFeeForm({
               disabled={!canAddAnotherFee}
               onClick={() => {
                 if (!nextAvailableCategory) return;
+                const defaults = defaultsForFeeCategory(nextAvailableCategory);
                 append({
                   name:
                     nextAvailableCategory === "other"
@@ -580,9 +621,7 @@ export function SubmitFeeForm({
                       : FEE_CATEGORY_LABELS[nextAvailableCategory],
                   category: nextAvailableCategory,
                   amount: undefined as unknown as number,
-                  is_compulsory: true,
-                  frequency: "recurring",
-                  applies_to: "all_students",
+                  ...defaults,
                 });
                 setExpandedFeeIndex(fields.length);
               }}
@@ -622,7 +661,7 @@ export function SubmitFeeForm({
                 <strong className="font-semibold">
                   {selectedInstitution?.name ?? "the selected school"}
                 </strong>
-                , {form.watch("academic_session_id") || "session not set"}.
+                , {form.watch("academic_session") || "session not set"}.
               </p>
             </div>
 

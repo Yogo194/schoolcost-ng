@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import type { FeeRecord, FeeItem } from "@/types/fee";
-import { FEE_CATEGORY_LABELS } from "@/types/fee";
+import { FEE_CATEGORY_LABELS, FEE_FREQUENCY_LABELS } from "@/types/fee";
 
 const feeItemSchema = z.object({
   id: z.string().optional(),
@@ -234,8 +234,12 @@ export function FeeRecordEditor({
                   >
                     <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="recurring">Yearly</SelectItem>
-                      <SelectItem value="one_time">One-time</SelectItem>
+                      <SelectItem value="recurring">
+                        {FEE_FREQUENCY_LABELS.recurring}
+                      </SelectItem>
+                      <SelectItem value="one_time">
+                        {FEE_FREQUENCY_LABELS.one_time}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

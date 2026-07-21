@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { FeeCategory } from "@/types/database";
+import { STUDENT_LEVEL_VALUES } from "@/types/fee";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const ACCEPTED_FILE_TYPES = [
@@ -8,9 +10,23 @@ const ACCEPTED_FILE_TYPES = [
   "image/jpeg",
 ];
 
+const FEE_CATEGORIES = [
+  "tuition",
+  "acceptance_fee",
+  "departmental_fee",
+  "faculty_fee",
+  "ict_fee",
+  "medical_fee",
+  "exam_fee",
+  "development_levy",
+  "student_union_fee",
+  "accommodation",
+  "other",
+] as const satisfies readonly FeeCategory[];
+
 export const feeItemSchema = z.object({
   name: z.string().min(1, "Please name this fee"),
-  category: z.string().min(1, "Pick a fee type"),
+  category: z.enum(FEE_CATEGORIES, { error: "Pick a fee type" }),
   amount: z.coerce
     .number({ error: "Enter an amount" })
     .positive("Amount must be greater than 0"),
@@ -20,13 +36,17 @@ export const feeItemSchema = z.object({
 });
 
 export const submitFeeSchema = z.object({
-  institution_id: z.string().min(1, "Please select a school"),
+  institution_id: z.string().uuid("Please select a school from the list"),
   /** Known course id when the user picked from the school list. */
   course_id: z.string().optional().or(z.literal("")),
   /** Always the course name shown to reviewers, listed or typed. */
   course_name: z.string().min(1, "Which course is this fee for?"),
-  academic_session_id: z.string().min(1, "Which session is this fee for?"),
-  level: z.string().optional(),
+  /** Free-text session label, e.g. 2025/2026. Resolved to a row on approve. */
+  academic_session: z
+    .string()
+    .min(1, "Which session is this fee for?")
+    .transform((value) => value.trim().replace(/\s*[-–—]\s*/g, "/")),
+  level: z.union([z.enum(STUDENT_LEVEL_VALUES), z.literal("")]).optional(),
   student_type: z.enum(["fresh", "returning"]),
   fees: z
     .array(feeItemSchema)
@@ -97,4 +117,4 @@ export type SubmitCorrectionInput = z.infer<typeof submitCorrectionSchema>;
 export type SuggestSchoolInput = z.infer<typeof suggestSchoolSchema>;
 export type FeeItemInput = z.infer<typeof feeItemSchema>;
 
-export { MAX_FILE_SIZE, ACCEPTED_FILE_TYPES };
+export { MAX_FILE_SIZE, ACCEPTED_FILE_TYPES, FEE_CATEGORIES };

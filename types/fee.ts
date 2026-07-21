@@ -69,7 +69,7 @@ export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
 
 export const FEE_FREQUENCY_LABELS: Record<FeeFrequency, string> = {
   one_time: "One-time",
-  recurring: "Yearly",
+  recurring: "Per session",
 };
 
 export const FEE_APPLIES_TO_LABELS: Record<FeeAppliesTo, string> = {
@@ -78,6 +78,30 @@ export const FEE_APPLIES_TO_LABELS: Record<FeeAppliesTo, string> = {
   all_students: "All students",
 };
 
+/** Canonical stored values for student level (use these in DB / filters). */
+export const STUDENT_LEVEL_VALUES = [
+  "100L",
+  "200L",
+  "300L",
+  "400L",
+  "500L",
+  "600L",
+  "Postgraduate",
+] as const;
+
+export type StudentLevelValue = (typeof STUDENT_LEVEL_VALUES)[number];
+
+export const STUDENT_LEVEL_LABELS: Record<StudentLevelValue, string> = {
+  "100L": "100 Level",
+  "200L": "200 Level",
+  "300L": "300 Level",
+  "400L": "400 Level",
+  "500L": "500 Level",
+  "600L": "600 Level",
+  Postgraduate: "Postgraduate",
+};
+
+/** @deprecated Prefer STUDENT_LEVEL_VALUES + STUDENT_LEVEL_LABELS */
 export const STUDENT_LEVELS = [
   "100 Level",
   "200 Level",
@@ -87,3 +111,13 @@ export const STUDENT_LEVELS = [
   "600 Level",
   "Postgraduate",
 ] as const;
+
+export const STUDENT_TYPE_LABELS = {
+  fresh: "Fresh students",
+  returning: "Returning students",
+} as const;
+
+export const STUDENT_TYPE_LABELS_SHORT = {
+  fresh: "Fresh",
+  returning: "Returning",
+} as const;

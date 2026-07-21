@@ -57,12 +57,12 @@ export async function createFeeSubmission(
     const academicSessionId = await resolveAcademicSessionId(
       supabase,
       data.institution_id,
-      data.academic_session_id
+      data.academic_session
     );
 
     const payload = {
       course_name: data.course_name,
-      academic_session: data.academic_session_id.trim(),
+      academic_session: data.academic_session.trim(),
       level: emptyToNull(data.level),
       student_type: data.student_type,
       fees: data.fees,

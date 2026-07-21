@@ -11,9 +11,12 @@ import {
 import {
   SUBMISSION_TYPE_LABELS,
   SUBMISSION_STATUS_LABELS,
+  type SubmitFeePayload,
 } from "@/types/submission";
-import { formatDate } from "@/lib/utils/format";
+import { FEE_CATEGORY_LABELS, FEE_FREQUENCY_LABELS, FEE_APPLIES_TO_LABELS, STUDENT_TYPE_LABELS, STUDENT_LEVEL_LABELS } from "@/types/fee";
+import { formatCurrency, formatDate } from "@/lib/utils/format";
 import type { SubmissionStatus } from "@/types/database";
+import type { StudentLevelValue } from "@/types/fee";
 
 export const metadata: Metadata = { title: "Review Submission | Admin" };
 
@@ -35,6 +38,10 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
 
   const { submission: sub, evidence } = loaded;
   const payload = sub.submitted_payload as Record<string, unknown> | null;
+  const feePayload =
+    sub.submission_type === "new_fee"
+      ? (sub.submitted_payload as SubmitFeePayload)
+      : null;
 
   async function handleModeration(status: SubmissionStatus, feedback?: string) {
     "use server";
@@ -119,9 +126,71 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
 
       <section className="space-y-3 rounded-lg border border-gray-200 p-5">
         <h2 className="text-sm font-semibold text-gray-900">Submitted Data</h2>
-        <pre className="overflow-x-auto rounded bg-gray-50 p-3 text-xs text-gray-600">
-          {JSON.stringify(sub.submitted_payload, null, 2)}
-        </pre>
+        {feePayload?.fees?.length ? (
+          <div className="space-y-3">
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              {feePayload.student_type && (
+                <>
+                  <dt className="text-gray-500">Who pays</dt>
+                  <dd className="text-gray-700">
+                    {STUDENT_TYPE_LABELS[
+                      feePayload.student_type as keyof typeof STUDENT_TYPE_LABELS
+                    ] ?? feePayload.student_type}
+                  </dd>
+                </>
+              )}
+              {feePayload.level && (
+                <>
+                  <dt className="text-gray-500">Level</dt>
+                  <dd className="text-gray-700">
+                    {STUDENT_LEVEL_LABELS[
+                      feePayload.level as StudentLevelValue
+                    ] ?? feePayload.level}
+                  </dd>
+                </>
+              )}
+            </dl>
+            <ul className="divide-y divide-gray-100 rounded-lg border border-gray-100">
+              {feePayload.fees.map((fee, index) => (
+                <li
+                  key={`${fee.category}-${index}`}
+                  className="flex items-start justify-between gap-3 px-3 py-2.5 text-sm"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{fee.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {FEE_CATEGORY_LABELS[
+                        fee.category as keyof typeof FEE_CATEGORY_LABELS
+                      ] ?? fee.category}
+                      {" · "}
+                      {FEE_FREQUENCY_LABELS[
+                        fee.frequency as keyof typeof FEE_FREQUENCY_LABELS
+                      ] ?? fee.frequency}
+                      {" · "}
+                      {FEE_APPLIES_TO_LABELS[
+                        fee.applies_to as keyof typeof FEE_APPLIES_TO_LABELS
+                      ] ?? fee.applies_to}
+                      {!fee.is_compulsory ? " · Optional" : ""}
+                    </p>
+                  </div>
+                  <p className="shrink-0 font-medium text-gray-900">
+                    {formatCurrency(fee.amount)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            {feePayload.notes && (
+              <p className="text-sm text-gray-600">
+                <span className="font-medium text-gray-900">Notes: </span>
+                {feePayload.notes}
+              </p>
+            )}
+          </div>
+        ) : (
+          <pre className="overflow-x-auto rounded bg-gray-50 p-3 text-xs text-gray-600">
+            {JSON.stringify(sub.submitted_payload, null, 2)}
+          </pre>
+        )}
       </section>
 
       <section className="space-y-3">
@@ -136,6 +205,10 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
           currentStatus={sub.status}
           onAction={handleModeration}
         />
+        <p className="text-xs text-gray-500">
+          Approve creates a draft fee record or inactive school. It does not
+          publish to the public site until you set published on the fee record.
+        </p>
       </section>
     </div>
   );

@@ -12,21 +12,24 @@ const STEPS = [
     title: "Gather the fees",
     description:
       "Official circulars, school portals, and community submissions with evidence all land in one review queue.",
-    image: "/figma/how-it-works/process-composite.png",
+    image: "/figma/how-it-works/process-gather-fees.avif",
+    imageAlt: "Review queue showing official fee circulars, school portals, and student submissions",
   },
   {
     number: "02",
     title: "Verify the evidence",
     description:
       "A person checks the source, matches the academic session, and confirms the breakdown before anything is approved.",
-    image: "/figma/how-it-works/process-composite.png",
+    image: "/figma/how-it-works/process-verify-evidence.avif",
+    imageAlt: "Review panel used to verify fee evidence before approval",
   },
   {
     number: "03",
     title: "Label & publish",
     description:
       "Every live record gets a source label, verification status, and confidence level so you know how far to trust it.",
-    image: "/figma/how-it-works/process-composite.png",
+    image: "/figma/how-it-works/process-label-publish.avif",
+    imageAlt: "Published school fee record with verification details",
   },
 ] as const;
 
@@ -128,7 +131,7 @@ export function HowItWorksProcess() {
             <img
               key={step.image + step.number}
               src={step.image}
-              alt="Review queue mockup showing submissions being checked before publish"
+              alt={step.imageAlt}
               width={630}
               height={420}
               className="animate-step-image-fade h-auto w-full rounded-[14px]"

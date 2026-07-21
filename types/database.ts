@@ -102,6 +102,7 @@ export interface Database {
           "id" | "created_at" | "updated_at"
         >;
         Update: Partial<Database["public"]["Tables"]["institutions"]["Insert"]>;
+      Relationships: [];
       };
       faculties: {
         Row: {
@@ -115,6 +116,7 @@ export interface Database {
           "id" | "created_at"
         >;
         Update: Partial<Database["public"]["Tables"]["faculties"]["Insert"]>;
+      Relationships: [];
       };
       courses: {
         Row: {
@@ -134,6 +136,15 @@ export interface Database {
           "id" | "created_at" | "updated_at"
         >;
         Update: Partial<Database["public"]["Tables"]["courses"]["Insert"]>;
+      Relationships: [
+          {
+            foreignKeyName: "courses_institution_id_fkey",
+            columns: ["institution_id"],
+            isOneToOne: false,
+            referencedRelation: "institutions",
+            referencedColumns: ["id"],
+          },
+        ];
       };
       academic_sessions: {
         Row: {
@@ -150,6 +161,15 @@ export interface Database {
           "id" | "created_at"
         >;
         Update: Partial<Database["public"]["Tables"]["academic_sessions"]["Insert"]>;
+      Relationships: [
+          {
+            foreignKeyName: "academic_sessions_institution_id_fkey",
+            columns: ["institution_id"],
+            isOneToOne: false,
+            referencedRelation: "institutions",
+            referencedColumns: ["id"],
+          },
+        ];
       };
       fee_records: {
         Row: {
@@ -181,6 +201,7 @@ export interface Database {
           "id" | "created_at" | "updated_at"
         >;
         Update: Partial<Database["public"]["Tables"]["fee_records"]["Insert"]>;
+      Relationships: [];
       };
       fee_items: {
         Row: {
@@ -202,6 +223,7 @@ export interface Database {
           "id" | "created_at" | "updated_at"
         >;
         Update: Partial<Database["public"]["Tables"]["fee_items"]["Insert"]>;
+      Relationships: [];
       };
       evidence: {
         Row: {
@@ -222,6 +244,22 @@ export interface Database {
           "id" | "created_at"
         >;
         Update: Partial<Database["public"]["Tables"]["evidence"]["Insert"]>;
+      Relationships: [
+          {
+            foreignKeyName: "evidence_submission_id_fkey",
+            columns: ["submission_id"],
+            isOneToOne: false,
+            referencedRelation: "submissions",
+            referencedColumns: ["id"],
+          },
+          {
+            foreignKeyName: "evidence_fee_record_id_fkey",
+            columns: ["fee_record_id"],
+            isOneToOne: false,
+            referencedRelation: "fee_records",
+            referencedColumns: ["id"],
+          },
+        ];
       };
       submissions: {
         Row: {
@@ -244,10 +282,42 @@ export interface Database {
           "id" | "created_at" | "updated_at"
         >;
         Update: Partial<Database["public"]["Tables"]["submissions"]["Insert"]>;
+      Relationships: [
+          {
+            foreignKeyName: "submissions_institution_id_fkey",
+            columns: ["institution_id"],
+            isOneToOne: false,
+            referencedRelation: "institutions",
+            referencedColumns: ["id"],
+          },
+          {
+            foreignKeyName: "submissions_course_id_fkey",
+            columns: ["course_id"],
+            isOneToOne: false,
+            referencedRelation: "courses",
+            referencedColumns: ["id"],
+          },
+          {
+            foreignKeyName: "submissions_academic_session_id_fkey",
+            columns: ["academic_session_id"],
+            isOneToOne: false,
+            referencedRelation: "academic_sessions",
+            referencedColumns: ["id"],
+          },
+        ];
       };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: Record<string, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
 }

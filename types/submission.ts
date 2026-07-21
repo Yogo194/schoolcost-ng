@@ -39,6 +39,12 @@ export const SUBMISSION_STATUS_COLORS: Record<
 };
 
 export type SubmitFeePayload = {
+  institution_id: string;
+  course_id?: string;
+  course_name: string;
+  academic_session: string;
+  level?: string | null;
+  student_type: string;
   fees: Array<{
     name: string;
     category: string;
@@ -47,7 +53,9 @@ export type SubmitFeePayload = {
     frequency: string;
     applies_to: string;
   }>;
-  notes?: string;
+  source_url?: string | null;
+  notes?: string | null;
+  evidence_file_count?: number;
 };
 
 export type SubmitCorrectionPayload = {
@@ -62,6 +70,6 @@ export type SuggestSchoolPayload = {
   institution_type: string;
   ownership_type: string;
   state: string;
-  website_url?: string;
-  notes?: string;
+  website_url?: string | null;
+  notes?: string | null;
 };

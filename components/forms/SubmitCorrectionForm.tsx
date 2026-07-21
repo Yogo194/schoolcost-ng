@@ -149,7 +149,7 @@ export function SubmitCorrectionForm({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Your Name</Label>
           <Input {...form.register("submitter_name")} placeholder="Full name" />
@@ -159,6 +159,7 @@ export function SubmitCorrectionForm({
             </p>
           )}
         </div>
+
         <div className="space-y-1.5">
           <Label>Your Email</Label>
           <Input

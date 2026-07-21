@@ -2,7 +2,6 @@ import Link from "next/link";
 import { formatRelativeDate } from "@/lib/utils/format";
 import type { SubmissionWithDetails } from "@/types/submission";
 import { SUBMISSION_TYPE_LABELS, SUBMISSION_STATUS_LABELS } from "@/types/submission";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const STATUS_CLASS: Record<string, string> = {
@@ -17,6 +16,15 @@ const STATUS_CLASS: Record<string, string> = {
 
 interface SubmissionQueueProps {
   submissions: SubmissionWithDetails[];
+}
+
+function schoolLabel(sub: SubmissionWithDetails): string {
+  if (sub.institution?.name) return sub.institution.name;
+  const payload = sub.submitted_payload as { school_name?: unknown } | null;
+  if (typeof payload?.school_name === "string" && payload.school_name.trim()) {
+    return payload.school_name;
+  }
+  return "-";
 }
 
 export function SubmissionQueue({ submissions }: SubmissionQueueProps) {
@@ -55,7 +63,7 @@ export function SubmissionQueue({ submissions }: SubmissionQueueProps) {
               className="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition-colors"
             >
               <td className="px-4 py-3 font-medium text-gray-900">
-                {sub.institution?.name ?? "-"}
+                {schoolLabel(sub)}
               </td>
               <td className="px-4 py-3 text-gray-600">
                 {SUBMISSION_TYPE_LABELS[sub.submission_type]}

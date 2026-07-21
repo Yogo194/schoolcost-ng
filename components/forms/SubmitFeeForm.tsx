@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
   ChevronDown,
   Plus,
   ShieldCheck,
@@ -15,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,18 +21,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CoursePicker } from "@/components/forms/CoursePicker";
+import { EvidenceUploadField } from "@/components/forms/EvidenceUploadField";
 import {
   submitFeeSchema,
   type SubmitFeeInput,
 } from "@/lib/validations/submission";
+import type { SubmitCourseOption } from "@/lib/mock/courses";
 import { FEE_CATEGORY_LABELS } from "@/types/fee";
 import { formatCurrency } from "@/lib/utils/format";
-import { cn } from "@/lib/utils";
 import type { Institution } from "@/types/institution";
+
+export type SubmitFeePayload = SubmitFeeInput & {
+  evidenceFiles: File[];
+};
 
 interface SubmitFeeFormProps {
   institutions: Institution[];
-  onSubmit: (data: SubmitFeeInput) => Promise<void>;
+  courses: SubmitCourseOption[];
+  onSubmit: (data: SubmitFeePayload) => Promise<void>;
 }
 
 const STEPS = [
@@ -42,7 +47,7 @@ const STEPS = [
     id: "school",
     label: "The school",
     heading: "Which school is this about?",
-    blurb: "Just the school and session. Course and level help, but can wait.",
+    blurb: "School, session, and course. Level helps, but can wait.",
   },
   {
     id: "fees",
@@ -59,28 +64,50 @@ const STEPS = [
 ] as const;
 
 /** Fields checked before each step advances. */
-const STEP_FIELDS: FieldPath<SubmitFeeInput>[][] = [
-  ["institution_id", "academic_session_id", "student_type"],
-  ["fees"],
-  ["submitter_email", "source_url"],
-];
+const STEP_SCHEMAS = [
+  submitFeeSchema.pick({
+    institution_id: true,
+    academic_session_id: true,
+    student_type: true,
+    course_id: true,
+    course_name: true,
+  }),
+  submitFeeSchema.pick({
+    fees: true,
+  }),
+  submitFeeSchema.pick({
+    submitter_email: true,
+    source_url: true,
+    submitter_name: true,
+    notes: true,
+  }),
+] as const;
 
-export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
+export function SubmitFeeForm({
+  institutions,
+  courses,
+  onSubmit,
+}: SubmitFeeFormProps) {
   const [step, setStep] = useState(0);
-  const [success, setSuccess] = useState(false);
+  const [sending, setSending] = useState(false);
+  /** Which fee card is expanded. Older cards collapse when a new one is added. */
+  const [expandedFeeIndex, setExpandedFeeIndex] = useState(0);
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
 
   const form = useForm<SubmitFeeInput>({
     resolver: zodResolver(submitFeeSchema),
     mode: "onTouched",
     defaultValues: {
       institution_id: "",
+      course_id: "",
+      course_name: "",
       academic_session_id: "",
       student_type: "fresh",
       fees: [
         {
-          name: "",
+          name: "Tuition",
           category: "tuition",
-          amount: 0,
+          amount: undefined as unknown as number,
           is_compulsory: true,
           frequency: "recurring",
           applies_to: "all_students",
@@ -88,6 +115,9 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
       ],
       submitter_name: "",
       submitter_email: "",
+      source_url: "",
+      notes: "",
+      level: "",
     },
   });
 
@@ -97,8 +127,34 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
   });
 
   async function goNext() {
-    const valid = await form.trigger(STEP_FIELDS[step], { shouldFocus: true });
-    if (valid) setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    // Keep displayed fee type and stored name in sync for listed categories.
+    const fees = form.getValues("fees");
+    fees.forEach((fee, index) => {
+      if (fee.category && fee.category !== "other") {
+        form.setValue(
+          `fees.${index}.name`,
+          FEE_CATEGORY_LABELS[
+            fee.category as keyof typeof FEE_CATEGORY_LABELS
+          ] ?? fee.name
+        );
+      }
+    });
+
+    const parsed = STEP_SCHEMAS[step].safeParse(form.getValues());
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        const path = issue.path.join(".") as FieldPath<SubmitFeeInput>;
+        form.setError(path, { type: "manual", message: issue.message });
+      }
+      const feeIssue = parsed.error.issues.find(
+        (issue) => issue.path[0] === "fees" && typeof issue.path[1] === "number"
+      );
+      if (feeIssue) setExpandedFeeIndex(feeIssue.path[1] as number);
+      const first = parsed.error.issues[0]?.path.join(".");
+      if (first) form.setFocus(first as FieldPath<SubmitFeeInput>);
+      return;
+    }
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
 
   function goBack() {
@@ -106,35 +162,27 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
   }
 
   async function handleSubmit(data: SubmitFeeInput) {
-    await onSubmit(data);
-    setSuccess(true);
-    form.reset();
-    setStep(0);
-  }
-
-  if (success) {
-    return (
-      <div className="rounded-2xl border border-[#dfe7c2] bg-brand-lime-light/40 p-8 text-center">
-        <div className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-brand-lime">
-          <Check className="size-6 text-brand-ink" aria-hidden />
-        </div>
-        <h3 className="text-lg font-semibold tracking-[-0.02em] text-brand-ink">
-          Thank you. It is in the review queue.
-        </h3>
-        <p className="mx-auto mt-1.5 max-w-[400px] text-sm leading-[1.5] text-brand-ink/65">
-          A person will check it before anything is published. If we need to
-          confirm something, we will email you.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-5"
-          onClick={() => setSuccess(false)}
-        >
-          Submit another fee
-        </Button>
-      </div>
-    );
+    setSending(true);
+    try {
+      await onSubmit({
+        ...data,
+        evidenceFiles,
+      });
+      form.reset();
+      setStep(0);
+      setExpandedFeeIndex(0);
+      setEvidenceFiles([]);
+    } catch (error) {
+      form.setError("root", {
+        type: "manual",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong sending this. Please try again.",
+      });
+    } finally {
+      setSending(false);
+    }
   }
 
   const selectedInstitution = institutions.find(
@@ -145,49 +193,44 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
     (sum, fee) => sum + (Number(fee.amount) || 0),
     0
   );
+  const usedCategories = new Set(
+    watchedFees.map((fee) => fee.category).filter(Boolean)
+  );
+  const nextAvailableCategory = (
+    Object.keys(FEE_CATEGORY_LABELS) as (keyof typeof FEE_CATEGORY_LABELS)[]
+  ).find((key) => !usedCategories.has(key));
+  const canAddAnotherFee = Boolean(nextAvailableCategory);
 
   return (
     <div>
-      {/* Step indicator */}
-      <ol className="flex items-center gap-2 sm:gap-3" aria-label="Steps">
-        {STEPS.map((s, index) => {
-          const isDone = index < step;
-          const isActive = index === step;
-          return (
-            <li key={s.id} className="flex flex-1 items-center gap-2 sm:gap-3">
-              <span
-                className={cn(
-                  "flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors",
-                  isDone && "bg-brand-lime text-brand-ink",
-                  isActive && "bg-brand-ink text-white",
-                  !isDone && !isActive && "bg-[#eef1ee] text-brand-ink/45"
-                )}
-              >
-                {isDone ? <Check className="size-3.5" aria-hidden /> : index + 1}
-              </span>
-              <span
-                className={cn(
-                  "hidden text-sm font-medium tracking-[-0.02em] sm:block",
-                  isActive ? "text-brand-ink" : "text-brand-ink/45"
-                )}
-              >
-                {s.label}
-              </span>
-              {index < STEPS.length - 1 && (
-                <span
-                  className={cn(
-                    "h-px flex-1 rounded-full",
-                    isDone ? "bg-brand-lime" : "bg-[#eef1ee]"
-                  )}
-                  aria-hidden
-                />
-              )}
-            </li>
-          );
-        })}
-      </ol>
+      {/* Quiet progress: fraction + bar. Step title below does the talking. */}
+      <div className="mb-6">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-medium tabular-nums tracking-[-0.02em] text-brand-ink/50">
+            <span className="text-brand-ink">{step + 1}</span>
+            <span className="mx-0.5 text-brand-ink/30">/</span>
+            <span>{STEPS.length}</span>
+          </p>
+          <p className="text-sm tracking-[-0.01em] text-brand-ink/40">
+            {STEPS[step].label}
+          </p>
+        </div>
+        <div
+          className="mt-2.5 h-1 overflow-hidden rounded-full bg-[#eef1ee]"
+          role="progressbar"
+          aria-valuemin={1}
+          aria-valuemax={STEPS.length}
+          aria-valuenow={step + 1}
+          aria-label={`Step ${step + 1} of ${STEPS.length}`}
+        >
+          <div
+            className="h-full rounded-full bg-brand-ink transition-[width] duration-300 ease-out motion-reduce:transition-none"
+            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+          />
+        </div>
+      </div>
 
-      <div className="mt-7">
+      <div>
         <h2 className="text-xl font-semibold tracking-[-0.03em] text-brand-ink sm:text-2xl">
           {STEPS[step].heading}
         </h2>
@@ -209,11 +252,18 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
                     form.setValue("institution_id", v, {
                       shouldValidate: true,
                     });
+                    form.setValue("course_id", "");
+                    form.setValue("course_name", "");
                   }
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a school" />
+                  <SelectValue placeholder="Select a school">
+                    {(value) =>
+                      institutions.find((inst) => inst.id === value)?.name ??
+                      "Select a school"
+                    }
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {institutions.map((inst) => (
@@ -232,7 +282,7 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
                 School not listed?{" "}
                 <a
                   href="/suggest-school"
-                  className="font-medium text-primary underline underline-offset-2"
+                  className="font-medium text-[#c8792a] underline underline-offset-2 hover:text-[#a86520]"
                 >
                   Suggest it here.
                 </a>
@@ -252,6 +302,7 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
                   </p>
                 )}
               </div>
+
               <div className="space-y-1.5">
                 <Label>Who pays this?</Label>
                 <Select
@@ -264,7 +315,15 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select student type">
+                      {(value) =>
+                        value === "returning"
+                          ? "Returning students"
+                          : value === "fresh"
+                            ? "Fresh students"
+                            : "Select student type"
+                      }
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="fresh">Fresh students</SelectItem>
@@ -276,188 +335,266 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
               </div>
             </div>
 
-            <OptionalDisclosure summary="Add course and level (optional)">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <Label>Course</Label>
-                  <Input
-                    {...form.register("course_id")}
-                    placeholder="e.g. Computer Science"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Level</Label>
-                  <Input
-                    {...form.register("level")}
-                    placeholder="e.g. 100 Level"
-                  />
-                </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <CoursePicker
+                institutionId={form.watch("institution_id")}
+                courses={courses}
+                courseId={form.watch("course_id") ?? ""}
+                courseName={form.watch("course_name")}
+                error={form.formState.errors.course_name?.message}
+                onChange={({ courseId, courseName }) => {
+                  form.setValue("course_id", courseId, { shouldValidate: true });
+                  form.setValue("course_name", courseName, {
+                    shouldValidate: true,
+                  });
+                }}
+              />
+              <div className="space-y-1.5">
+                <Label>
+                  Level{" "}
+                  <span className="font-normal text-brand-ink/45">(optional)</span>
+                </Label>
+                <Input
+                  {...form.register("level")}
+                  placeholder="e.g. 100 Level"
+                />
               </div>
-            </OptionalDisclosure>
+            </div>
           </div>
         )}
 
         {/* Step 2: the fees */}
         {step === 1 && (
-          <div className="space-y-4">
-            {fields.map((field, idx) => (
-              <div
-                key={field.id}
-                className="space-y-3 rounded-xl border border-[#e5ebe5] bg-[#fafcfa] p-4"
-              >
-                <div className="flex items-center gap-3">
-                  <Input
-                    {...form.register(`fees.${idx}.name`)}
-                    placeholder="Fee name, e.g. Tuition"
-                    className="flex-1 bg-white"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => remove(idx)}
-                    disabled={fields.length === 1}
-                    className="shrink-0 text-brand-ink/40 hover:text-destructive"
-                    aria-label="Remove this fee"
-                  >
-                    <Trash2 className="size-4" aria-hidden />
-                  </Button>
-                </div>
+          <div className="space-y-3">
+            {fields.map((field, idx) => {
+              const fee = watchedFees[idx];
+              const expanded = expandedFeeIndex === idx;
+              const categoryLabel =
+                FEE_CATEGORY_LABELS[
+                  fee?.category as keyof typeof FEE_CATEGORY_LABELS
+                ] ?? fee?.category;
+              const amountLabel =
+                fee?.amount && Number(fee.amount) > 0
+                  ? formatCurrency(Number(fee.amount))
+                  : null;
+              const takenCategories = new Set(
+                watchedFees
+                  .map((item, itemIndex) =>
+                    itemIndex === idx ? null : item.category
+                  )
+                  .filter(Boolean)
+              );
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <Label className="text-xs text-brand-ink/55">
-                      Amount (₦)
-                    </Label>
-                    <Input
-                      {...form.register(`fees.${idx}.amount`)}
-                      type="number"
-                      inputMode="numeric"
-                      placeholder="0"
-                      className="bg-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-brand-ink/55">
-                      Category
-                    </Label>
-                    <Select
-                      value={form.watch(`fees.${idx}.category`)}
-                      onValueChange={(v) => {
-                        if (v) {
-                          form.setValue(`fees.${idx}.category`, v as never);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="bg-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(FEE_CATEGORY_LABELS).map(([k, v]) => (
-                          <SelectItem key={k} value={k}>
-                            {v}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {(form.formState.errors.fees?.[idx]?.name ||
-                  form.formState.errors.fees?.[idx]?.amount) && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.fees[idx]?.name?.message ??
-                      form.formState.errors.fees[idx]?.amount?.message}
-                  </p>
-                )}
-
-                <OptionalDisclosure summary="More details (optional)">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-ink/55">
-                        How often
-                      </Label>
-                      <Select
-                        value={form.watch(`fees.${idx}.frequency`)}
-                        onValueChange={(v) =>
-                          form.setValue(
-                            `fees.${idx}.frequency`,
-                            v as "one_time" | "recurring"
-                          )
-                        }
+              return (
+                <div
+                  key={field.id}
+                  className="overflow-hidden rounded-[14px] border border-[#e2b57a] bg-[#fff1de]"
+                >
+                  {!expanded ? (
+                    <div className="flex items-center gap-2 px-3 py-2.5">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedFeeIndex(idx)}
+                        className="flex min-w-0 flex-1 items-center gap-3 rounded-[10px] px-1 py-1 text-left transition-colors hover:bg-[#ffe6c2]"
                       >
-                        <SelectTrigger className="bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="recurring">Every year</SelectItem>
-                          <SelectItem value="one_time">One-time</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs text-brand-ink/55">
-                        Who pays it
-                      </Label>
-                      <Select
-                        value={form.watch(`fees.${idx}.applies_to`)}
-                        onValueChange={(v) =>
-                          form.setValue(
-                            `fees.${idx}.applies_to`,
-                            v as
-                              | "fresh_only"
-                              | "returning_only"
-                              | "all_students"
-                          )
-                        }
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#f2ac5b]/45 text-xs font-semibold text-brand-ink">
+                          {idx + 1}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold tracking-[-0.02em] text-brand-ink">
+                            {fee?.name?.trim() ||
+                              categoryLabel ||
+                              `Fee ${idx + 1}`}
+                          </span>
+                          <span className="mt-0.5 block truncate text-xs text-brand-ink/65">
+                            {amountLabel || "Tap to edit"}
+                          </span>
+                        </span>
+                        <ChevronDown
+                          className="size-4 shrink-0 text-brand-ink/60"
+                          aria-hidden
+                        />
+                      </button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (fields.length === 1) return;
+                          remove(idx);
+                          setExpandedFeeIndex((current) => {
+                            if (idx < current) return current - 1;
+                            if (idx === current) {
+                              return Math.max(0, current - 1);
+                            }
+                            return current;
+                          });
+                        }}
+                        disabled={fields.length === 1}
+                        className="shrink-0 text-brand-ink/60 hover:text-destructive"
+                        aria-label="Remove this fee"
                       >
-                        <SelectTrigger className="bg-white">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all_students">
-                            All students
-                          </SelectItem>
-                          <SelectItem value="fresh_only">Fresh only</SelectItem>
-                          <SelectItem value="returning_only">
-                            Returning only
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <Trash2 className="size-4" aria-hidden />
+                      </Button>
                     </div>
-                  </div>
-                  <label className="mt-3 flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      {...form.register(`fees.${idx}.is_compulsory`)}
-                      className="accent-primary"
-                    />
-                    <span className="text-xs text-brand-ink/70">
-                      This fee is compulsory
-                    </span>
-                  </label>
-                </OptionalDisclosure>
-              </div>
-            ))}
+                  ) : (
+                    <div className="space-y-3 p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="grid min-w-0 flex-1 grid-cols-1 gap-4 sm:grid-cols-2">
+                          <div className="space-y-1.5">
+                            <Label className="text-brand-ink">
+                              What kind of fee?
+                            </Label>
+                            <Select
+                              value={form.watch(`fees.${idx}.category`)}
+                              onValueChange={(v) => {
+                                if (!v) return;
+                                form.setValue(
+                                  `fees.${idx}.category`,
+                                  v as never,
+                                  { shouldValidate: true }
+                                );
+                                if (v === "other") {
+                                  const current = form.getValues(
+                                    `fees.${idx}.name`
+                                  );
+                                  const isPreset = Object.values(
+                                    FEE_CATEGORY_LABELS
+                                  ).includes(current as never);
+                                  if (!current || isPreset) {
+                                    form.setValue(`fees.${idx}.name`, "", {
+                                      shouldValidate: true,
+                                    });
+                                  }
+                                } else {
+                                  form.setValue(
+                                    `fees.${idx}.name`,
+                                    FEE_CATEGORY_LABELS[
+                                      v as keyof typeof FEE_CATEGORY_LABELS
+                                    ],
+                                    { shouldValidate: true }
+                                  );
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="border-[#d4b48a]/70 bg-white">
+                                <SelectValue>
+                                  {(value) =>
+                                    FEE_CATEGORY_LABELS[
+                                      value as keyof typeof FEE_CATEGORY_LABELS
+                                    ] ?? "Select a fee type"
+                                  }
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.entries(FEE_CATEGORY_LABELS).map(
+                                  ([k, v]) => {
+                                    const taken = takenCategories.has(k);
+                                    return (
+                                      <SelectItem
+                                        key={k}
+                                        value={k}
+                                        disabled={taken}
+                                      >
+                                        {taken ? `${v} (already added)` : v}
+                                      </SelectItem>
+                                    );
+                                  }
+                                )}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-brand-ink">Amount (₦)</Label>
+                            <Input
+                              {...form.register(`fees.${idx}.amount`)}
+                              type="number"
+                              inputMode="numeric"
+                              placeholder="0"
+                              className="border-[#d4b48a]/70 bg-white placeholder:text-brand-ink/55"
+                            />
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (fields.length === 1) return;
+                            remove(idx);
+                            setExpandedFeeIndex((current) => {
+                              if (idx < current) return current - 1;
+                              if (idx === current) {
+                                return Math.max(0, current - 1);
+                              }
+                              return current;
+                            });
+                          }}
+                          disabled={fields.length === 1}
+                          className="mt-7 shrink-0 text-brand-ink/60 hover:text-destructive"
+                          aria-label="Remove this fee"
+                        >
+                          <Trash2 className="size-4" aria-hidden />
+                        </Button>
+                      </div>
+
+                      {form.watch(`fees.${idx}.category`) === "other" && (
+                        <div className="space-y-1.5">
+                          <Label className="text-brand-ink">
+                            What should we call it?
+                          </Label>
+                          <Input
+                            {...form.register(`fees.${idx}.name`)}
+                            placeholder="e.g. Matriculation fee"
+                            className="border-[#d4b48a]/70 bg-white placeholder:text-brand-ink/55"
+                          />
+                        </div>
+                      )}
+
+                      {(form.formState.errors.fees?.[idx]?.amount ||
+                        form.formState.errors.fees?.[idx]?.category ||
+                        (form.watch(`fees.${idx}.category`) === "other" &&
+                          form.formState.errors.fees?.[idx]?.name)) && (
+                        <p className="text-xs text-destructive">
+                          {form.formState.errors.fees[idx]?.category?.message ??
+                            form.formState.errors.fees[idx]?.amount?.message ??
+                            form.formState.errors.fees[idx]?.name?.message}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
 
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              onClick={() =>
+              disabled={!canAddAnotherFee}
+              onClick={() => {
+                if (!nextAvailableCategory) return;
                 append({
-                  name: "",
-                  category: "other",
-                  amount: 0,
+                  name:
+                    nextAvailableCategory === "other"
+                      ? ""
+                      : FEE_CATEGORY_LABELS[nextAvailableCategory],
+                  category: nextAvailableCategory,
+                  amount: undefined as unknown as number,
                   is_compulsory: true,
                   frequency: "recurring",
                   applies_to: "all_students",
-                })
-              }
+                });
+                setExpandedFeeIndex(fields.length);
+              }}
             >
               <Plus className="mr-1.5 size-4" aria-hidden />
               Add another fee
             </Button>
+            {!canAddAnotherFee && (
+              <p className="text-xs text-brand-ink/50">
+                You have added every fee type we track.
+              </p>
+            )}
 
             {form.formState.errors.fees?.root && (
               <p className="text-xs text-destructive">
@@ -507,37 +644,32 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
               </p>
             </div>
 
-            <OptionalDisclosure summary="Add proof or notes (optional, speeds up review)">
+            <OptionalDisclosure summary="Add proof (optional, speeds up review)">
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label>Link to the source</Label>
+                  <Label className="text-brand-ink">Link to the source</Label>
                   <Input
                     {...form.register("source_url")}
                     type="url"
                     placeholder="https://portal.school.edu.ng/fees"
+                    className="border-[#d4b48a]/70 bg-white placeholder:text-brand-ink/55"
                   />
                   {form.formState.errors.source_url && (
                     <p className="text-xs text-destructive">
                       {form.formState.errors.source_url.message}
                     </p>
                   )}
-                  <p className="text-xs text-brand-ink/50">
+                  <p className="text-xs leading-[1.45] text-brand-ink/65">
                     A school portal page, fee circular, or official notice.
                   </p>
                 </div>
+
                 <div className="space-y-1.5">
-                  <Label>Notes</Label>
-                  <Textarea
-                    {...form.register("notes")}
-                    placeholder="Anything that helps us verify this faster"
-                    rows={3}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Your name</Label>
-                  <Input
-                    {...form.register("submitter_name")}
-                    placeholder="So we know who to thank"
+                  <Label className="text-brand-ink">Attach a document</Label>
+                  <EvidenceUploadField
+                    files={evidenceFiles}
+                    onChange={setEvidenceFiles}
+                    label={null}
                   />
                 </div>
               </div>
@@ -562,11 +694,16 @@ export function SubmitFeeForm({ institutions, onSubmit }: SubmitFeeFormProps) {
               <ArrowRight className="ml-1.5 size-4" aria-hidden />
             </Button>
           ) : (
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting
-                ? "Sending…"
-                : "Send for review"}
-            </Button>
+            <div className="flex flex-col items-end gap-2">
+              {form.formState.errors.root && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.root.message}
+                </p>
+              )}
+              <Button type="submit" disabled={sending}>
+                {sending ? "Sending…" : "Send for review"}
+              </Button>
+            </div>
           )}
         </div>
       </form>
@@ -583,11 +720,11 @@ function OptionalDisclosure({
   children: React.ReactNode;
 }) {
   return (
-    <details className="group rounded-xl border border-dashed border-[#d7ded7] px-4 py-3">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium tracking-[-0.02em] text-brand-ink/70 transition-colors hover:text-brand-ink [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-[14px] border border-[#e2b57a] bg-[#fff1de] px-4 py-3.5">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-semibold tracking-[-0.02em] text-brand-ink transition-colors hover:text-brand-ink/85 [&::-webkit-details-marker]:hidden">
         {summary}
         <ChevronDown
-          className="size-4 shrink-0 text-brand-ink/40 transition-transform group-open:rotate-180"
+          className="size-4 shrink-0 text-brand-ink/60 transition-transform group-open:rotate-180"
           aria-hidden
         />
       </summary>

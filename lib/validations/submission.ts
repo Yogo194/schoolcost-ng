@@ -9,9 +9,11 @@ const ACCEPTED_FILE_TYPES = [
 ];
 
 export const feeItemSchema = z.object({
-  name: z.string().min(1, "Fee name is required"),
-  category: z.string().min(1, "Category is required"),
-  amount: z.coerce.number().positive("Amount must be greater than 0"),
+  name: z.string().min(1, "Please name this fee"),
+  category: z.string().min(1, "Pick a fee type"),
+  amount: z.coerce
+    .number({ error: "Enter an amount" })
+    .positive("Amount must be greater than 0"),
   is_compulsory: z.boolean(),
   frequency: z.enum(["one_time", "recurring"]),
   applies_to: z.enum(["fresh_only", "returning_only", "all_students"]),
@@ -19,12 +21,37 @@ export const feeItemSchema = z.object({
 
 export const submitFeeSchema = z.object({
   institution_id: z.string().min(1, "Please select a school"),
-  course_id: z.string().optional(),
+  /** Known course id when the user picked from the school list. */
+  course_id: z.string().optional().or(z.literal("")),
+  /** Always the course name shown to reviewers, listed or typed. */
+  course_name: z.string().min(1, "Which course is this fee for?"),
   academic_session_id: z.string().min(1, "Which session is this fee for?"),
   level: z.string().optional(),
   student_type: z.enum(["fresh", "returning"]),
-  fees: z.array(feeItemSchema).min(1, "Please add at least one fee item"),
-  source_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
+  fees: z
+    .array(feeItemSchema)
+    .min(1, "Please add at least one fee item")
+    .superRefine((fees, ctx) => {
+      const seen = new Set<string>();
+      fees.forEach((fee, index) => {
+        if (seen.has(fee.category)) {
+          ctx.addIssue({
+            code: "custom",
+            message: "You already added this fee type",
+            path: [index, "category"],
+          });
+        }
+        seen.add(fee.category);
+      });
+    }),
+  source_url: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) => !value || z.string().url().safeParse(value).success,
+      "Please enter a valid URL"
+    ),
   submitter_name: z.string().optional(),
   submitter_email: z.string().email("Please enter a valid email address"),
   notes: z.string().optional(),

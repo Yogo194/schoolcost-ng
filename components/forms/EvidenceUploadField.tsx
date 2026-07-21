@@ -15,6 +15,8 @@ interface EvidenceUploadFieldProps {
   required?: boolean;
   className?: string;
   error?: string;
+  /** Override the default field label. Pass null to hide it. */
+  label?: string | null;
 }
 
 export function EvidenceUploadField({
@@ -23,6 +25,7 @@ export function EvidenceUploadField({
   required = false,
   className,
   error,
+  label = "Supporting evidence",
 }: EvidenceUploadFieldProps) {
   const inputId = useId();
   const [localError, setLocalError] = useState<string | null>(null);
@@ -65,18 +68,21 @@ export function EvidenceUploadField({
 
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label htmlFor={inputId}>
-        Supporting evidence{required ? "" : " (optional)"}
-      </Label>
+      {label != null && (
+        <Label htmlFor={inputId}>
+          {label}
+          {required ? "" : " (optional)"}
+        </Label>
+      )}
       <label
         htmlFor={inputId}
-        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed border-[#355955]/40 bg-white px-4 py-5 text-center transition-colors hover:border-[#355955]/70 hover:bg-brand-lime-light/40"
+        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[12px] border border-dashed border-[#d4a56a] bg-white px-4 py-5 text-center transition-colors hover:border-[#c8792a] hover:bg-[#fff6eb]"
       >
-        <FileUp className="size-5 text-brand-ink/50" aria-hidden />
-        <span className="text-sm font-medium tracking-[-0.02em] text-brand-ink">
+        <FileUp className="size-5 text-brand-ink/70" aria-hidden />
+        <span className="text-sm font-semibold tracking-[-0.02em] text-brand-ink">
           Upload fee circular, portal screenshot, or receipt
         </span>
-        <span className="text-xs tracking-[-0.02em] text-brand-ink/55">
+        <span className="text-xs tracking-[-0.02em] text-brand-ink/65">
           PDF, PNG, or JPG · up to 3 files · 10 MB each
         </span>
         <input

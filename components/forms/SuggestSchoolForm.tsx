@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -15,15 +14,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { suggestSchoolSchema, type SuggestSchoolInput } from "@/lib/validations/submission";
-import { NIGERIA_STATES } from "@/types/institution";
+import {
+  INSTITUTION_TYPE_LABELS,
+  NIGERIA_STATES,
+  OWNERSHIP_TYPE_LABELS,
+} from "@/types/institution";
 
 interface SuggestSchoolFormProps {
   onSubmit: (data: SuggestSchoolInput) => Promise<void>;
 }
 
 export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
-  const [success, setSuccess] = useState(false);
-
   const form = useForm<SuggestSchoolInput>({
     resolver: zodResolver(suggestSchoolSchema),
     defaultValues: {
@@ -39,30 +40,18 @@ export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
   });
 
   async function handleSubmit(data: SuggestSchoolInput) {
-    await onSubmit(data);
-    setSuccess(true);
-    form.reset();
-  }
-
-  if (success) {
-    return (
-      <div className="border border-emerald-200 bg-emerald-50 rounded-xl p-8 text-center">
-        <h3 className="text-base font-semibold text-gray-900 mb-1">
-          School suggestion submitted
-        </h3>
-        <p className="text-sm text-gray-500">
-          We will add this school if we can verify enough fee data for it.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-4"
-          onClick={() => setSuccess(false)}
-        >
-          Suggest another school
-        </Button>
-      </div>
-    );
+    try {
+      await onSubmit(data);
+      form.reset();
+    } catch (error) {
+      form.setError("root", {
+        type: "manual",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong. Please try again.",
+      });
+    }
   }
 
   return (
@@ -78,14 +67,24 @@ export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Institution Type</Label>
           <Select
             value={form.watch("institution_type")}
             onValueChange={(v) => form.setValue("institution_type", v as SuggestSchoolInput["institution_type"])}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue>
+                {(value) =>
+                  value
+                    ? INSTITUTION_TYPE_LABELS[
+                        value as SuggestSchoolInput["institution_type"]
+                      ]
+                    : null
+                }
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="university">University</SelectItem>
               <SelectItem value="polytechnic">Polytechnic</SelectItem>
@@ -101,7 +100,17 @@ export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
             value={form.watch("ownership_type")}
             onValueChange={(v) => form.setValue("ownership_type", v as SuggestSchoolInput["ownership_type"])}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue>
+                {(value) =>
+                  value
+                    ? OWNERSHIP_TYPE_LABELS[
+                        value as SuggestSchoolInput["ownership_type"]
+                      ]
+                    : null
+                }
+              </SelectValue>
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="federal">Federal</SelectItem>
               <SelectItem value="state">State</SelectItem>
@@ -150,7 +159,7 @@ export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label>Your Name</Label>
           <Input {...form.register("submitter_name")} placeholder="Full name" />
@@ -158,6 +167,7 @@ export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
             <p className="text-xs text-destructive">{form.formState.errors.submitter_name.message}</p>
           )}
         </div>
+
         <div className="space-y-1.5">
           <Label>Your Email</Label>
           <Input {...form.register("submitter_email")} type="email" placeholder="you@example.com" />
@@ -167,7 +177,17 @@ export function SuggestSchoolForm({ onSubmit }: SuggestSchoolFormProps) {
         </div>
       </div>
 
-      <Button type="submit" disabled={form.formState.isSubmitting}>
+      {form.formState.errors.root && (
+        <p className="text-sm text-destructive">
+          {form.formState.errors.root.message}
+        </p>
+      )}
+
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={form.formState.isSubmitting}
+      >
         {form.formState.isSubmitting ? "Submitting…" : "Suggest School"}
       </Button>
     </form>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, ExternalLink, FileText } from "lucide-react";
 import {
-  defaultLevelForStudentType,
   dueLabel,
   lineAmountForPlan,
   linesForLevel,
@@ -12,7 +11,6 @@ import {
   studentTypeForLevel,
   type FeeBreakdownLine,
   type FeeDetailRecord,
-  type StudentType,
 } from "@/lib/mock/fee-detail";
 import { formatCurrency } from "@/lib/utils/format";
 import { FeeCourseCompareMatrix } from "@/components/public/FeeCourseCompareMatrix";
@@ -24,6 +22,7 @@ import {
 import { ConfidenceDisplay } from "@/components/public/ConfidenceDisplay";
 import { SourceBadge } from "@/components/public/SourceBadge";
 import { cn } from "@/lib/utils";
+import { isCommunityReport } from "@/lib/fees/trust";
 import type { ReactNode } from "react";
 
 interface FeeDetailBreakdownProps {
@@ -37,15 +36,13 @@ interface VerificationRow {
 }
 
 export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
-  const [studentType, setStudentType] = useState<StudentType>(() =>
-    studentTypeForLevel(record.defaultLevel || "100L")
-  );
+  const [level, setLevel] = useState(record.defaultLevel || "100L");
   const [paymentPlan, setPaymentPlan] = useState(
     record.paymentPlans[0]?.value ?? "full"
   );
   const [activeView, setActiveView] = useState<FeeDetailView>("breakdown");
 
-  const level = defaultLevelForStudentType(record, studentType);
+  const studentType = studentTypeForLevel(level);
   const lines = useMemo(() => linesForLevel(record, level), [record, level]);
   const totals = record.totalsByLevel[level] ?? record.totalsByLevel["100L"];
   const compulsoryLines = lines.filter((line) => line.category === "compulsory");
@@ -56,10 +53,12 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
   );
 
   const isFresh = studentType === "fresh";
-  const heroLabel = isFresh ? "First-year total" : "Returning-year total";
-  const heroAmount = isFresh
-    ? record.firstYearTotal
-    : record.returningYearTotal;
+  const heroLabel = isFresh ? "First-year total" : `${level} total`;
+  const heroAmount = totals?.compulsory ?? 0;
+  const needsConfirmation = isCommunityReport(
+    record.verification_status,
+    record.confidence_level
+  );
 
   const verificationRows: VerificationRow[] = [
     {
@@ -103,6 +102,16 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
 
         {activeView === "breakdown" ? (
           <>
+            {needsConfirmation && (
+              <div className="mb-6 rounded-2xl border border-[#f1d39f] bg-[#fff7e5] px-4 py-3.5 sm:px-5">
+                <p className="text-sm font-semibold tracking-[-0.02em] text-brand-ink">
+                  Community-reported fee. Confirm before you pay.
+                </p>
+                <p className="mt-1 text-sm leading-[1.45] tracking-[-0.02em] text-brand-ink/70">
+                  This figure is shown for planning only. It is not used in lowest-cost highlights or verified comparisons until we review stronger evidence.
+                </p>
+              </div>
+            )}
             <div id="overview" className="scroll-mt-28">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/50">
@@ -118,16 +127,16 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                 <p className="mt-2 max-w-2xl text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
                   {isFresh ? (
                     <>
-                      Estimated first-year compulsory fees for {record.course}{" "}
-                      at {record.schoolName}, including one-time fresh charges.
+                      Published compulsory fees for {record.course} at{" "}
+                      {record.schoolName}, including one-time fresh charges.
                       Session {record.session}. Hostel and feeding are not
                       included.
                     </>
                   ) : (
                     <>
-                      Estimated returning-year compulsory fees for{" "}
-                      {record.course} at {record.schoolName}. Session{" "}
-                      {record.session}. Hostel and feeding are not included.
+                      Published compulsory fees for {level} {record.course} at{" "}
+                      {record.schoolName}. Session {record.session}. Hostel
+                      and feeding are not included.
                     </>
                   )}
                 </p>
@@ -143,13 +152,10 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
 
               <div className="mt-6 grid w-full max-w-xl grid-cols-1 gap-4 sm:grid-cols-2">
                 <FilterSelect
-                  label="I am a"
-                  value={studentType}
-                  onChange={(value) => setStudentType(value as StudentType)}
-                  options={[
-                    { value: "fresh", label: "Fresh student" },
-                    { value: "returning", label: "Returning student" },
-                  ]}
+                  label="Academic level"
+                  value={level}
+                  onChange={setLevel}
+                  options={record.levels}
                 />
                 <FilterSelect
                   label="Payment plan"

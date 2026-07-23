@@ -3,7 +3,7 @@ import Link from "next/link";
 import { FeeDetailBreakdown } from "@/components/public/FeeDetailBreakdown";
 import { FeeDetailHero } from "@/components/public/FeeDetailHero";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
-import { getMockFeeDetail } from "@/lib/mock/fee-detail";
+import { getLiveFeeDetail } from "@/lib/fees/get-fee-detail";
 
 interface PageProps {
   params: Promise<{ slug: string; feeRecordId: string }>;
@@ -11,7 +11,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { feeRecordId } = await params;
-  const record = getMockFeeDetail(feeRecordId);
+  const record = await getLiveFeeDetail(feeRecordId);
 
   if (!record) {
     return {
@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function FeeBreakdownPage({ params }: PageProps) {
   const { slug, feeRecordId } = await params;
-  const record = getMockFeeDetail(feeRecordId);
+  const record = await getLiveFeeDetail(feeRecordId);
 
   if (!record || record.schoolSlug !== slug) {
     return (

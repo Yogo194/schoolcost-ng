@@ -6,6 +6,8 @@ export interface SearchSuggestion {
   label: string;
   meta?: string;
   href: string;
+  /** School crest when available; omit for courses/states and schools without a logo. */
+  logoUrl?: string | null;
 }
 
 export interface SearchSuggestionsResponse {

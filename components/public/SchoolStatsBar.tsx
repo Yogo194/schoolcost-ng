@@ -7,6 +7,10 @@ interface SchoolStatsBarProps {
   firstYearMin: number;
   firstYearMax: number;
   paymentOptions: string[];
+  coverageLabel?: string;
+  rangeEyebrow?: string;
+  rangeDescription?: string;
+  showRangeExtremes?: boolean;
 }
 
 function compactNaira(amount: number): string {
@@ -25,6 +29,10 @@ export function SchoolStatsBar({
   firstYearMin,
   firstYearMax,
   paymentOptions,
+  coverageLabel = "Courses with verified fees",
+  rangeEyebrow = "First-year · 100L",
+  rangeDescription = "Compulsory fee range across courses",
+  showRangeExtremes = true,
 }: SchoolStatsBarProps) {
   const hasRange = firstYearMin > 0 && firstYearMax > 0;
   const hasPayment = paymentOptions.length > 0;
@@ -49,7 +57,7 @@ export function SchoolStatsBar({
                 {coursesListed}
               </p>
               <p className="mt-2 text-sm tracking-[-0.02em] text-brand-ink/70">
-                Courses with verified fees
+                {coverageLabel}
               </p>
             </div>
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-lime text-brand-ink transition-transform duration-300 group-hover:scale-105">
@@ -69,7 +77,7 @@ export function SchoolStatsBar({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-                First-year · 100L
+                {rangeEyebrow}
               </p>
               {hasRange ? (
                 <>
@@ -85,22 +93,27 @@ export function SchoolStatsBar({
                     </p>
                   </div>
                   <p className="mt-2 text-sm tracking-[-0.02em] text-brand-ink/70">
-                    Compulsory fee range across courses
+                    {rangeDescription}
                   </p>
                   <div className="mt-4">
                     <div className="relative h-2 overflow-hidden rounded-full bg-brand-ink/[0.06]">
                       <div className="absolute inset-y-0 left-[8%] right-[8%] rounded-full bg-gradient-to-r from-brand-lime via-[#c8e85a] to-brand-amber" />
                     </div>
                     <div className="mt-1.5 flex justify-between text-[11px] tracking-[-0.02em] text-brand-ink/45">
-                      <span>Lowest</span>
-                      <span>Highest</span>
+                      <span>{showRangeExtremes ? "Lowest" : "Reported low"}</span>
+                      <span>{showRangeExtremes ? "Highest" : "Reported high"}</span>
                     </div>
                   </div>
                 </>
               ) : (
-                <p className="mt-3 text-lg font-medium text-brand-ink/60">
-                  Fees pending
-                </p>
+                <>
+                  <p className="mt-3 text-lg font-medium tracking-[-0.02em] text-brand-ink/70">
+                    Not published yet
+                  </p>
+                  <p className="mt-2 text-sm tracking-[-0.02em] text-brand-ink/55">
+                    Waiting on an official schedule we can verify
+                  </p>
+                </>
               )}
             </div>
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#fcffe7] text-brand-ink transition-transform duration-300 group-hover:scale-105">

@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { HomeHero } from "@/components/public/HomeHero";
 import { HomeFeatures } from "@/components/public/HomeFeatures";
 import { RecentlyVerifiedFees } from "@/components/public/RecentlyVerifiedFees";
-import {
-  MOCK_RECENT_FEES,
-  type RecentFeeRow,
-} from "@/lib/mock/recent-fees";
+import { type RecentFeeRow } from "@/lib/mock/recent-fees";
 import { createServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -14,7 +11,7 @@ export const metadata: Metadata = {
     "Compare verified school fees by course, level, and session, including the charges most people miss.",
 };
 
-/** Prefer live published rows; fall back to mock so homepage structure stays reviewable. */
+/** Live published fees only. No mock fee cards once real data starts landing. */
 async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
   try {
     const supabase = await createServerClient();
@@ -33,17 +30,15 @@ async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
 
     if (error) {
       console.error("Failed to load recently verified fees:", error.message);
-      return MOCK_RECENT_FEES;
+      return [];
     }
 
-    const rows = ((data ?? []) as unknown as RecentFeeRow[]).filter(
+    return ((data ?? []) as unknown as RecentFeeRow[]).filter(
       (row) => row.institutions && row.courses && row.academic_sessions
     );
-
-    return rows.length > 0 ? rows : MOCK_RECENT_FEES;
   } catch (err) {
     console.error("Failed to load recently verified fees:", err);
-    return MOCK_RECENT_FEES;
+    return [];
   }
 }
 

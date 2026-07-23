@@ -132,6 +132,8 @@ export function SearchSuggestionsDropdown({
           {suggestions.map((item, index) => {
             const Icon = KIND_ICONS[item.kind];
             const isActive = index === activeIndex;
+            const schoolLogo =
+              item.kind === "school" && item.logoUrl ? item.logoUrl : null;
 
             return (
               <li key={item.id} role="presentation">
@@ -149,13 +151,28 @@ export function SearchSuggestionsDropdown({
                 >
                   <span
                     className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-xl",
-                      item.kind === "school" && "bg-emerald-50 text-emerald-700",
-                      item.kind === "course" && "bg-blue-50 text-blue-700",
-                      item.kind === "state" && "bg-amber-50 text-amber-700"
+                      "flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-xl",
+                      schoolLogo
+                        ? "border border-[#e5ebe5] bg-white"
+                        : item.kind === "school"
+                          ? "bg-emerald-50 text-emerald-700"
+                          : item.kind === "course"
+                            ? "bg-blue-50 text-blue-700"
+                            : "bg-amber-50 text-amber-700"
                     )}
                   >
-                    <Icon className="size-4" aria-hidden />
+                    {schoolLogo ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={schoolLogo}
+                        alt=""
+                        width={36}
+                        height={36}
+                        className="size-full object-contain p-1"
+                      />
+                    ) : (
+                      <Icon className="size-4" aria-hidden />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1 text-left">
                     <span className="block truncate text-sm font-medium text-brand-ink">

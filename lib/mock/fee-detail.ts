@@ -56,6 +56,8 @@ export interface FeeDetailRecord {
     string,
     { compulsory: number; accommodation: number; withAccommodation: number }
   >;
+  /** Exact line items keyed by level when a source publishes level-specific fees. */
+  linesByLevel?: Record<string, FeeBreakdownLine[]>;
   lines: FeeBreakdownLine[];
 }
 
@@ -298,6 +300,9 @@ export function linesForLevel(
   record: FeeDetailRecord,
   level: string
 ): FeeBreakdownLine[] {
+  const exactLines = record.linesByLevel?.[level];
+  if (exactLines) return exactLines;
+
   return record.lines.filter(
     (line) => !line.levels || line.levels.includes(level)
   );

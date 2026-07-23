@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ExternalLink } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
 import {
   Table,
@@ -25,8 +25,9 @@ interface SchoolCourseFeesProps {
 }
 
 export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
+  const coverage = school.fee_coverage;
   const [course, setCourse] = useState("all");
-  const [level, setLevel] = useState("100L");
+  const [level, setLevel] = useState(coverage.defaultLevelFilter);
   const [session, setSession] = useState(
     school.fees[0]?.session ?? school.sessions[0] ?? "all"
   );
@@ -41,28 +42,108 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
     [school.fees, course, level, session]
   );
 
-  const displayRows = rows;
+  const categoryHeading =
+    coverage.kind === "bands" ? "Fee band" : "Course";
+
+  if (school.fees.length === 0) {
+    return (
+      <section className="bg-brand-lime-light px-4 pb-16 pt-10 sm:px-10 sm:pb-20 sm:pt-12 lg:px-20">
+        <div className="mx-auto max-w-[720px] text-center">
+          <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
+            No verified fee schedule yet
+          </h2>
+          <p className="mt-3 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
+            We have not published fees for {school.abbreviation} yet. An empty
+            page is better than guessing from blogs. If you have an official
+            circular, bursary PDF, or portal pay advice, contribute it and we
+            will verify before listing.
+          </p>
+          <div className="mt-8 rounded-2xl border border-[#e5ebe5] bg-white px-5 py-5 text-left sm:px-6">
+            <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/80">
+              Student portal amounts are usually the final figure for your
+              programme and level. Screenshots or Remita receipts with the
+              school name and session help us publish faster.
+            </p>
+            {school.website_url && school.website_url !== "#" ? (
+              <a
+                href={school.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-ink underline-offset-2 hover:underline"
+              >
+                Visit {school.abbreviation} website
+                <ExternalLink className="size-3.5 opacity-70" aria-hidden />
+              </a>
+            ) : null}
+            <p className="mt-4 text-sm tracking-[-0.02em] text-brand-ink/65">
+              Have a {school.abbreviation} schedule we can verify?{" "}
+              <Link
+                href="/submit-fees"
+                className="font-medium text-brand-ink underline-offset-2 hover:underline"
+              >
+                Contribute it
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-brand-lime-light px-4 pb-16 pt-10 sm:px-10 sm:pb-20 sm:pt-12 lg:px-20">
       <div className="mx-auto max-w-[1280px]">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
-            Course fees
+            {coverage.sectionTitle}
           </h2>
           <p className="mt-2 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
-            Verified compulsory fees by course and level. Open any row for the
-            full breakdown.
+            {coverage.sectionDescription}
           </p>
         </div>
 
+        {coverage.notice ? (
+          <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-[#e5ebe5] bg-white px-5 py-4 text-left sm:px-6">
+            <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/80">
+              {coverage.notice}
+            </p>
+            {coverage.sourceUrl ? (
+              <a
+                href={coverage.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-ink underline-offset-2 hover:underline"
+              >
+                {coverage.sourceLabel ?? "View official source"}
+                <ExternalLink className="size-3.5 opacity-70" aria-hidden />
+              </a>
+            ) : null}
+            <p className="mt-3 text-sm tracking-[-0.02em] text-brand-ink/65">
+              Have a {school.abbreviation} pay advice or Remita receipt for a
+              specific course?{" "}
+              <Link
+                href="/submit-fees"
+                className="font-medium text-brand-ink underline-offset-2 hover:underline"
+              >
+                Contribute it
+              </Link>{" "}
+              so we can upgrade this page.
+            </p>
+          </div>
+        ) : null}
+
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
           <FilterSelect
-            label="Course"
+            label={coverage.categoryFilterLabel}
             value={course}
             onChange={setCourse}
             options={[
-              { value: "all", label: "All courses" },
+              {
+                value: "all",
+                label:
+                  coverage.kind === "bands" ? "All fee bands" : "All courses",
+              },
               ...school.courses.map((name) => ({ value: name, label: name })),
             ]}
           />
@@ -74,7 +155,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
               { value: "all", label: "All levels" },
               ...school.levels.map((name) => ({
                 value: name,
-                label: name.replace("L", " Level"),
+                label: formatLevelLabel(name),
               })),
             ]}
           />
@@ -98,7 +179,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
               <TableRow className="hover:bg-transparent">
                 {(
                   [
-                    "Course",
+                    categoryHeading,
                     "Level",
                     "Compulsory total",
                     "Session",
@@ -118,10 +199,10 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {displayRows.map((fee) => (
+              {rows.map((fee) => (
                 <FeeRow key={fee.id} fee={fee} slug={school.slug} />
               ))}
-              {displayRows.length === 0 && (
+              {rows.length === 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={5}
@@ -137,6 +218,13 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
       </div>
     </section>
   );
+}
+
+function formatLevelLabel(name: string): string {
+  if (name === "Undergraduate") return "Undergraduate (annual)";
+  if (name.includes("+")) return name;
+  if (name.includes("DE")) return name;
+  return name.replace("L", " Level");
 }
 
 function FeeRow({ fee, slug }: { fee: SchoolFeeRow; slug: string }) {
@@ -179,15 +267,15 @@ function FilterSelect({
   options: { value: string; label: string }[];
 }) {
   return (
-    <label className="flex flex-col gap-2 text-left">
-      <span className="text-xs font-medium uppercase tracking-[0.08em] text-[#9db85a]">
+    <label className="block">
+      <span className="mb-2 block text-sm font-medium tracking-[-0.02em] text-brand-ink/70">
         {label}
       </span>
-      <span className="relative">
+      <div className="relative">
         <select
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-12 w-full appearance-none rounded-xl border border-[#e5ebe5] bg-white px-4 pr-10 text-base tracking-[-0.02em] text-brand-ink outline-none transition-[border-color,box-shadow] focus:border-brand-ink/30 focus:shadow-[0_0_0_3px_rgba(3,48,42,0.08)]"
+          onChange={(event) => onChange(event.target.value)}
+          className="h-12 w-full appearance-none rounded-[14px] border border-[#d9e0dc] bg-white px-4 pr-10 text-base tracking-[-0.02em] text-brand-ink outline-none transition-[box-shadow,border-color] focus:border-brand-ink/30 focus:shadow-[0_0_0_3px_rgba(3,48,42,0.08)]"
         >
           {options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -196,10 +284,10 @@ function FilterSelect({
           ))}
         </select>
         <ChevronDown
-          className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-brand-ink/50"
+          className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-brand-ink/45"
           aria-hidden
         />
-      </span>
+      </div>
     </label>
   );
 }

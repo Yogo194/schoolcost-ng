@@ -1,4 +1,8 @@
 import type { InstitutionType, OwnershipType, SourceType } from "@/types/database";
+import {
+  getSchoolFeeCoverage,
+  type SchoolFeeCoverage,
+} from "@/lib/fees/school-fee-coverage";
 
 export interface SchoolFeeRow {
   id: string;
@@ -30,6 +34,8 @@ export interface SchoolProfile {
   levels: string[];
   courses: string[];
   fees: SchoolFeeRow[];
+  /** How fee coverage is presented (courses vs official bands). */
+  fee_coverage: SchoolFeeCoverage;
 }
 
 export const MOCK_SCHOOL_PROFILES: Record<string, SchoolProfile> = {
@@ -140,6 +146,7 @@ export const MOCK_SCHOOL_PROFILES: Record<string, SchoolProfile> = {
         source_type: "student_portal_evidence",
       },
     ],
+    fee_coverage: getSchoolFeeCoverage("university-of-lagos"),
   },
 };
 

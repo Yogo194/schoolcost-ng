@@ -4,9 +4,7 @@ import { SchoolCourseFees } from "@/components/public/SchoolCourseFees";
 import { SchoolProfileHero } from "@/components/public/SchoolProfileHero";
 import { SchoolStatsBar } from "@/components/public/SchoolStatsBar";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
-import { getMockSchoolProfile } from "@/lib/mock/school-profile";
-import { createServerClient } from "@/lib/supabase/server";
-import type { SchoolProfile } from "@/lib/mock/school-profile";
+import { getLiveSchoolProfile } from "@/lib/fees/get-school-profile";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -14,7 +12,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const school = await getSchoolProfile(slug);
+  const school = await getLiveSchoolProfile(slug);
 
   if (!school) {
     return {
@@ -23,72 +21,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
+  const isBands = school.fee_coverage.kind === "bands";
+
   return {
     title: `${school.name} fees`,
-    description: `View verified course fees for ${school.name} (${school.abbreviation}), including first-year totals by level and session.`,
+    description: isBands
+      ? `Official fee bands for ${school.name} (${school.abbreviation}), with session year and source notes. Course-level totals welcome via contribute.`
+      : `View verified course fees for ${school.name} (${school.abbreviation}), including first-year totals by level and session.`,
   };
-}
-
-async function getSchoolProfile(slug: string): Promise<SchoolProfile | null> {
-  const mock = getMockSchoolProfile(slug);
-  if (mock) return mock;
-
-  try {
-    const supabase = await createServerClient();
-    const { data, error } = await supabase
-      .from("institutions")
-      .select(
-        "name, slug, abbreviation, city, state, institution_type, ownership_type, website_url, logo_url"
-      )
-      .eq("slug", slug)
-      .eq("is_active", true)
-      .maybeSingle();
-
-    if (error || !data) return null;
-
-    const row = data as {
-      name: string;
-      slug: string;
-      abbreviation: string | null;
-      city: string | null;
-      state: string;
-      institution_type: SchoolProfile["institution_type"];
-      ownership_type: SchoolProfile["ownership_type"];
-      website_url: string | null;
-      logo_url: string | null;
-    };
-
-    return {
-      slug: row.slug,
-      name: row.name,
-      abbreviation: row.abbreviation ?? row.name.slice(0, 6).toUpperCase(),
-      city: row.city ?? row.state,
-      state: row.state,
-      institution_type: row.institution_type,
-      ownership_type: row.ownership_type,
-      website_url: row.website_url ?? "#",
-      website_label: row.website_url
-        ? row.website_url.replace(/^https?:\/\//, "").replace(/\/$/, "")
-        : "Website pending",
-      logo_url: row.logo_url ?? "/figma/icon-logo.svg",
-      source_badge: "official",
-      courses_listed: 0,
-      first_year_min: 0,
-      first_year_max: 0,
-      payment_options: [],
-      sessions: ["2025/2026"],
-      levels: ["100L"],
-      courses: [],
-      fees: [],
-    };
-  } catch {
-    return null;
-  }
 }
 
 export default async function SchoolProfilePage({ params }: PageProps) {
   const { slug } = await params;
-  const school = await getSchoolProfile(slug);
+  const school = await getLiveSchoolProfile(slug);
 
   if (!school) {
     return (
@@ -106,6 +51,11 @@ export default async function SchoolProfilePage({ params }: PageProps) {
     );
   }
 
+  const hasFees = school.fees.length > 0;
+  const isBands = school.fee_coverage.kind === "bands";
+  const hasOnlyCommunityReports =
+    hasFees && school.fees.every((fee) => fee.source_type === "community_reported");
+
   return (
     <div>
       <SchoolProfileHero school={school} />
@@ -114,9 +64,39 @@ export default async function SchoolProfilePage({ params }: PageProps) {
         firstYearMin={school.first_year_min}
         firstYearMax={school.first_year_max}
         paymentOptions={school.payment_options}
+        coverageLabel={
+          hasFees
+            ? school.fee_coverage.coverageLabel
+            : "Verified fee schedules"
+        }
+        rangeEyebrow={
+          hasFees ? school.fee_coverage.rangeEyebrow : "Fee range"
+        }
+        rangeDescription={
+          hasFees
+            ? school.fee_coverage.rangeDescription
+            : "Compulsory fee range across courses"
+        }
+        showRangeExtremes={!hasOnlyCommunityReports}
       />
       <SchoolCourseFees school={school} />
-      <SchoolSubmitCta />
+      <SchoolSubmitCta
+        title={
+          !hasFees
+            ? `Help us list ${school.abbreviation} fees`
+            : isBands
+              ? `Have a ${school.abbreviation} course pay advice?`
+              : undefined
+        }
+        description={
+          !hasFees
+            ? "Share an official circular, bursary PDF, or portal pay advice and we will verify before publishing."
+            : isBands
+              ? "Share a portal payment advice or Remita receipt and we can add course-level fees with evidence."
+              : undefined
+        }
+        ctaLabel={!hasFees ? "Contribute a fee schedule" : undefined}
+      />
     </div>
   );
 }

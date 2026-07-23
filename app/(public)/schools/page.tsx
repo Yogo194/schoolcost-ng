@@ -4,11 +4,10 @@ import { SchoolsSearchHero } from "@/components/public/SchoolsSearchHero";
 import { SchoolsDirectory } from "@/components/public/SchoolsDirectory";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { createServerClient } from "@/lib/supabase/server";
-import {
-  MOCK_SCHOOLS_DIRECTORY,
-  type SchoolsDirectoryItem,
-} from "@/lib/mock/schools-directory";
+import { canUseForPriceComparison } from "@/lib/fees/trust";
+import type { SchoolsDirectoryItem } from "@/lib/mock/schools-directory";
 import type { Institution } from "@/types/institution";
+import type { ConfidenceLevel, VerificationStatus } from "@/types/database";
 
 export const metadata: Metadata = {
   title: "Find school fees",
@@ -39,14 +38,16 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
       .eq("is_active", true)
       .order("name");
 
-    if (error || !data?.length) return MOCK_SCHOOLS_DIRECTORY;
+    if (error || !data?.length) return [];
 
     const institutions = data as Institution[];
     const ids = institutions.map((institution) => institution.id);
 
     const { data: fees } = await supabase
       .from("fee_records")
-      .select("institution_id, first_year_total")
+      .select(
+        "institution_id, first_year_total, level, student_type, verification_status, confidence_level"
+      )
       .in("institution_id", ids)
       .eq("is_published", true);
 
@@ -54,7 +55,20 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
     for (const fee of (fees ?? []) as Array<{
       institution_id: string;
       first_year_total: number;
+      level: string | null;
+      student_type: string;
+      verification_status: VerificationStatus;
+      confidence_level: ConfidenceLevel;
     }>) {
+      if (!canUseForPriceComparison(fee.verification_status, fee.confidence_level)) {
+        continue;
+      }
+      // Prefer fresher / 100L / Undergraduate package rows for "from" prices.
+      const isFreshBand =
+        fee.level === "100L" ||
+        fee.level === "Undergraduate" ||
+        fee.student_type === "fresh";
+      if (!isFreshBand) continue;
       const amount = Number(fee.first_year_total);
       if (!Number.isFinite(amount)) continue;
       const current = lowestFees.get(fee.institution_id);
@@ -76,27 +90,22 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
       first_year_from: lowestFees.get(institution.id) ?? null,
     }));
   } catch {
-    return MOCK_SCHOOLS_DIRECTORY;
+    return [];
   }
 }
 
 function DirectorySkeleton() {
   return (
-    <section className="bg-white px-4 py-12 sm:px-10 sm:py-16 lg:px-20">
-      <div className="mx-auto grid max-w-[1280px] gap-10 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <div className="h-80 animate-pulse rounded-2xl bg-[#f4f6f5]" />
-        <div className="space-y-4">
-          <div className="h-[52px] animate-pulse rounded-[14px] bg-[#f4f6f5]" />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-28 animate-pulse rounded-2xl bg-[#f4f6f5]"
-              />
-            ))}
-          </div>
-        </div>
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <div className="h-10 w-full max-w-xl animate-pulse rounded-xl bg-muted" />
+      <div className="mt-8 space-y-3">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-20 animate-pulse rounded-2xl bg-muted"
+          />
+        ))}
       </div>
-    </section>
+    </div>
   );
 }

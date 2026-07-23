@@ -2,7 +2,6 @@ import { createServerClient } from "@/lib/supabase/server";
 import { OWNERSHIP_TYPE_LABELS } from "@/types/institution";
 import { NIGERIA_STATES } from "@/types/institution";
 import type { OwnershipType } from "@/types/database";
-import { getMockSearchSuggestions } from "@/lib/search/mock-index";
 import {
   createSchoolSearchIndex,
   normalizeSearchText,
@@ -18,6 +17,7 @@ interface InstitutionSuggestionRow {
   city: string | null;
   state: string;
   ownership_type: OwnershipType;
+  logo_url: string | null;
 }
 
 interface CourseSuggestionRow {
@@ -40,22 +40,21 @@ function schoolMeta(row: {
     .join(" · ");
 }
 
-function mergeSuggestions(
-  primary: SearchSuggestion[],
-  fallback: SearchSuggestion[],
+function takeSuggestions(
+  items: SearchSuggestion[],
   limit: number
 ): SearchSuggestion[] {
   const seen = new Set<string>();
-  const merged: SearchSuggestion[] = [];
+  const out: SearchSuggestion[] = [];
 
-  for (const item of [...primary, ...fallback]) {
+  for (const item of items) {
     if (seen.has(item.id)) continue;
     seen.add(item.id);
-    merged.push(item);
-    if (merged.length >= limit) break;
+    out.push(item);
+    if (out.length >= limit) break;
   }
 
-  return merged;
+  return out;
 }
 
 /*
@@ -76,18 +75,13 @@ async function refreshInstitutionsIndex(): Promise<void> {
   const supabase = await createServerClient();
   const { data, error } = await supabase
     .from("institutions")
-    .select("name, slug, abbreviation, city, state, ownership_type")
+    .select("name, slug, abbreviation, city, state, ownership_type, logo_url")
     .eq("is_active", true);
 
   if (error) throw error;
   const rows = (data ?? []) as InstitutionSuggestionRow[];
-  if (rows.length === 0) {
-    // Leave any previous index in place; an empty table means Supabase is
-    // not seeded yet and the mock fallback will carry the results.
-    institutionsFetchedAt = Date.now();
-    return;
-  }
-  institutionsIndex = createSchoolSearchIndex(rows);
+  institutionsIndex =
+    rows.length > 0 ? createSchoolSearchIndex(rows) : null;
   institutionsFetchedAt = Date.now();
 }
 
@@ -162,14 +156,13 @@ async function getCourseSuggestions(
     });
 }
 
+/** Live institutions / courses / states only. No mock school templates. */
 export async function getSearchSuggestions(
   query: string,
   limit = SEARCH_SUGGESTION_LIMIT
 ): Promise<SearchSuggestion[]> {
   const q = query.trim();
   if (q.length < 2) return [];
-
-  const mock = getMockSearchSuggestions(q, limit);
 
   try {
     const [index, courseSuggestions] = await Promise.all([
@@ -188,6 +181,7 @@ export async function getSearchSuggestions(
         label: item.name,
         meta: schoolMeta(item),
         href: `/schools/${item.slug}`,
+        logoUrl: item.logo_url,
       }));
 
     const stateSuggestions: SearchSuggestion[] = stateIndex
@@ -202,15 +196,11 @@ export async function getSearchSuggestions(
         href: `/schools?state=${encodeURIComponent(item.name)}`,
       }));
 
-    const live = [
-      ...schoolSuggestions,
-      ...courseSuggestions,
-      ...stateSuggestions,
-    ];
-
-    if (live.length === 0) return mock;
-    return mergeSuggestions(live, mock, limit);
+    return takeSuggestions(
+      [...schoolSuggestions, ...courseSuggestions, ...stateSuggestions],
+      limit
+    );
   } catch {
-    return mock;
+    return [];
   }
 }

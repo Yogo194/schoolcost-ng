@@ -6,7 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed:institutions": "npx --yes tsx scripts/seed-institutions.ts",
+    "seed:aaua-reported-fees": "npx --yes tsx scripts/seed-aaua-reported-fees.ts",
+    "seed:pau-fees": "npx --yes tsx scripts/seed-pau-fees.ts",
+    "seed:ui-fees": "npx --yes tsx scripts/seed-ui-fees.ts",
+    "seed:verified-fees": "npx --yes tsx scripts/seed-verified-fees.ts",
+    "seed:fuoye-fees": "npx --yes tsx scripts/seed-fuoye-fees.ts",
+    "seed:codex-fees": "npx --yes tsx scripts/seed-codex-fees.ts",
+    "seed:batch2-fees": "npx --yes tsx scripts/seed-batch2-fees.ts",
+    "seed:fee-breakdowns": "npx --yes tsx scripts/seed-fee-breakdowns.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

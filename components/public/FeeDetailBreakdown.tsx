@@ -14,6 +14,7 @@ import {
 } from "@/lib/mock/fee-detail";
 import { formatCurrency } from "@/lib/utils/format";
 import { FeeCourseCompareMatrix } from "@/components/public/FeeCourseCompareMatrix";
+import { InfoPrompt } from "@/components/public/InfoPrompt";
 import {
   DetailViewTabs,
   VerificationActions,
@@ -103,14 +104,11 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
         {activeView === "breakdown" ? (
           <>
             {needsConfirmation && (
-              <div className="mb-6 rounded-2xl border border-[#f1d39f] bg-[#fff7e5] px-4 py-3.5 sm:px-5">
-                <p className="text-sm font-semibold tracking-[-0.02em] text-brand-ink">
-                  Community-reported fee. Confirm before you pay.
-                </p>
-                <p className="mt-1 text-sm leading-[1.45] tracking-[-0.02em] text-brand-ink/70">
-                  This figure is shown for planning only. It is not used in lowest-cost highlights or verified comparisons until we review stronger evidence.
-                </p>
-              </div>
+              <InfoPrompt
+                className="mb-6"
+                title="Community-reported fee. Confirm before you pay."
+                description="This figure is shown for planning only. It is not used in lowest-cost highlights or verified comparisons until we review stronger evidence."
+              />
             )}
             <div id="overview" className="scroll-mt-28">
               <div className="min-w-0">
@@ -329,7 +327,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                 {record.session}.{" "}
                 <Link
                   href="/how-it-works"
-                  className="font-medium text-primary hover:underline"
+                  className="font-semibold text-[#c96d18] underline-offset-4 hover:text-[#a95812] hover:underline"
                 >
                   How verification works
                 </Link>
@@ -392,14 +390,14 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                       <FileText className="size-4" aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-medium tracking-[-0.02em] text-brand-ink">
+                      <span className="block text-[15px] font-medium tracking-[-0.02em] text-brand-ink">
                         Supporting evidence
                       </span>
-                      <span className="mt-0.5 block truncate text-sm text-brand-ink/65">
+                      <span className="mt-0.5 block truncate text-[15px] text-brand-ink/65">
                         {record.evidence.title} · {record.evidence.typeLabel}
                       </span>
                     </span>
-                    <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-primary">
+                    <span className="flex shrink-0 items-center gap-1 text-[15px] font-medium text-primary">
                       View
                       <ExternalLink className="size-3.5" aria-hidden />
                     </span>
@@ -407,10 +405,10 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                 )}
                 {record.reviewerNote && (
                   <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4">
-                    <p className="text-sm font-medium tracking-[-0.02em] text-brand-ink">
+                    <p className="text-[15px] font-medium tracking-[-0.02em] text-brand-ink">
                       Reviewer note
                     </p>
-                    <p className="mt-1 text-sm leading-[1.5] tracking-[-0.02em] text-brand-ink/70">
+                    <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.02em] text-brand-ink/70">
                       {record.reviewerNote}
                     </p>
                   </div>

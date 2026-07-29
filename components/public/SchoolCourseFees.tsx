@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, ExternalLink } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
+import { InfoPrompt } from "@/components/public/InfoPrompt";
 import {
   Table,
   TableBody,
@@ -47,7 +48,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
 
   if (school.fees.length === 0) {
     return (
-      <section className="bg-brand-lime-light px-4 pb-16 pt-10 sm:px-10 sm:pb-20 sm:pt-12 lg:px-20">
+      <section className="bg-brand-lime-light px-4 pb-16 pt-6 sm:px-10 sm:pb-20 sm:pt-8 lg:px-20">
         <div className="mx-auto max-w-[720px] text-center">
           <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
             No verified fee schedule yet
@@ -92,7 +93,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
   }
 
   return (
-    <section className="bg-brand-lime-light px-4 pb-16 pt-10 sm:px-10 sm:pb-20 sm:pt-12 lg:px-20">
+    <section className="bg-brand-lime-light px-4 pb-16 pt-6 sm:px-10 sm:pb-20 sm:pt-8 lg:px-20">
       <div className="mx-auto max-w-[1280px]">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
@@ -104,22 +105,23 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         </div>
 
         {coverage.notice ? (
-          <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-[#e5ebe5] bg-white px-5 py-4 text-left sm:px-6">
-            <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/80">
-              {coverage.notice}
-            </p>
+          <InfoPrompt
+            className="mx-auto mt-8 max-w-3xl"
+            title="Before you rely on these figures"
+            description={coverage.notice}
+          >
             {coverage.sourceUrl ? (
               <a
                 href={coverage.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-ink underline-offset-2 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink underline-offset-2 hover:underline"
               >
                 {coverage.sourceLabel ?? "View official source"}
                 <ExternalLink className="size-3.5 opacity-70" aria-hidden />
               </a>
             ) : null}
-            <p className="mt-3 text-sm tracking-[-0.02em] text-brand-ink/65">
+            <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/55">
               Have a {school.abbreviation} pay advice or Remita receipt for a
               specific course?{" "}
               <Link
@@ -130,7 +132,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
               </Link>{" "}
               so we can upgrade this page.
             </p>
-          </div>
+          </InfoPrompt>
         ) : null}
 
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">

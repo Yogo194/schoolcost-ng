@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,11 +27,19 @@ export type SubmitCorrectionPayload = SubmitCorrectionInput & {
 interface SubmitCorrectionFormProps {
   feeRecordId: string;
   onSubmit: (data: SubmitCorrectionPayload) => Promise<void>;
+  formId?: string;
+  hideSubmitButton?: boolean;
+  onSubmittingChange?: (submitting: boolean) => void;
+  onSubmitted?: () => void;
 }
 
 export function SubmitCorrectionForm({
   feeRecordId,
   onSubmit,
+  formId,
+  hideSubmitButton = false,
+  onSubmittingChange,
+  onSubmitted,
 }: SubmitCorrectionFormProps) {
   const [success, setSuccess] = useState(false);
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
@@ -48,15 +55,21 @@ export function SubmitCorrectionForm({
       submitter_email: "",
     },
   });
+  const correctionType = useWatch({
+    control: form.control,
+    name: "correction_type",
+  });
 
   async function handleSubmit(data: SubmitCorrectionInput) {
-    if (evidenceFiles.length === 0) {
-      setEvidenceError("Please upload at least one supporting file.");
-      return;
-    }
     setEvidenceError(undefined);
-    await onSubmit({ ...data, evidenceFiles });
-    setSuccess(true);
+    onSubmittingChange?.(true);
+    try {
+      await onSubmit({ ...data, evidenceFiles });
+      setSuccess(true);
+      onSubmitted?.();
+    } finally {
+      onSubmittingChange?.(false);
+    }
   }
 
   if (success) {
@@ -73,11 +86,11 @@ export function SubmitCorrectionForm({
   }
 
   return (
-    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
+    <form id={formId} onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
       <div className="space-y-1.5">
-        <Label>Correction Type</Label>
+        <Label>What looks wrong?</Label>
         <Select
-          value={form.watch("correction_type")}
+          value={correctionType}
           onValueChange={(v) =>
             form.setValue(
               "correction_type",
@@ -98,11 +111,11 @@ export function SubmitCorrectionForm({
       </div>
 
       <div className="space-y-1.5">
-        <Label>Describe the correction</Label>
+        <Label>Tell us what should change</Label>
         <Textarea
           {...form.register("description")}
-          placeholder="What is wrong and what the correct information should be…"
-          rows={4}
+          placeholder="For example: the amount is for 2025/2026, not 2026/2027."
+          rows={3}
         />
         {form.formState.errors.description && (
           <p className="text-xs text-destructive">
@@ -111,9 +124,9 @@ export function SubmitCorrectionForm({
         )}
       </div>
 
-      {form.watch("correction_type") === "wrong_amount" && (
+      {correctionType === "wrong_amount" && (
         <div className="space-y-1.5">
-          <Label>Suggested Correct Amount (₦, optional)</Label>
+          <Label>Correct total, if you know it (₦, optional)</Label>
           <Input
             {...form.register("suggested_amount")}
             type="number"
@@ -123,7 +136,7 @@ export function SubmitCorrectionForm({
       )}
 
       <div className="space-y-1.5">
-        <Label>Source URL (optional)</Label>
+        <Label>Link to a circular or portal page (optional)</Label>
         <Input
           {...form.register("source_url")}
           placeholder="https://portal.school.edu.ng/fees"
@@ -137,47 +150,33 @@ export function SubmitCorrectionForm({
           setEvidenceFiles(files);
           if (files.length > 0) setEvidenceError(undefined);
         }}
-        required
         error={evidenceError}
+        label="Proof, if you have it"
       />
+      <p className="text-xs leading-4 text-brand-ink/55">
+        Please remove student IDs and payment references from anything you share.
+      </p>
 
-      <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-        <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600" />
-        <p className="text-xs text-amber-800">
-          Remove personal information (student ID, payment reference, etc.) from
-          any evidence you share.
-        </p>
+      <div className="border-t border-[#edf0ed] pt-5">
+        <Label>Your email (optional)</Label>
+        <Input
+          className="mt-1.5"
+          {...form.register("submitter_email")}
+          type="email"
+          placeholder="Only if you are happy for us to ask a follow-up question"
+        />
+        {form.formState.errors.submitter_email && (
+          <p className="mt-1 text-xs text-destructive">
+            {form.formState.errors.submitter_email.message}
+          </p>
+        )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label>Your Name</Label>
-          <Input {...form.register("submitter_name")} placeholder="Full name" />
-          {form.formState.errors.submitter_name && (
-            <p className="text-xs text-destructive">
-              {form.formState.errors.submitter_name.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>Your Email</Label>
-          <Input
-            {...form.register("submitter_email")}
-            type="email"
-            placeholder="you@example.com"
-          />
-          {form.formState.errors.submitter_email && (
-            <p className="text-xs text-destructive">
-              {form.formState.errors.submitter_email.message}
-            </p>
-          )}
-        </div>
-      </div>
-
-      <Button type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? "Submitting…" : "Submit Correction"}
-      </Button>
+      {!hideSubmitButton && (
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Submitting…" : "Submit correction"}
+        </Button>
+      )}
     </form>
   );
 }

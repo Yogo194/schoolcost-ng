@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChevronRight, Search } from "lucide-react";
 import {
   useCallback,
@@ -55,6 +56,8 @@ function institutionMeta(fee: RecentFeeRow): string {
 }
 
 function FeesTable({ rows }: { rows: RecentFeeRow[] }) {
+  const router = useRouter();
+
   if (rows.length === 0) {
     return (
       <div className="overflow-hidden rounded-2xl border border-[#e5ebe5] bg-white">
@@ -77,27 +80,27 @@ function FeesTable({ rows }: { rows: RecentFeeRow[] }) {
       </div>
 
       <div className="hidden overflow-x-auto overflow-y-hidden rounded-2xl border border-[#e5ebe5] bg-white md:block">
-        <Table className="min-w-[960px]">
+        <Table className="w-full min-w-[960px] table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               {(
                 [
-                  "Institution",
-                  "Course",
-                  "Level",
-                  "First-year total",
-                  "Academic session",
-                  "Source",
+                  { label: "Institution", className: "w-[28%] text-left" },
+                  { label: "Course", className: "w-[22%] text-center" },
+                  { label: "Level", className: "w-[10%] text-center" },
+                  { label: "Verified total", className: "w-[14%] text-center" },
+                  { label: "Academic session", className: "w-[14%] text-center" },
+                  { label: "Source", className: "w-[12%] text-center" },
                 ] as const
-              ).map((heading, i) => (
+              ).map((column) => (
                 <TableHead
-                  key={heading}
+                  key={column.label}
                   className={cn(
                     "h-14 bg-[#f2ac5b] px-4 text-[18px] font-medium tracking-[-0.25px] text-[#002c15]",
-                    i === 0 ? "text-left" : "text-center"
+                    column.className
                   )}
                 >
-                  {heading}
+                  {column.label}
                 </TableHead>
               ))}
             </TableRow>
@@ -105,35 +108,53 @@ function FeesTable({ rows }: { rows: RecentFeeRow[] }) {
           <TableBody>
             {rows.map((fee) => {
               const href = `/schools/${fee.institutions.slug}/fees/${fee.id}`;
+              const schoolHref = `/schools/${fee.institutions.slug}`;
 
               return (
-                <TableRow key={fee.id} className="group h-[72px]">
-                  <TableCell className="whitespace-normal px-4 py-4 align-middle">
-                    <Link href={href} className="block">
-                      <p className="text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955] group-hover:underline">
+                <TableRow
+                  key={fee.id}
+                  role="link"
+                  tabIndex={0}
+                  onClick={() => router.push(href)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      router.push(href);
+                    }
+                  }}
+                  className="group h-[72px] cursor-pointer [&_td]:cursor-pointer"
+                >
+                  <TableCell className="px-4 py-4 align-middle">
+                    <div className="min-w-0">
+                      <Link
+                        href={schoolHref}
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-block max-w-full cursor-pointer truncate align-bottom text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955] hover:underline"
+                        title={fee.institutions.name}
+                      >
                         {fee.institutions.name}
-                      </p>
-                      <p className="mt-0.5 text-base leading-[1.4] tracking-[-0.02em] text-brand-ink/80">
+                      </Link>
+                      <p className="mt-0.5 truncate text-base leading-[1.4] tracking-[-0.02em] text-brand-ink/80">
                         {institutionMeta(fee)}
                       </p>
-                    </Link>
+                    </div>
                   </TableCell>
-                  <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
-                    <Link href={href}>{fee.courses.name}</Link>
+                  <TableCell className="whitespace-normal px-4 py-4 text-center align-middle text-base leading-[1.35] tracking-[-0.02em] text-brand-ink/80">
+                    <span className="break-words">{fee.courses.name}</span>
                   </TableCell>
-                  <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
-                    <Link href={href}>{fee.level ?? "-"}</Link>
+                  <TableCell className="whitespace-nowrap px-4 py-4 text-center align-middle text-base tracking-[-0.02em] text-brand-ink/80">
+                    {fee.level ?? "-"}
                   </TableCell>
-                  <TableCell className="px-4 py-4 text-center text-base font-semibold tracking-[-0.25px] text-[#355955]">
-                    <Link href={href}>{formatCurrency(fee.first_year_total)}</Link>
+                  <TableCell className="whitespace-nowrap px-4 py-4 text-center align-middle text-base font-semibold tracking-[-0.25px] text-[#355955]">
+                    {formatCurrency(fee.first_year_total)}
                   </TableCell>
-                  <TableCell className="px-4 py-4 text-center text-base tracking-[-0.02em] text-brand-ink/80">
-                    <Link href={href}>{fee.academic_sessions.name}</Link>
+                  <TableCell className="whitespace-nowrap px-4 py-4 text-center align-middle text-base tracking-[-0.02em] text-brand-ink/80">
+                    {fee.academic_sessions.name}
                   </TableCell>
-                  <TableCell className="px-4 py-4 text-center">
-                    <Link href={href} className="inline-flex justify-center">
+                  <TableCell className="px-4 py-4 text-center align-middle">
+                    <span className="inline-flex justify-center">
                       <SourceBadge sourceType={fee.source_type} compact />
-                    </Link>
+                    </span>
                   </TableCell>
                 </TableRow>
               );
@@ -146,18 +167,32 @@ function FeesTable({ rows }: { rows: RecentFeeRow[] }) {
 }
 
 function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
+  const router = useRouter();
   const href = `/schools/${fee.institutions.slug}/fees/${fee.id}`;
+  const schoolHref = `/schools/${fee.institutions.slug}`;
 
   return (
-    <Link
-      href={href}
-      className="group block rounded-2xl border border-[#e5ebe5] bg-white p-5 shadow-[0_1px_2px_rgba(3,48,42,0.04)] transition-[transform,box-shadow] active:scale-[0.99]"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(href)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          router.push(href);
+        }
+      }}
+      className="group block cursor-pointer rounded-2xl border border-[#e5ebe5] bg-white p-5 shadow-[0_1px_2px_rgba(3,48,42,0.04)] transition-[transform,box-shadow] active:scale-[0.99]"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-lg font-semibold leading-tight tracking-[-0.03em] text-[#355955]">
+          <Link
+            href={schoolHref}
+            onClick={(event) => event.stopPropagation()}
+            className="text-lg font-semibold leading-tight tracking-[-0.03em] text-[#355955] hover:underline"
+          >
             {fee.institutions.name}
-          </p>
+          </Link>
           <p className="mt-1 text-sm leading-5 text-brand-ink/65">
             {institutionMeta(fee)}
           </p>
@@ -180,7 +215,7 @@ function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
         </div>
         <div className="shrink-0 text-right">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-            First year
+            Verified total
           </p>
           <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[#355955]">
             {formatCurrency(fee.first_year_total)}
@@ -192,7 +227,7 @@ function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
         <SourceBadge sourceType={fee.source_type} compact />
         <span className="text-sm font-medium text-brand-ink/65">View breakdown</span>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -299,7 +334,7 @@ export function RecentlyVerifiedFees({ fees }: RecentlyVerifiedFeesProps) {
             Recently verified fees
           </h2>
           <p className="mt-2 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
-            First-year totals reviewed and dated. Click any record for the full
+            Verified session totals across schools. Click any record for the full
             breakdown.
           </p>
         </div>
@@ -321,10 +356,21 @@ export function RecentlyVerifiedFees({ fees }: RecentlyVerifiedFeesProps) {
             href="/schools"
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
-              "h-12 rounded-[14px] bg-white px-7 text-lg tracking-[-0.02em] text-brand-ink shadow-[0_4px_6px_rgba(0,0,0,0.12)]"
+              "h-12 gap-0 rounded-[14px] bg-white px-7 text-lg tracking-[-0.02em] text-brand-ink shadow-[0_4px_6px_rgba(0,0,0,0.12)]",
+              "duration-300 ease-out hover:-translate-y-0.5 hover:border-[#c3d3c6] hover:bg-white hover:shadow-[0_12px_22px_rgba(3,48,42,0.16)]",
+              "active:translate-y-0 active:shadow-[0_4px_6px_rgba(0,0,0,0.12)]",
+              "motion-reduce:transition-none motion-reduce:hover:translate-y-0"
             )}
           >
             View all school fees
+            <span className="grid grid-cols-[0fr] transition-[grid-template-columns] duration-300 ease-out group-hover/button:grid-cols-[1fr] motion-reduce:transition-none">
+              <span className="overflow-hidden">
+                <ChevronRight
+                  className="ml-1.5 size-5 -translate-x-1 opacity-0 transition-[transform,opacity] duration-300 ease-out group-hover/button:translate-x-0 group-hover/button:opacity-100 motion-reduce:transition-none"
+                  aria-hidden
+                />
+              </span>
+            </span>
           </Link>
         </div>
       </div>

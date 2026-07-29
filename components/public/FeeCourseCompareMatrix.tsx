@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
-  Info,
   Repeat2,
   Plus,
   Sparkles,
@@ -17,6 +16,7 @@ import {
 } from "@/lib/mock/course-compare";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
+import { InfoPrompt } from "@/components/public/InfoPrompt";
 import {
   ConfidenceDisplay,
   parseConfidenceLevel,
@@ -26,6 +26,8 @@ import { SourceBadge } from "@/components/public/SourceBadge";
 interface FeeCourseCompareMatrixProps {
   record: FeeDetailRecord;
   level: string;
+  /** Live comparison rows from Supabase. Omit only for legacy detail-page demos. */
+  comparisonColumns?: CourseCompareColumn[];
   /**
    * Standalone compare page: start with no schools selected (slot-based
    * empty state) and let every column be removed. Embedded contexts (fee
@@ -34,6 +36,7 @@ interface FeeCourseCompareMatrixProps {
   startEmpty?: boolean;
   /** Returns the standalone comparison flow to its course picker. */
   onChangeCourse?: () => void;
+  showExamples?: boolean;
 }
 
 type MetricKey =
@@ -119,13 +122,16 @@ const MAX_SCHOOLS = 3;
 export function FeeCourseCompareMatrix({
   record,
   level,
+  comparisonColumns,
   startEmpty = false,
   onChangeCourse,
+  showExamples = true,
 }: FeeCourseCompareMatrixProps) {
-  const allColumns = useMemo(
+  const generatedColumns = useMemo(
     () => getCourseCompareColumns(record, level),
     [record, level]
   );
+  const allColumns = comparisonColumns ?? generatedColumns;
 
   return (
     <FeeCourseCompareContent
@@ -135,6 +141,7 @@ export function FeeCourseCompareMatrix({
       allColumns={allColumns}
       startEmpty={startEmpty}
       onChangeCourse={onChangeCourse}
+      showExamples={showExamples}
     />
   );
 }
@@ -145,12 +152,14 @@ function FeeCourseCompareContent({
   allColumns,
   startEmpty,
   onChangeCourse,
+  showExamples,
 }: {
   record: FeeDetailRecord;
   level: string;
   allColumns: CourseCompareColumn[];
   startEmpty: boolean;
   onChangeCourse?: () => void;
+  showExamples: boolean;
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
     startEmpty ? [] : allColumns.slice(0, 2).map((column) => column.id)
@@ -255,7 +264,7 @@ function FeeCourseCompareContent({
           })}
         </div>
 
-        {isEmpty && (
+        {isEmpty && showExamples && (
           <div className="mt-5 border-t border-[#edf0ed] pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink/70">
               <Sparkles className="size-4 text-brand-ink/50" aria-hidden />
@@ -280,7 +289,7 @@ function FeeCourseCompareContent({
       <MobileComparison columns={columns} />
 
       {columns.length > 0 && (
-        <div className="relative hidden max-w-full rounded-2xl border border-[#e5ebe5] bg-white motion-reduce:animate-none md:block animate-compare-table-flow [--compare-sticky-top:0px] [--compare-school-row-height:4rem]">
+        <div className="relative hidden max-w-full rounded-2xl border border-[#e5ebe5] bg-white motion-reduce:animate-none md:block animate-compare-table-flow [--compare-sticky-top:var(--public-header-height,0px)] [--compare-school-row-height:4rem]">
           {/* Sentinel: when this leaves the viewport, the School header is stuck.
               Absolutely positioned so it doesn't push the header down and expose
               the card's rounded corners. */}
@@ -289,7 +298,7 @@ function FeeCourseCompareContent({
             className="pointer-events-none absolute inset-x-0 top-0 h-px"
             aria-hidden
           />
-          <table className="w-full table-fixed border-collapse text-left">
+          <table className="w-full table-fixed border-separate border-spacing-0 text-left">
             <thead>
               <tr>
                 <th
@@ -332,7 +341,7 @@ function FeeCourseCompareContent({
             <tbody>
               {METRICS.map((metric, metricIndex) => {
                 const moneyValues = metric.money
-                  ? columns.map((col) => Number(col[metric.key]))
+                  ? columns.map((col) => Number(col[metric.key])).filter((value) => value > 0)
                   : [];
                 const lowest =
                   moneyValues.length > 1 ? Math.min(...moneyValues) : null;
@@ -383,17 +392,10 @@ function FeeCourseCompareContent({
       )}
 
       {columns.length > 0 && (
-        <div className="flex items-start gap-3 rounded-2xl border border-[#e5ebe5] bg-white px-4 py-3.5">
-          <Info
-            className="mt-0.5 size-4 shrink-0 text-brand-ink/50"
-            aria-hidden
-          />
-          <p className="text-sm leading-[1.5] tracking-[-0.02em] text-brand-ink/70">
-            Lowest cost is not the same as best fit. Check hostel options,
-            payment rules, and how recently each figure was reviewed before you
-            decide.
-          </p>
-        </div>
+        <InfoPrompt
+          title="Lowest cost is not the same as best fit"
+          description="Check hostel options, payment rules, and how recently each figure was reviewed before you decide."
+        />
       )}
     </div>
   );
@@ -517,6 +519,7 @@ function BandedRow({
           const isLowest =
             metric.highlightLowest &&
             lowest != null &&
+            Number(col[metric.key]) > 0 &&
             Number(col[metric.key]) === lowest;
 
           return (
@@ -671,7 +674,9 @@ function MobileMetricCard({
   metric: (typeof METRICS)[number];
   columns: CourseCompareColumn[];
 }) {
-  const values = columns.map((column) => Number(column[metric.key]));
+  const values = columns
+    .map((column) => Number(column[metric.key]))
+    .filter((value) => value > 0);
   const lowest = values.length > 1 ? Math.min(...values) : null;
 
   return (
@@ -690,7 +695,7 @@ function MobileMetricCard({
       <div className="divide-y divide-[#edf0ed]">
         {columns.map((column) => {
           const value = Number(column[metric.key]);
-          const isLowest = lowest != null && value === lowest;
+          const isLowest = value > 0 && lowest != null && value === lowest;
 
           return (
             <div
@@ -717,7 +722,7 @@ function MobileMetricCard({
               </div>
               <div className="shrink-0 text-right">
                 <p className="text-base font-semibold tracking-[-0.03em] text-[#355955]">
-                  {formatCurrency(value)}
+                  {value > 0 ? formatCurrency(value) : "Not listed"}
                 </p>
                 {isLowest && (
                   <span className="mt-1 inline-flex rounded-[8px] border border-[#d8ec8c] bg-white px-2 py-0.5 text-[11px] font-semibold text-brand-ink">
@@ -800,7 +805,7 @@ function MetricCell({
     return (
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-base font-semibold tracking-[-0.25px] text-[#355955]">
-          {formatCurrency(Number(value))}
+          {Number(value) > 0 ? formatCurrency(Number(value)) : "Not listed"}
         </span>
         {isLowest && (
           <span className="rounded-[8px] border border-[#d8ec8c] bg-white px-2 py-0.5 text-xs font-semibold tracking-[-0.02em] text-brand-ink">

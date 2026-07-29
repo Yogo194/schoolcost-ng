@@ -51,6 +51,22 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
       .in("institution_id", ids)
       .eq("is_published", true);
 
+    const { data: courseRows } = await supabase
+      .from("courses")
+      .select("name, institution_id")
+      .eq("is_active", true)
+      .in("institution_id", ids);
+
+    const coursesByInstitution = new Map<string, string[]>();
+    for (const row of (courseRows ?? []) as Array<{
+      name: string;
+      institution_id: string;
+    }>) {
+      const list = coursesByInstitution.get(row.institution_id) ?? [];
+      list.push(row.name);
+      coursesByInstitution.set(row.institution_id, list);
+    }
+
     const lowestFees = new Map<string, number>();
     for (const fee of (fees ?? []) as Array<{
       institution_id: string;
@@ -87,6 +103,7 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
       institution_type: institution.institution_type,
       ownership_type: institution.ownership_type,
       logo_url: institution.logo_url,
+      courses: coursesByInstitution.get(institution.id) ?? [],
       first_year_from: lowestFees.get(institution.id) ?? null,
     }));
   } catch {

@@ -1,27 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { FeeCourseCompareMatrix } from "@/components/public/FeeCourseCompareMatrix";
-import { getMockFeeDetail } from "@/lib/mock/fee-detail";
+import type { FeeDetailRecord } from "@/lib/mock/fee-detail";
+import type { CompareCourseOption } from "@/lib/fees/get-compare-options";
 
-const COMPARE_COURSES = [
-  {
-    feeRecordId: "unilag-cs-100",
-    label: "Computer Science",
-    schoolCount: 4,
-  },
-] as const;
-
-export function CompareWorkspace() {
+export function CompareWorkspace({ courses }: { courses: CompareCourseOption[] }) {
   const [selectedCourseId, setSelectedCourseId] = useState("");
-  const selectedCourse = COMPARE_COURSES.find(
-    (course) => course.feeRecordId === selectedCourseId
+  const [isSuggestionTrackPaused, setIsSuggestionTrackPaused] = useState(false);
+  const suggestionTrackRef = useRef<HTMLDivElement>(null);
+  const suggestionOffsetRef = useRef(0);
+  const suggestedCourses = courses.slice(0, 8);
+  const selectedCourse = courses.find(
+    (course) => course.id === selectedCourseId
   );
-  const record = selectedCourse
-    ? getMockFeeDetail(selectedCourse.feeRecordId)
-    : null;
+  const record = selectedCourse ? toCompareRecord(selectedCourse) : null;
+
+  useEffect(() => {
+    const track = suggestionTrackRef.current;
+    if (!track || suggestedCourses.length < 2) return;
+
+    let frameId = 0;
+    let previousTime = performance.now();
+    const moveTrack = (time: number) => {
+      const distance = track.scrollWidth / 2;
+      const elapsed = time - previousTime;
+      previousTime = time;
+
+      if (!isSuggestionTrackPaused && distance > 0) {
+        // Slow enough to read, but always visibly moving on a desktop viewport.
+        suggestionOffsetRef.current =
+          (suggestionOffsetRef.current + elapsed * 0.025) % distance;
+        track.style.transform = `translate3d(${-suggestionOffsetRef.current}px, 0, 0)`;
+      }
+
+      frameId = requestAnimationFrame(moveTrack);
+    };
+
+    frameId = requestAnimationFrame(moveTrack);
+    return () => cancelAnimationFrame(frameId);
+  }, [isSuggestionTrackPaused, suggestedCourses.length]);
 
   return (
     <>
@@ -56,9 +76,9 @@ export function CompareWorkspace() {
                   className="h-14 w-full appearance-none rounded-xl border border-[#dce4dc] bg-white py-0 pl-12 pr-11 text-base font-medium tracking-[-0.02em] text-brand-ink outline-none transition-[border-color,box-shadow] focus:border-brand-ink/35 focus:shadow-[0_0_0_3px_rgba(3,48,42,0.08)]"
                 >
                   <option value="">Select a course</option>
-                  {COMPARE_COURSES.map((course) => (
-                    <option key={course.feeRecordId} value={course.feeRecordId}>
-                      {course.label}
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id}>
+                      {course.label} · {course.schoolCount} schools
                     </option>
                   ))}
                 </select>
@@ -69,18 +89,54 @@ export function CompareWorkspace() {
               </span>
             </label>
 
-            <div className="mt-4 flex items-center justify-center gap-2 overflow-x-auto pb-1">
+            <div className="mt-4 flex items-center gap-2 overflow-hidden">
               <span className="shrink-0 text-sm text-brand-ink/55">Try:</span>
-              {COMPARE_COURSES.map((course) => (
-                <button
-                  key={course.feeRecordId}
-                  type="button"
-                  onClick={() => setSelectedCourseId(course.feeRecordId)}
-                  className="shrink-0 rounded-full border border-[#edcfac] bg-[#fef8f0] px-3 py-1.5 text-sm font-medium text-brand-ink transition-colors hover:border-[#e7b77e] hover:bg-[#fcebd7]"
+              <div className="relative min-w-0 flex-1 overflow-hidden">
+                <div
+                  ref={suggestionTrackRef}
+                  onPointerEnter={() => setIsSuggestionTrackPaused(true)}
+                  onPointerLeave={() => setIsSuggestionTrackPaused(false)}
+                  onFocusCapture={() => setIsSuggestionTrackPaused(true)}
+                  onBlurCapture={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                      setIsSuggestionTrackPaused(false);
+                    }
+                  }}
+                  className="flex w-max gap-2 will-change-transform"
                 >
-                  {course.label}
-                </button>
-              ))}
+                  {suggestedCourses.map((course) => (
+                    <button
+                      key={course.id}
+                      type="button"
+                      onClick={() => setSelectedCourseId(course.id)}
+                      className="shrink-0 rounded-full border border-[#edcfac] bg-[#fef8f0] px-3 py-1.5 text-sm font-medium text-brand-ink transition-colors hover:border-[#e7b77e] hover:bg-[#fcebd7]"
+                    >
+                      {course.label}
+                    </button>
+                  ))}
+                  {suggestedCourses.length > 1 &&
+                    suggestedCourses.map((course) => (
+                      <button
+                        key={`${course.id}-duplicate`}
+                        type="button"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        onClick={() => setSelectedCourseId(course.id)}
+                        className="shrink-0 rounded-full border border-[#edcfac] bg-[#fef8f0] px-3 py-1.5 text-sm font-medium text-brand-ink"
+                      >
+                        {course.label}
+                      </button>
+                    ))}
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-white via-white/90 to-transparent sm:w-12"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-l from-white via-white/90 to-transparent sm:w-20"
+                />
+              </div>
             </div>
             <p className="mt-3 text-sm leading-5 text-brand-ink/60">
               Only courses with fees from at least two schools appear here.
@@ -89,7 +145,7 @@ export function CompareWorkspace() {
           </div>
         )}
 
-        {record ? (
+        {record && selectedCourse ? (
           <div
             key={record.id}
             className="animate-compare-reveal motion-reduce:animate-none"
@@ -104,9 +160,11 @@ export function CompareWorkspace() {
             </div>
             <FeeCourseCompareMatrix
               record={record}
-              level={record.defaultLevel}
+              level={selectedCourse.level}
+              comparisonColumns={selectedCourse.columns}
               startEmpty
               onChangeCourse={() => setSelectedCourseId("")}
+              showExamples={false}
             />
           </div>
         ) : null}
@@ -156,4 +214,36 @@ export function CompareWorkspace() {
     </section>
     </>
   );
+}
+
+function toCompareRecord(course: CompareCourseOption): FeeDetailRecord {
+  const first = course.columns[0];
+  return {
+    id: first.id,
+    schoolSlug: first.schoolSlug,
+    schoolName: first.schoolName,
+    course: course.label,
+    session: course.session,
+    programmeDuration: "Programme length varies by school",
+    sourceLabel: first.sourceLabel,
+    source_type: first.source_type,
+    verification_status: "officially_verified",
+    confidence_level: "high",
+    lastReviewedAt: "",
+    lastReviewedLabel: first.lastReviewedLabel,
+    firstYearTotal: first.firstYearTotal,
+    returningYearTotal: first.returningYearTotal,
+    estimatedDegreeTotal: first.estimatedDegreeTotal,
+    levels: [{ value: course.level, label: course.level.replace("L", " Level") }],
+    defaultLevel: course.level,
+    paymentPlans: [{ value: "full", label: "Full session" }],
+    totalsByLevel: {
+      [course.level]: {
+        compulsory: first.compulsoryTotal,
+        accommodation: first.accommodationTotal,
+        withAccommodation: first.compulsoryTotal + first.accommodationTotal,
+      },
+    },
+    lines: [],
+  };
 }

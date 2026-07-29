@@ -10,7 +10,7 @@
  * - The query is split into tokens. Every token must match the school
  *   somewhere (AND semantics), so "lagos state" narrows rather than widens.
  * - Each token is scored against weighted fields (name > abbreviation and
- *   aliases > city and state) with a hierarchy of match quality:
+ *   aliases > courses > city and state) with a hierarchy of match quality:
  *   exact field > field prefix > word prefix > substring > fuzzy.
  * - Fuzzy matching uses a bounded edit distance so "unilg" still finds
  *   UNILAG, but short tokens never fuzzy-match (too noisy).
@@ -21,6 +21,8 @@ export interface SearchableSchool {
   abbreviation?: string | null;
   /** Informal names people actually type, e.g. "great ife". */
   aliases?: readonly string[];
+  /** Programme names, so "law" finds schools that offer Law. */
+  courses?: readonly string[];
   city?: string | null;
   state?: string | null;
 }
@@ -64,6 +66,7 @@ const FIELD_WEIGHTS = {
   name: 1,
   abbreviation: 0.95,
   alias: 0.9,
+  course: 0.82,
   place: 0.55,
 } as const;
 
@@ -162,6 +165,9 @@ function indexSchool<T extends SearchableSchool>(item: T): IndexedEntry<T> {
   addField(item.abbreviation, FIELD_WEIGHTS.abbreviation);
   for (const alias of item.aliases ?? []) {
     addField(alias, FIELD_WEIGHTS.alias);
+  }
+  for (const course of item.courses ?? []) {
+    addField(course, FIELD_WEIGHTS.course);
   }
   addField(item.city, FIELD_WEIGHTS.place);
   addField(item.state, FIELD_WEIGHTS.place);

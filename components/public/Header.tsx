@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AnnouncementBar } from "@/components/public/AnnouncementBar";
 
@@ -16,6 +16,7 @@ const NAV_LINKS = [
 
 export function Header() {
   const pathname = usePathname();
+  const headerRef = useRef<HTMLElement>(null);
   const isHome = pathname === "/";
   const isSchoolsIndex = pathname === "/schools";
   const isCompare = pathname === "/compare";
@@ -30,21 +31,61 @@ export function Header() {
     isFeeDetail ||
     isHowItWorks;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [hasScrolled, setHasScrolled] = useState(false);
+
+  useEffect(() => {
+    const updateScrollState = () => setHasScrolled(window.scrollY > 12);
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    const setHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        "--public-header-height",
+        `${header.getBoundingClientRect().height}px`
+      );
+    };
+
+    setHeaderHeight();
+    const observer = new ResizeObserver(setHeaderHeight);
+    observer.observe(header);
+
+    return () => {
+      observer.disconnect();
+      document.documentElement.style.removeProperty("--public-header-height");
+    };
+  }, []);
 
   return (
-    <header
-      className={cn(
-        "z-50 w-full",
-        overlayNav
-          ? "absolute inset-x-0 top-0"
-          : "sticky top-0 border-b border-gray-200 bg-white/90 backdrop-blur-md"
-      )}
-    >
+    <>
+      <header
+        ref={headerRef}
+        className={cn(
+          "fixed inset-x-0 top-0 z-50 w-full transition-[background-color,border-color,box-shadow] duration-300 ease-out",
+          hasScrolled
+            ? "border-b border-white/60 bg-white/72 shadow-[0_12px_34px_rgba(3,48,42,0.10)] backdrop-blur-xl backdrop-saturate-150"
+            : overlayNav
+              ? "bg-transparent"
+              : "border-b border-gray-200 bg-white/95"
+        )}
+      >
+        {hasScrolled && (
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.52),rgba(255,255,255,0.08)_48%,rgba(255,255,255,0.32))]"
+          />
+        )}
       {(isHome || isCompare) && <AnnouncementBar />}
 
       <div
         className={cn(
-          "mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-5 sm:px-10 lg:px-20",
+          "relative mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-5 sm:px-10 lg:px-20",
           !overlayNav && "h-16 py-0"
         )}
       >
@@ -122,10 +163,10 @@ export function Header() {
       {mobileOpen && (
         <div
           className={cn(
-            "border-t md:hidden",
-            overlayNav
-              ? "border-brand-ink/10 bg-brand-lime"
-              : "border-gray-100 bg-white"
+            "relative border-t md:hidden",
+            hasScrolled || !overlayNav
+              ? "border-brand-ink/10 bg-white/95 backdrop-blur-xl"
+              : "border-brand-ink/10 bg-brand-lime"
           )}
         >
           <nav className="mx-auto flex max-w-[1440px] flex-col gap-1 px-4 py-3 sm:px-10">
@@ -156,6 +197,9 @@ export function Header() {
           </nav>
         </div>
       )}
-    </header>
+      </header>
+
+      {!overlayNav && <div aria-hidden="true" className="h-16 shrink-0" />}
+    </>
   );
 }

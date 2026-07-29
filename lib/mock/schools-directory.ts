@@ -7,6 +7,8 @@ export interface SchoolsDirectoryItem {
   abbreviation: string | null;
   /** Informal or former names people actually search for. */
   aliases?: readonly string[];
+  /** Course / programme names offered (for directory search). */
+  courses?: readonly string[];
   city: string | null;
   state: string;
   institution_type: InstitutionType;

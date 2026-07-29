@@ -1,28 +1,5 @@
 import { LogoMarquee } from "@/components/public/LogoMarquee";
-
-const UNIVERSITY_LOGOS = [
-  {
-    src: "/figma/logo-babcock.png",
-    alt: "Babcock University",
-    width: 290,
-    height: 109,
-    displayHeight: 36,
-  },
-  {
-    src: "/figma/logo-covenant.png",
-    alt: "Covenant University",
-    width: 282,
-    height: 88,
-    displayHeight: 32,
-  },
-  {
-    src: "/figma/logo-abuad.png",
-    alt: "Afe Babalola University",
-    width: 572,
-    height: 111,
-    displayHeight: 32,
-  },
-] as const;
+import { UNIVERSITY_LOGOS } from "@/components/public/university-logos";
 
 export function HowItWorksHero() {
   return (
@@ -74,10 +51,10 @@ export function HowItWorksHero() {
         {/* Mobile: static but zoomed in, showing a center crop of the illustration */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/figma/how-it-works/hero-illustration.png"
+          src="/figma/how-it-works/hero-illustration-v2.webp"
           alt=""
-          width={1774}
-          height={379}
+          width={2400}
+          height={497}
           className="block h-44 w-full object-cover object-[center_bottom] sm:hidden"
           aria-hidden
         />
@@ -85,10 +62,10 @@ export function HowItWorksHero() {
         {/* Tablet/desktop: static full width */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/figma/how-it-works/hero-illustration.png"
+          src="/figma/how-it-works/hero-illustration-v2.webp"
           alt=""
-          width={1774}
-          height={379}
+          width={2400}
+          height={497}
           className="hidden h-auto w-full object-contain object-bottom sm:block"
           aria-hidden
         />

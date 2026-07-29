@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -130,6 +131,22 @@ export function VerificationActions({
   level: string;
 }) {
   const [formPanel, setFormPanel] = useState<FormPanel>(null);
+  const [isUpdateSubmitting, setIsUpdateSubmitting] = useState(false);
+  const [hasSubmittedUpdate, setHasSubmittedUpdate] = useState(false);
+  const [isErrorSubmitting, setIsErrorSubmitting] = useState(false);
+  const [hasSubmittedError, setHasSubmittedError] = useState(false);
+
+  function openUpdatePanel() {
+    setIsUpdateSubmitting(false);
+    setHasSubmittedUpdate(false);
+    setFormPanel("update");
+  }
+
+  function openErrorPanel() {
+    setIsErrorSubmitting(false);
+    setHasSubmittedError(false);
+    setFormPanel("error");
+  }
 
   return (
     <>
@@ -138,7 +155,7 @@ export function VerificationActions({
           <p className="text-base font-medium tracking-[-0.02em] text-brand-ink">
             Something look off?
           </p>
-          <p className="mt-1 text-sm tracking-[-0.02em] text-brand-ink/65">
+          <p className="mt-1 text-[15px] tracking-[-0.02em] text-brand-ink/65">
             Help improve {record.course} fees at {record.schoolName}. These
             actions apply to this course only.
           </p>
@@ -146,14 +163,14 @@ export function VerificationActions({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setFormPanel("update")}
+            onClick={openUpdatePanel}
             className="inline-flex h-11 items-center justify-center rounded-[12px] border border-[#e5ebe5] bg-white px-4 text-sm font-medium text-brand-ink transition-colors hover:bg-brand-lime/30"
           >
             Submit update
           </button>
           <button
             type="button"
-            onClick={() => setFormPanel("error")}
+            onClick={openErrorPanel}
             className="inline-flex h-11 items-center justify-center rounded-[12px] border border-[#e5ebe5] bg-white px-4 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
           >
             Report error
@@ -163,45 +180,88 @@ export function VerificationActions({
 
       <Sheet
         open={formPanel === "update"}
-        onOpenChange={(open) => setFormPanel(open ? "update" : null)}
+        onOpenChange={(open) => {
+          if (open) openUpdatePanel();
+          else setFormPanel(null);
+        }}
       >
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto sm:max-w-lg"
+          className="data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-[calc(100dvh-1rem)] data-[side=right]:w-[calc(100vw-1rem)] data-[side=right]:rounded-[24px] gap-0 overflow-hidden border border-[#e5ebe5] bg-white p-0 shadow-[-18px_18px_60px_rgba(3,48,42,0.22)] sm:data-[side=right]:w-[min(600px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none [&_[data-slot=sheet-close]]:right-5 [&_[data-slot=sheet-close]]:top-5"
         >
-          <SheetHeader>
-            <SheetTitle>Submit update</SheetTitle>
-            <SheetDescription>
-              Updating fees for {record.course} at {record.schoolName}. School
-              and course are already selected.
+          <SheetHeader className="border-b border-[#e5ebe5] px-6 py-5 pr-16 sm:px-7">
+            <SheetTitle className="text-xl font-semibold tracking-[-0.03em] text-brand-ink">
+              Submit an update
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-sm leading-5 text-brand-ink/65">
+              We will check the evidence before updating this fee. It should take about a minute.
             </SheetDescription>
           </SheetHeader>
-          <div className="px-4 pb-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 sm:px-7">
             <CourseContextBanner record={record} level={level} />
-            <CourseUpdateForm record={record} level={level} />
+            <CourseUpdateForm
+              record={record}
+              level={level}
+              onSubmittingChange={setIsUpdateSubmitting}
+              onSubmitted={() => setHasSubmittedUpdate(true)}
+            />
+          </div>
+          <div className="flex shrink-0 gap-3 border-t border-[#e5ebe5] bg-white px-6 py-4 sm:px-7">
+            {hasSubmittedUpdate ? (
+              <SheetClose
+                render={<Button type="button" className="w-full">Done</Button>}
+              />
+            ) : (
+              <>
+                <SheetClose
+                  render={
+                    <Button type="button" variant="secondary" className="flex-1">
+                      Cancel
+                    </Button>
+                  }
+                />
+                <Button
+                  type="submit"
+                  form="course-update-form"
+                  disabled={isUpdateSubmitting}
+                  className="flex-[1.35] gap-2"
+                >
+                  <Plus className="size-4" aria-hidden />
+                  {isUpdateSubmitting ? "Submitting…" : "Submit update"}
+                </Button>
+              </>
+            )}
           </div>
         </SheetContent>
       </Sheet>
 
       <Sheet
         open={formPanel === "error"}
-        onOpenChange={(open) => setFormPanel(open ? "error" : null)}
+        onOpenChange={(open) => {
+          if (open) openErrorPanel();
+          else setFormPanel(null);
+        }}
       >
         <SheetContent
           side="right"
-          className="w-full overflow-y-auto sm:max-w-lg"
+          className="data-[side=right]:inset-y-2 data-[side=right]:right-2 data-[side=right]:h-[calc(100dvh-1rem)] data-[side=right]:w-[calc(100vw-1rem)] data-[side=right]:rounded-[24px] gap-0 overflow-hidden border border-[#e5ebe5] bg-white p-0 shadow-[-18px_18px_60px_rgba(3,48,42,0.22)] sm:data-[side=right]:w-[min(600px,calc(100vw-1rem))] sm:data-[side=right]:max-w-none [&_[data-slot=sheet-close]]:right-5 [&_[data-slot=sheet-close]]:top-5"
         >
-          <SheetHeader>
-            <SheetTitle>Report error</SheetTitle>
-            <SheetDescription>
-              Report a problem with the {record.course} fee record at{" "}
-              {record.schoolName}.
+          <SheetHeader className="border-b border-[#e5ebe5] px-6 py-5 pr-16 sm:px-7">
+            <SheetTitle className="text-xl font-semibold tracking-[-0.03em] text-brand-ink">
+              Report an error
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-sm leading-5 text-brand-ink/65">
+              Tell us what looks wrong. We will review it before changing this fee.
             </SheetDescription>
           </SheetHeader>
-          <div className="px-4 pb-6">
+          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 sm:px-7">
             <CourseContextBanner record={record} level={level} />
             <SubmitCorrectionForm
               feeRecordId={record.id}
+              formId="report-error-form"
+              hideSubmitButton
+              onSubmittingChange={setIsErrorSubmitting}
+              onSubmitted={() => setHasSubmittedError(true)}
               onSubmit={async (data) => {
                 console.log("Correction submission:", {
                   ...data,
@@ -213,6 +273,31 @@ export function VerificationActions({
                 });
               }}
             />
+          </div>
+          <div className="flex shrink-0 gap-3 border-t border-[#e5ebe5] bg-white px-6 py-4 sm:px-7">
+            {hasSubmittedError ? (
+              <SheetClose
+                render={<Button type="button" className="w-full">Done</Button>}
+              />
+            ) : (
+              <>
+                <SheetClose
+                  render={
+                    <Button type="button" variant="secondary" className="flex-1">
+                      Cancel
+                    </Button>
+                  }
+                />
+                <Button
+                  type="submit"
+                  form="report-error-form"
+                  disabled={isErrorSubmitting}
+                  className="flex-[1.35]"
+                >
+                  {isErrorSubmitting ? "Sending…" : "Send report"}
+                </Button>
+              </>
+            )}
           </div>
         </SheetContent>
       </Sheet>
@@ -228,14 +313,14 @@ function CourseContextBanner({
   level: string;
 }) {
   return (
-    <div className="mb-5 rounded-xl border border-[#e5ebe5] bg-brand-lime-light/60 p-3">
+    <div className="mb-6 rounded-2xl border border-[#e5ebe5] bg-brand-lime-light/60 p-4">
       <p className="text-xs uppercase tracking-[0.07em] text-brand-ink/50">
         Selected record
       </p>
-      <p className="mt-1 text-sm font-medium text-brand-ink">
+      <p className="mt-1 text-base font-medium text-brand-ink">
         {record.course} · {record.schoolName}
       </p>
-      <p className="mt-0.5 text-xs text-brand-ink/65">
+      <p className="mt-1 text-sm text-brand-ink/65">
         {level} · {record.session}
       </p>
     </div>
@@ -245,20 +330,22 @@ function CourseContextBanner({
 function CourseUpdateForm({
   record,
   level,
+  onSubmittingChange,
+  onSubmitted,
 }: {
   record: FeeDetailRecord;
   level: string;
+  onSubmittingChange: (submitting: boolean) => void;
+  onSubmitted: () => void;
 }) {
   const [success, setSuccess] = useState(false);
   const [amount, setAmount] = useState(
     String(record.totalsByLevel[level]?.compulsory ?? "")
   );
   const [notes, setNotes] = useState("");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
   const [evidenceError, setEvidenceError] = useState<string | undefined>();
-  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -267,7 +354,7 @@ function CourseUpdateForm({
       return;
     }
     setEvidenceError(undefined);
-    setSubmitting(true);
+    onSubmittingChange(true);
     console.log("Course fee update:", {
       recordId: record.id,
       school: record.schoolName,
@@ -275,7 +362,6 @@ function CourseUpdateForm({
       level,
       amount,
       notes,
-      name,
       email,
       evidence: evidenceFiles.map((file) => ({
         name: file.name,
@@ -284,8 +370,9 @@ function CourseUpdateForm({
       })),
     });
     await new Promise((r) => setTimeout(r, 400));
-    setSubmitting(false);
+    onSubmittingChange(false);
     setSuccess(true);
+    onSubmitted();
   }
 
   if (success) {
@@ -302,9 +389,9 @@ function CourseUpdateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id="course-update-form" onSubmit={handleSubmit} className="space-y-5 pb-2">
       <div className="space-y-1.5">
-        <Label>Suggested compulsory total (₦)</Label>
+        <Label>Updated compulsory total (₦)</Label>
         <Input
           type="number"
           value={amount}
@@ -312,16 +399,17 @@ function CourseUpdateForm({
           required
           min={1}
         />
+        <p className="text-xs leading-4 text-brand-ink/55">
+          Include charges every student must pay. Leave out optional hostel or feeding costs.
+        </p>
       </div>
       <div className="space-y-1.5">
-        <Label>What changed?</Label>
+        <Label>Anything that helps us check it faster (optional)</Label>
         <Textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          rows={4}
-          required
-          minLength={10}
-          placeholder="Describe the update and where you found the figure…"
+          rows={3}
+          placeholder="For example: new portal invoice for 2026/2027."
         />
       </div>
       <EvidenceUploadField
@@ -332,32 +420,18 @@ function CourseUpdateForm({
         }}
         required
         error={evidenceError}
+        label="Proof of the updated fee"
       />
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1.5">
-          <Label>Your name</Label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="Full name"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label>Your email</Label>
-          <Input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="you@example.com"
-          />
-        </div>
+      <div className="border-t border-[#edf0ed] pt-5">
+        <Label>Your email (optional)</Label>
+        <Input
+          className="mt-1.5"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Only if you are happy for us to ask a follow-up question"
+        />
       </div>
-      <Button type="submit" disabled={submitting} className="w-full gap-2">
-        <Plus className="size-4" aria-hidden />
-        {submitting ? "Submitting…" : "Submit update"}
-      </Button>
     </form>
   );
 }

@@ -1,7 +1,18 @@
 import type { OwnershipType, SourceType } from "@/types/database";
 
-/** Homepage "Recently verified fees" display cap (matches Figma: 10 body rows). */
+/** Homepage "Recently verified fees" display cap. */
 export const RECENT_FEES_LIMIT = 10;
+/** Show one representative course per school in the homepage teaser. */
+export const RECENT_FEES_MAX_PER_SCHOOL = 1;
+/**
+ * Target mix for the All tab. Unused slots are filled from leftover verified
+ * rows so a thin Federal/State pool does not leave the table short.
+ */
+export const RECENT_FEES_ALL_QUOTAS: Record<OwnershipType, number> = {
+  federal: 3,
+  state: 3,
+  private: 4,
+};
 
 export type RecentFeeTab = "all" | OwnershipType;
 
@@ -254,14 +265,116 @@ export const MOCK_RECENT_FEES: RecentFeeRow[] = [
   },
 ];
 
+/**
+ * Pick newest-first rows while keeping at most `maxPerSchool` rows per
+ * institution slug. Prefer a different course (then level) for a school's
+ * second row when possible.
+ */
+function takeDiversified(
+  rows: RecentFeeRow[],
+  limit: number,
+  maxPerSchool = RECENT_FEES_MAX_PER_SCHOOL
+): RecentFeeRow[] {
+  const out: RecentFeeRow[] = [];
+  const perSchool = new Map<string, RecentFeeRow[]>();
+
+  for (const row of rows) {
+    if (out.length >= limit) break;
+
+    const slug = row.institutions.slug;
+    const existing = perSchool.get(slug) ?? [];
+    if (existing.length >= maxPerSchool) continue;
+
+    if (existing.length === 1) {
+      const first = existing[0];
+      const sameCourse = first.courses.name === row.courses.name;
+      const sameLevel = (first.level ?? "") === (row.level ?? "");
+      // Skip near-duplicates when a more distinct later row might exist;
+      // still accept if nothing better is left in this pass.
+      if (sameCourse && sameLevel) continue;
+    }
+
+    existing.push(row);
+    perSchool.set(slug, existing);
+    out.push(row);
+  }
+
+  // Second pass: if we skipped same course+level pairs and still have room,
+  // fill with any remaining rows under the per-school cap.
+  if (out.length < limit) {
+    const taken = new Set(out.map((row) => row.id));
+    for (const row of rows) {
+      if (out.length >= limit) break;
+      if (taken.has(row.id)) continue;
+      const slug = row.institutions.slug;
+      const count = perSchool.get(slug)?.length ?? 0;
+      if (count >= maxPerSchool) continue;
+      const existing = perSchool.get(slug) ?? [];
+      existing.push(row);
+      perSchool.set(slug, existing);
+      out.push(row);
+      taken.add(row.id);
+    }
+  }
+
+  return out;
+}
+
+/**
+ * Homepage teaser selection.
+ * - Ownership tabs: up to `limit` newest diversified rows for that type.
+ * - All tab: aim for 3 federal / 3 state / 4 private, then fill leftovers,
+ *   still showing only one representative course per school.
+ */
 export function filterRecentFees(
   rows: RecentFeeRow[],
   tab: RecentFeeTab,
   limit = RECENT_FEES_LIMIT
 ): RecentFeeRow[] {
-  const filtered =
-    tab === "all"
-      ? rows
-      : rows.filter((row) => row.institutions.ownership_type === tab);
-  return filtered.slice(0, limit);
+  if (tab !== "all") {
+    return takeDiversified(
+      rows.filter((row) => row.institutions.ownership_type === tab),
+      limit
+    );
+  }
+
+  const byOwnership: Record<OwnershipType, RecentFeeRow[]> = {
+    federal: [],
+    state: [],
+    private: [],
+  };
+  for (const row of rows) {
+    byOwnership[row.institutions.ownership_type].push(row);
+  }
+
+  const selected: RecentFeeRow[] = [];
+  const selectedIds = new Set<string>();
+  const perSchool = new Map<string, number>();
+
+  function tryAdd(row: RecentFeeRow): boolean {
+    if (selected.length >= limit) return false;
+    if (selectedIds.has(row.id)) return false;
+    const slug = row.institutions.slug;
+    const count = perSchool.get(slug) ?? 0;
+    if (count >= RECENT_FEES_MAX_PER_SCHOOL) return false;
+    selected.push(row);
+    selectedIds.add(row.id);
+    perSchool.set(slug, count + 1);
+    return true;
+  }
+
+  for (const ownership of ["federal", "state", "private"] as const) {
+    const quota = RECENT_FEES_ALL_QUOTAS[ownership];
+    const pool = takeDiversified(byOwnership[ownership], quota);
+    for (const row of pool) tryAdd(row);
+  }
+
+  if (selected.length < limit) {
+    for (const row of rows) {
+      if (selected.length >= limit) break;
+      tryAdd(row);
+    }
+  }
+
+  return selected;
 }

@@ -1,7 +1,7 @@
-import { Info } from "lucide-react";
 import type { FeeRecord } from "@/types/fee";
 import { formatCurrency } from "@/lib/utils/format";
 import { VerificationBadge } from "./SourceBadge";
+import { InfoPrompt } from "@/components/public/InfoPrompt";
 
 interface FeeSummaryCardProps {
   record: Pick<
@@ -69,12 +69,11 @@ export function FeeSummaryCard({ record }: FeeSummaryCardProps) {
       </div>
 
       {/* Disclaimer */}
-      <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-start gap-2">
-        <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
-        <p className="text-xs text-gray-400 leading-relaxed">
-          Degree total is an estimate based on current fees. Actual costs may
-          vary by session.
-        </p>
+      <div className="p-4">
+        <InfoPrompt
+          title="Degree total is an estimate"
+          description="Based on current fees. Actual costs may vary by session."
+        />
       </div>
     </div>
   );

@@ -5,10 +5,37 @@ import { SchoolProfileHero } from "@/components/public/SchoolProfileHero";
 import { SchoolStatsBar } from "@/components/public/SchoolStatsBar";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { getLiveSchoolProfile } from "@/lib/fees/get-school-profile";
+import type { SchoolProfile } from "@/lib/mock/school-profile";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
+
+function isFresherLevel(level: string): boolean {
+  return (
+    level === "100L" ||
+    level === "Undergraduate" ||
+    level.startsWith("100")
+  );
+}
+
+/** Prefer the session behind the fee-range rows; else the latest listed session. */
+function pickPrimarySession(school: SchoolProfile): string | undefined {
+  if (school.fees.length === 0) return undefined;
+
+  const fresherSessions = school.fees
+    .filter((fee) => isFresherLevel(fee.level))
+    .map((fee) => fee.session);
+  const pool =
+    fresherSessions.length > 0
+      ? fresherSessions
+      : school.sessions.length > 0
+        ? school.sessions
+        : school.fees.map((fee) => fee.session);
+
+  return [...new Set(pool)].sort().at(-1);
+}
+
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
@@ -55,6 +82,7 @@ export default async function SchoolProfilePage({ params }: PageProps) {
   const isBands = school.fee_coverage.kind === "bands";
   const hasOnlyCommunityReports =
     hasFees && school.fees.every((fee) => fee.source_type === "community_reported");
+  const sessionLabel = pickPrimarySession(school);
 
   return (
     <div>
@@ -63,7 +91,6 @@ export default async function SchoolProfilePage({ params }: PageProps) {
         coursesListed={school.courses_listed}
         firstYearMin={school.first_year_min}
         firstYearMax={school.first_year_max}
-        paymentOptions={school.payment_options}
         coverageLabel={
           hasFees
             ? school.fee_coverage.coverageLabel
@@ -78,6 +105,12 @@ export default async function SchoolProfilePage({ params }: PageProps) {
             : "Compulsory fee range across courses"
         }
         showRangeExtremes={!hasOnlyCommunityReports}
+        sessionLabel={sessionLabel}
+        sessionDescription={
+          hasOnlyCommunityReports
+            ? "Latest reported session"
+            : "Latest verified session"
+        }
       />
       <SchoolCourseFees school={school} />
       <SchoolSubmitCta

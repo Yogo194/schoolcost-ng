@@ -105,6 +105,35 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind v4 preflight drops the pointer cursor on buttons; restore it for
+     everything the user can actually activate. */
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="link"],
+  [role="option"],
+  [role="tab"],
+  label[for],
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+  /* Table rows used as links: force pointer on the row and every cell/child,
+     otherwise nested text nodes can keep the default arrow. */
+  tr[role="link"],
+  tr[role="link"] > th,
+  tr[role="link"] > td,
+  tr[role="link"] > td *,
+  tr.cursor-pointer,
+  tr.cursor-pointer > th,
+  tr.cursor-pointer > td,
+  tr.cursor-pointer > td * {
+    cursor: pointer !important;
+  }
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 @keyframes logo-marquee {

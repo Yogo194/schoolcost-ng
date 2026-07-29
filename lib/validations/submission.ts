@@ -88,8 +88,15 @@ export const submitCorrectionSchema = z.object({
   description: z.string().min(10, "Please describe the correction in detail"),
   suggested_amount: z.coerce.number().positive().optional(),
   source_url: z.string().url("Please enter a valid URL").optional().or(z.literal("")),
-  submitter_name: z.string().min(1, "Your name is required"),
-  submitter_email: z.string().email("Please enter a valid email address"),
+  submitter_name: z.string().optional(),
+  submitter_email: z
+    .string()
+    .trim()
+    .optional()
+    .refine(
+      (value) => !value || z.string().email().safeParse(value).success,
+      "Please enter a valid email address"
+    ),
 });
 
 export const suggestSchoolSchema = z.object({

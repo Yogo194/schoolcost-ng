@@ -62,7 +62,7 @@ export function SchoolProfileHero({ school }: SchoolProfileHeroProps) {
         aria-hidden
       />
 
-      <div className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-center px-4 pb-16 pt-28 text-center sm:px-10 sm:pb-20 sm:pt-32 lg:px-20 lg:pb-[72px] lg:pt-[140px]">
+      <div className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-center px-4 pb-24 pt-28 text-center sm:px-10 sm:pb-28 sm:pt-32 lg:px-20 lg:pb-28 lg:pt-[140px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={school.logo_url}

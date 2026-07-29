@@ -12,7 +12,7 @@ const STEPS = [
     title: "Gather the fees",
     description:
       "Official circulars, school portals, and community submissions with evidence all land in one review queue.",
-    image: "/figma/how-it-works/process-gather-fees.avif",
+    image: "/figma/how-it-works/process-gather-fees.webp",
     imageAlt: "Review queue showing official fee circulars, school portals, and student submissions",
   },
   {
@@ -20,7 +20,7 @@ const STEPS = [
     title: "Verify the evidence",
     description:
       "A person checks the source, matches the academic session, and confirms the breakdown before anything is approved.",
-    image: "/figma/how-it-works/process-verify-evidence.avif",
+    image: "/figma/how-it-works/process-verify-evidence.webp",
     imageAlt: "Review panel used to verify fee evidence before approval",
   },
   {
@@ -28,7 +28,7 @@ const STEPS = [
     title: "Label & publish",
     description:
       "Every live record gets a source label, verification status, and confidence level so you know how far to trust it.",
-    image: "/figma/how-it-works/process-label-publish.avif",
+    image: "/figma/how-it-works/process-label-publish.webp",
     imageAlt: "Published school fee record with verification details",
   },
 ] as const;
@@ -127,15 +127,26 @@ export function HowItWorksProcess() {
               className="pointer-events-none absolute -left-3 -top-6 z-10 size-14 sm:-left-5 sm:-top-8 sm:size-20"
               aria-hidden
             />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={step.image + step.number}
-              src={step.image}
-              alt={step.imageAlt}
-              width={630}
-              height={420}
-              className="animate-step-image-fade h-auto w-full rounded-[14px]"
-            />
+            {/* Every step stays mounted and cross-fades, so switching never waits
+                on a fresh download and the box never collapses mid-transition. */}
+            <div className="relative aspect-[3/2] w-full">
+              {STEPS.map((item, index) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  key={item.number}
+                  src={item.image}
+                  alt={item.imageAlt}
+                  width={1260}
+                  height={840}
+                  decoding="async"
+                  aria-hidden={index !== active}
+                  className={cn(
+                    "absolute inset-0 h-full w-full rounded-[14px] transition-opacity duration-500 ease-out motion-reduce:transition-none",
+                    index === active ? "opacity-100" : "opacity-0"
+                  )}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

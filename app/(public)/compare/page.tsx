@@ -56,9 +56,11 @@ export default async function ComparePage() {
             <div className="mt-12 hidden lg:mt-0 lg:flex lg:flex-1 lg:items-center lg:justify-end">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/figma/compare-hero-students.avif"
+                src="/figma/compare-hero-students.webp"
                 alt="Three Nigerian students checking verified school fees on a tablet"
-                className="w-full max-w-[560px] object-contain"
+                width={1120}
+                height={1099}
+                className="h-auto w-full max-w-[560px] object-contain"
               />
             </div>
           </div>

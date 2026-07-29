@@ -392,13 +392,17 @@ function SchoolDirectoryCard({ school }: { school: SchoolsDirectoryItem }) {
           </p>
         </div>
       </div>
-      {school.first_year_from != null && (
+      {school.first_year_from != null ? (
         <p className="text-sm tracking-[-0.02em] text-brand-ink/65">
           From{" "}
           <span className="font-semibold text-brand-ink">
             {formatCurrency(school.first_year_from)}
           </span>{" "}
           first year
+        </p>
+      ) : (
+        <p className="text-sm tracking-[-0.02em] text-brand-ink/45">
+          No fee record yet · contribute one
         </p>
       )}
     </Link>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getSiteUrl } from "@/lib/site";
@@ -19,6 +19,15 @@ const defaultTitle = `${SITE_NAME}: Know the True Cost Before You Accept`;
 const defaultDescription =
   "Compare verified school fees by course, level, and session, including the charges most people miss.";
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#e4f67e" },
+    { media: "(prefers-color-scheme: dark)", color: "#03302a" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(site),
   title: {
@@ -33,6 +42,14 @@ export const metadata: Metadata = {
     "tertiary education cost Nigeria",
   ],
   applicationName: SITE_NAME,
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: "default",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: SITE_NAME,
     description: "Know the true cost before you accept.",

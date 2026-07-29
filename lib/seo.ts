@@ -67,7 +67,7 @@ export function organizationJsonLd() {
         "@id": `${site}/#organization`,
         name: SITE_NAME,
         url: site,
-        logo: absoluteUrl("/figma/icon-logo.png"),
+        logo: absoluteUrl("/icons/icon-512.png"),
         description:
           "Verified, course-specific tertiary school fees in Nigeria, with the source and review date shown on every record.",
         areaServed: {

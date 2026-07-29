@@ -11,6 +11,7 @@
  * Does not invent course rows where the source only publishes bands.
  * Does not seed FUTA or LASU (sources not greenlit).
  */
+import { loadEnvConfig } from "@next/env";
 import {
   accommodationTotal,
   compulsoryTotal,
@@ -42,6 +43,8 @@ import {
 import { slugify } from "../lib/utils/format";
 import type { FeeCategory, FeeFrequency, FeeAppliesTo } from "../types/database";
 import type { FeeItem } from "../types/fee";
+
+loadEnvConfig(process.cwd());
 
 function requireEnv() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");

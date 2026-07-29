@@ -7,6 +7,7 @@ import {
   type RecentFeeRow,
 } from "@/lib/mock/recent-fees";
 import { canUseForPriceComparison } from "@/lib/fees/trust";
+import { publicPageMetadata } from "@/lib/seo";
 import { createServerClient } from "@/lib/supabase/server";
 import type {
   ConfidenceLevel,
@@ -14,11 +15,13 @@ import type {
   VerificationStatus,
 } from "@/types/database";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: "/",
+  absoluteTitle: true,
   title: "SchoolCost NG: Know the True Cost Before You Accept",
   description:
     "Compare verified school fees by course, level, and session, including the charges most people miss.",
-};
+});
 
 type RecentFeeQueryRow = RecentFeeRow & {
   verification_status: VerificationStatus;

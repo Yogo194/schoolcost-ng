@@ -7,12 +7,14 @@ import { CompareWorkspace } from "@/components/public/CompareWorkspace";
 import { LogoMarquee } from "@/components/public/LogoMarquee";
 import { UNIVERSITY_LOGOS } from "@/components/public/university-logos";
 import { getCompareOptions } from "@/lib/fees/get-compare-options";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: "/compare",
   title: "Compare school costs",
   description:
     "Compare the cost of the same course at up to three Nigerian tertiary institutions, including first-year fees, hostel, payment options, and data sources.",
-};
+});
 
 export default async function ComparePage() {
   const courses = await getCompareOptions();

@@ -2,17 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Building2, FileText, Inbox, CheckCircle } from "lucide-react";
 import { AdminStatCard } from "@/components/admin/AdminStatCard";
+import { getAdminDashboardStats } from "@/lib/submissions/admin";
 
 export const metadata: Metadata = { title: "Admin Dashboard | SchoolCost NG" };
 
 export default async function AdminDashboardPage() {
-  // TODO: fetch real stats from Supabase
-  const stats = {
+  let loadError: string | null = null;
+  let stats = {
     institutions: 0,
     published_records: 0,
     pending_submissions: 0,
     approved_this_week: 0,
   };
+
+  try {
+    stats = await getAdminDashboardStats();
+  } catch (error) {
+    loadError =
+      error instanceof Error ? error.message : "Could not load dashboard stats";
+  }
 
   return (
     <div className="max-w-5xl space-y-8">
@@ -22,6 +30,12 @@ export default async function AdminDashboardPage() {
           Manage institutions, fee records, and submission queue.
         </p>
       </div>
+
+      {loadError && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {loadError}
+        </p>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

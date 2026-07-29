@@ -206,8 +206,8 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
           onAction={handleModeration}
         />
         <p className="text-xs text-gray-500">
-          Approve creates a draft fee record or inactive school. It does not
-          publish to the public site until you set published on the fee record.
+          Approve publishes verified fee submissions to the public site and
+          adds approved school suggestions to the live directory.
         </p>
       </section>
     </div>

@@ -5,15 +5,17 @@ import { SchoolsDirectory } from "@/components/public/SchoolsDirectory";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { createServerClient } from "@/lib/supabase/server";
 import { canUseForPriceComparison } from "@/lib/fees/trust";
+import { publicPageMetadata } from "@/lib/seo";
 import type { SchoolsDirectoryItem } from "@/lib/mock/schools-directory";
 import type { Institution } from "@/types/institution";
 import type { ConfidenceLevel, VerificationStatus } from "@/types/database";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: "/schools",
   title: "Find school fees",
   description:
     "Search Nigerian tertiary institutions and explore verified school fees by course, state, and ownership.",
-};
+});
 
 export default async function SchoolsPage() {
   const schools = await getDirectorySchools();

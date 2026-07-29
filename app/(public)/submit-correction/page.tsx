@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { SubmitCorrectionPageClient } from "@/components/forms/SubmitCorrectionPageClient";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: "/submit-correction",
   title: "Report an Error",
   description: "Report incorrect fee information on SchoolCost NG.",
-};
+});
 
 interface PageProps {
   searchParams: Promise<{ record?: string }>;

@@ -29,6 +29,55 @@ export async function listSubmissions(): Promise<SubmissionWithDetails[]> {
   return (data ?? []) as SubmissionWithDetails[];
 }
 
+export async function getAdminDashboardStats() {
+  const supabase = createServiceClient();
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const [
+    institutions,
+    publishedRecords,
+    pendingSubmissions,
+    approvedThisWeek,
+  ] = await Promise.all([
+    supabase
+      .from("institutions")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true),
+    supabase
+      .from("fee_records")
+      .select("id", { count: "exact", head: true })
+      .eq("is_published", true),
+    supabase
+      .from("submissions")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["pending", "needs_more_evidence"]),
+    supabase
+      .from("submissions")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["approved", "approved_with_edits"])
+      .gte("reviewed_at", sevenDaysAgo.toISOString()),
+  ]);
+
+  const firstError = [
+    institutions.error,
+    publishedRecords.error,
+    pendingSubmissions.error,
+    approvedThisWeek.error,
+  ].find(Boolean);
+
+  if (firstError) {
+    throw new Error(firstError.message);
+  }
+
+  return {
+    institutions: institutions.count ?? 0,
+    published_records: publishedRecords.count ?? 0,
+    pending_submissions: pendingSubmissions.count ?? 0,
+    approved_this_week: approvedThisWeek.count ?? 0,
+  };
+}
+
 export async function getSubmissionById(id: string): Promise<{
   submission: SubmissionWithDetails;
   evidence: Evidence[];

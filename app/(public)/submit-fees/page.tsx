@@ -2,14 +2,16 @@ import type { Metadata } from "next";
 import { SubmitFeesClient } from "@/components/public/SubmitFeesClient";
 import { SubmitFeeTestimonialPanel } from "@/components/public/SubmitFeeTestimonialPanel";
 import { createServerClient } from "@/lib/supabase/server";
+import { publicPageMetadata } from "@/lib/seo";
 import type { SubmitCourseOption } from "@/lib/mock/courses";
 import type { Institution } from "@/types/institution";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: "/submit-fees",
   title: "Contribute Information",
   description:
     "Share school fees or suggest a Nigerian tertiary institution. Every submission is reviewed by a person before it is published.",
-};
+});
 
 export default async function SubmitFeesPage({
   searchParams,

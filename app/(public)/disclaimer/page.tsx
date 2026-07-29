@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalPolicyNav } from "@/components/public/LegalPolicyNav";
+import { publicPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = publicPageMetadata({
+  path: "/disclaimer",
   title: "Fee Information Disclaimer",
   description:
     "Important information about using SchoolCost NG fee records for planning and comparison.",
-};
+});
 
 const SECTIONS = [
   { id: "purpose", label: "What this means" },

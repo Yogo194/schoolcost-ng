@@ -1,8 +1,20 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isAdminUser } from "@/lib/admin/auth";
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-schoolcost-pathname", request.nextUrl.pathname);
+
+  function nextResponse() {
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+  }
+
+  let supabaseResponse = nextResponse();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,7 +28,7 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = nextResponse();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -31,14 +43,15 @@ export async function middleware(request: NextRequest) {
 
   const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
   const isLoginPage = request.nextUrl.pathname === "/admin/login";
+  const isAllowedAdmin = isAdminUser(user);
 
-  if (isAdminRoute && !isLoginPage && !user) {
+  if (isAdminRoute && !isLoginPage && !isAllowedAdmin) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/admin/login";
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isLoginPage && user) {
+  if (isLoginPage && isAllowedAdmin) {
     const dashboardUrl = request.nextUrl.clone();
     dashboardUrl.pathname = "/admin";
     return NextResponse.redirect(dashboardUrl);

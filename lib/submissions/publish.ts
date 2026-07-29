@@ -57,8 +57,8 @@ function toCalcItems(
 }
 
 /**
- * Turn an approved new_fee submission into a draft fee_record + fee_items.
- * Drafts are not published (is_published = false) until an admin toggles them.
+ * Turn an approved new_fee submission into a public fee_record + fee_items.
+ * Pending/rejected submissions never reach the public site.
  */
 export async function publishFeeFromSubmission(
   supabase: ServiceClient,
@@ -117,7 +117,7 @@ export async function publishFeeFromSubmission(
       source_type: "community_reported",
       last_reviewed_at: new Date().toISOString(),
       review_due_at: null,
-      is_published: false,
+      is_published: true,
       admin_note: `Created from submission ${submission.id}${
         submission.submitter_email ? ` (${submission.submitter_email})` : ""
       }`,
@@ -140,7 +140,7 @@ export async function publishFeeFromSubmission(
   // Link evidence files to the new fee record as well.
   await supabase
     .from("evidence")
-    .update({ fee_record_id: feeRecord.id })
+    .update({ fee_record_id: feeRecord.id, review_status: "approved" })
     .eq("submission_id", submission.id);
 
   // Attach resolved session FK on the submission for cleaner admin history.
@@ -153,7 +153,7 @@ export async function publishFeeFromSubmission(
 }
 
 /**
- * Create an inactive institution draft from an approved school suggestion.
+ * Create an active institution from an approved school suggestion.
  */
 export async function publishSchoolFromSuggestion(
   supabase: ServiceClient,
@@ -187,7 +187,7 @@ export async function publishSchoolFromSuggestion(
       city: null,
       website_url: payload.website_url ?? null,
       description: payload.notes ?? null,
-      is_active: false,
+      is_active: true,
     })
     .select("id")
     .single();

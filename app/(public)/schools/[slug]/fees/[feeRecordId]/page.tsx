@@ -3,27 +3,31 @@ import Link from "next/link";
 import { FeeDetailBreakdown } from "@/components/public/FeeDetailBreakdown";
 import { FeeDetailHero } from "@/components/public/FeeDetailHero";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getLiveFeeDetail } from "@/lib/fees/get-fee-detail";
+import { feeJsonLd, publicPageMetadata } from "@/lib/seo";
 
 interface PageProps {
   params: Promise<{ slug: string; feeRecordId: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { feeRecordId } = await params;
+  const { slug, feeRecordId } = await params;
   const record = await getLiveFeeDetail(feeRecordId);
 
   if (!record) {
-    return {
+    return publicPageMetadata({
+      path: `/schools/${slug}/fees/${feeRecordId}`,
       title: "Fee breakdown",
       description: "View detailed school fee breakdown on SchoolCost NG.",
-    };
+    });
   }
 
-  return {
+  return publicPageMetadata({
+    path: `/schools/${record.schoolSlug}/fees/${record.id}`,
     title: `${record.schoolName} school fees for ${record.course} - ${record.session}`,
     description: `Compulsory fee breakdown for ${record.course} at ${record.schoolName}, ${record.session}. Includes first-year and returning-year estimates, source, and verification status.`,
-  };
+  });
 }
 
 export default async function FeeBreakdownPage({ params }: PageProps) {
@@ -46,6 +50,17 @@ export default async function FeeBreakdownPage({ params }: PageProps) {
 
   return (
     <div>
+      <JsonLd
+        data={feeJsonLd({
+          id: record.id,
+          schoolSlug: record.schoolSlug,
+          schoolName: record.schoolName,
+          course: record.course,
+          session: record.session,
+          firstYearTotal: record.firstYearTotal,
+          level: record.defaultLevel,
+        })}
+      />
       <FeeDetailHero record={record} />
       <FeeDetailBreakdown record={record} />
       <SchoolSubmitCta />

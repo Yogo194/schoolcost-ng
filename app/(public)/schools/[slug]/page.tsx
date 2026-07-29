@@ -4,7 +4,9 @@ import { SchoolCourseFees } from "@/components/public/SchoolCourseFees";
 import { SchoolProfileHero } from "@/components/public/SchoolProfileHero";
 import { SchoolStatsBar } from "@/components/public/SchoolStatsBar";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getLiveSchoolProfile } from "@/lib/fees/get-school-profile";
+import { publicPageMetadata, schoolJsonLd } from "@/lib/seo";
 import type { SchoolProfile } from "@/lib/mock/school-profile";
 
 interface PageProps {
@@ -42,20 +44,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const school = await getLiveSchoolProfile(slug);
 
   if (!school) {
-    return {
+    return publicPageMetadata({
+      path: `/schools/${slug}`,
       title: "School not found",
       description: "We do not have this school yet on SchoolCost NG.",
-    };
+    });
   }
 
   const isBands = school.fee_coverage.kind === "bands";
 
-  return {
+  return publicPageMetadata({
+    path: `/schools/${school.slug}`,
     title: `${school.name} fees`,
     description: isBands
       ? `Official fee bands for ${school.name} (${school.abbreviation}), with session year and source notes. Course-level totals welcome via contribute.`
       : `View verified course fees for ${school.name} (${school.abbreviation}), including first-year totals by level and session.`,
-  };
+  });
 }
 
 export default async function SchoolProfilePage({ params }: PageProps) {
@@ -86,6 +90,7 @@ export default async function SchoolProfilePage({ params }: PageProps) {
 
   return (
     <div>
+      <JsonLd data={schoolJsonLd(school)} />
       <SchoolProfileHero school={school} />
       <SchoolStatsBar
         coursesListed={school.courses_listed}

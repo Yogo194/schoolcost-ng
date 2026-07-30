@@ -5,6 +5,7 @@ export interface CourseCompareColumn {
   id: string;
   schoolName: string;
   schoolSlug: string;
+  logoUrl?: string | null;
   abbreviation: string | null;
   state: string;
   ownership: string;
@@ -107,6 +108,7 @@ export function getCourseCompareColumns(
       record.schoolAbbreviation ?? record.schoolName.slice(0, 2).toUpperCase(),
     state: record.schoolState ?? "Nigeria",
     ownership: record.schoolOwnership ?? "Not specified",
+    logoUrl: record.schoolLogoUrl,
     course: record.course,
     level,
     session: record.session,

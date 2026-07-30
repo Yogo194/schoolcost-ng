@@ -26,6 +26,7 @@ export interface FeeDetailRecord {
   schoolAbbreviation?: string | null;
   schoolState?: string | null;
   schoolOwnership?: string | null;
+  schoolLogoUrl?: string | null;
   course: string;
   session: string;
   programmeDuration: string;

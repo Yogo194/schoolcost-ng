@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronDown,
@@ -319,12 +320,24 @@ function FeeCourseCompareContent({
                     )}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-lime text-xs font-semibold text-brand-ink">
-                        {(col.abbreviation || col.schoolName.slice(0, 2)).slice(
-                          0,
-                          2
-                        )}
-                      </span>
+                      {col.logoUrl ? (
+                        <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+                          <Image
+                            src={col.logoUrl}
+                            alt=""
+                            width={32}
+                            height={32}
+                            className="size-full object-contain"
+                          />
+                        </span>
+                      ) : (
+                        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-lime text-xs font-semibold text-brand-ink">
+                          {(col.abbreviation || col.schoolName.slice(0, 2)).slice(
+                            0,
+                            2
+                          )}
+                        </span>
+                      )}
                       <div className="min-w-0">
                         <p className="truncate text-base font-medium tracking-[-0.02em] text-[#002c15]">
                           {col.abbreviation || col.schoolName}
@@ -747,9 +760,21 @@ function SchoolChip({
 }) {
   return (
     <div className="flex min-h-[72px] items-start gap-3 rounded-2xl border border-[#e5ebe5] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(3,48,42,0.04)]">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-lime text-sm font-semibold text-brand-ink">
-        {(column.abbreviation || column.schoolName.slice(0, 2)).slice(0, 2)}
-      </span>
+      {column.logoUrl ? (
+        <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+          <Image
+            src={column.logoUrl}
+            alt=""
+            width={40}
+            height={40}
+            className="size-full object-contain p-1"
+          />
+        </span>
+      ) : (
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-brand-lime text-sm font-semibold text-brand-ink">
+          {(column.abbreviation || column.schoolName.slice(0, 2)).slice(0, 2)}
+        </span>
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-[15px] font-medium tracking-[-0.02em] text-brand-ink">

@@ -153,7 +153,7 @@ const BAND_SCHOOLS: Record<string, SchoolFeeCoverage> = {
   "babcock-university": {
     kind: "courses",
     notice:
-      "Official instructional fees from babcock.edu.ng. Miscellaneous charges, feeding, and hostel are listed separately.",
+      "Official instructional fees from babcock.edu.ng. Other charges are listed separately.",
     sourceUrl: "https://babcock.edu.ng/admission/tuition-and-fees",
     sourceLabel: "Official Babcock tuition and fees",
     coverageLabel: "Courses with verified fees",

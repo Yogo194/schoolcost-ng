@@ -150,12 +150,12 @@ export function VerificationActions({
 
   return (
     <>
-      <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-[#e5ebe5] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-[#e5ebe5] bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="min-w-0">
-          <p className="text-base font-medium tracking-[-0.02em] text-brand-ink">
+          <p className="text-[15px] font-medium tracking-[-0.02em] text-brand-ink sm:text-base">
             Something look off?
           </p>
-          <p className="mt-1 text-[15px] tracking-[-0.02em] text-brand-ink/65">
+          <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.02em] text-brand-ink/70">
             Help improve {record.course} fees at {record.schoolName}. These
             actions apply to this course only.
           </p>

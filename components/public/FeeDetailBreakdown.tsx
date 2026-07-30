@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown, ExternalLink, FileText } from "lucide-react";
+import { ChevronDown, ExternalLink, FileText, Info } from "lucide-react";
 import {
   dueLabel,
   lineAmountForPlan,
@@ -60,6 +60,9 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
     record.verification_status,
     record.confidence_level
   );
+  const heroHelpText = needsConfirmation
+    ? "Shown for planning only until stronger evidence is reviewed. Confirm before paying."
+    : "Includes compulsory fees for this level. Hostel and feeding are not included.";
 
   const verificationRows: VerificationRow[] = [
     {
@@ -105,9 +108,26 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
           <>
             <div id="overview" className="scroll-mt-28">
               <div className="min-w-0">
-                <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/50">
-                  {heroLabel}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/50">
+                    {heroLabel}
+                  </p>
+                  <span className="group relative inline-flex">
+                    <button
+                      type="button"
+                      aria-label={`About ${heroLabel.toLowerCase()}`}
+                      className="inline-flex size-5 items-center justify-center rounded-full border border-brand-ink/15 bg-white/70 text-brand-ink/55 transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45"
+                    >
+                      <Info className="size-3.5" aria-hidden />
+                    </button>
+                    <span
+                      role="tooltip"
+                      className="pointer-events-none absolute left-1/2 top-7 z-20 w-[230px] -translate-x-1/2 rounded-lg bg-brand-ink px-3 py-2 text-xs font-normal leading-5 text-white opacity-0 shadow-[0_8px_20px_rgba(0,44,21,0.14)] transition group-hover:opacity-100 group-focus-within:opacity-100 sm:left-0 sm:translate-x-0"
+                    >
+                      {heroHelpText}
+                    </span>
+                  </span>
+                </div>
                 <h2 className="mt-2 text-[2rem] font-semibold leading-[1.2] tracking-[-0.04em] text-brand-ink sm:text-[40px]">
                   {formatCurrency(
                     paymentPlan === "semester"

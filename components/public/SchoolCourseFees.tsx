@@ -123,6 +123,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         {coverage.notice ? (
           <InfoPrompt
             className="mt-8 w-full"
+            childrenClassName="mt-2 border-0 pt-0"
             title="About these figures"
             description={coverage.notice}
           >

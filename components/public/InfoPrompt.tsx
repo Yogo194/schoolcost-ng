@@ -6,6 +6,7 @@ interface InfoPromptProps {
   description?: string;
   children?: ReactNode;
   className?: string;
+  childrenClassName?: string;
   /** Defaults to the Figma warning tile used for compare/info prompts. */
   iconSrc?: string;
 }
@@ -19,6 +20,7 @@ export function InfoPrompt({
   description,
   children,
   className,
+  childrenClassName,
   iconSrc = "/figma/prompt-warning-icon.svg",
 }: InfoPromptProps) {
   const isRich = Boolean(children);
@@ -60,7 +62,12 @@ export function InfoPrompt({
           </p>
         ) : null}
         {children ? (
-          <div className="mt-2.5 flex w-full flex-col items-start gap-2 border-t border-brand-ink/[0.08] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div
+            className={cn(
+              "mt-2.5 flex w-full flex-col items-start gap-2 border-t border-brand-ink/[0.08] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4",
+              childrenClassName
+            )}
+          >
             {children}
           </div>
         ) : null}

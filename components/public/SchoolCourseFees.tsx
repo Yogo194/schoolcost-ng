@@ -97,16 +97,6 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
                 <ExternalLink className="size-3.5 opacity-70" aria-hidden />
               </a>
             ) : null}
-            <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/55">
-              Have newer {school.abbreviation} figures?{" "}
-              <Link
-                href="/submit-fees"
-                className="font-medium text-brand-ink underline-offset-2 hover:underline"
-              >
-                Contribute an update
-              </Link>
-              .
-            </p>
           </InfoPrompt>
         ) : null}
 

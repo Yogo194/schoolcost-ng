@@ -153,7 +153,7 @@ const BAND_SCHOOLS: Record<string, SchoolFeeCoverage> = {
   "babcock-university": {
     kind: "courses",
     notice:
-      "Figures below are official Instructional full-year fees from babcock.edu.ng. Miscellaneous charges (about ₦347k for 100L, less for higher levels), feeding, and hostel are listed separately on the same page and are not folded into these totals.",
+      "Official instructional fees from babcock.edu.ng. Miscellaneous charges, feeding, and hostel are listed separately.",
     sourceUrl: "https://babcock.edu.ng/admission/tuition-and-fees",
     sourceLabel: "Official Babcock tuition and fees",
     coverageLabel: "Courses with verified fees",

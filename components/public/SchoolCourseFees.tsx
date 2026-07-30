@@ -71,9 +71,18 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
     <section className="bg-brand-lime-light px-4 pb-16 pt-6 sm:px-10 sm:pb-20 sm:pt-8 lg:px-20">
       <div className="mx-auto max-w-[1280px]">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
-            {coverage.sectionTitle}
-          </h2>
+          <div className="inline-flex items-center justify-center gap-3">
+            <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
+              {coverage.sectionTitle}
+            </h2>
+            {coverage.notice ? (
+              <FigureInfoTooltip
+                notice={coverage.notice}
+                sourceLabel={coverage.sourceLabel}
+                sourceUrl={coverage.sourceUrl}
+              />
+            ) : null}
+          </div>
           <p className="mt-2 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
             {coverage.sectionDescription}
           </p>
@@ -119,17 +128,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
           />
         </div>
 
-        {coverage.notice ? (
-          <div className="mt-8 flex justify-end">
-            <FigureInfoTooltip
-              notice={coverage.notice}
-              sourceLabel={coverage.sourceLabel}
-              sourceUrl={coverage.sourceUrl}
-            />
-          </div>
-        ) : null}
-
-        <div className="mt-4 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
+        <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
           <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -190,7 +189,7 @@ function FigureInfoTooltip({
       <button
         type="button"
         aria-label="About these figures"
-        className="inline-flex size-9 items-center justify-center rounded-full border border-brand-ink/15 bg-white text-brand-ink/60 shadow-[0_1px_3px_rgba(0,44,21,0.06)] transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45"
+        className="inline-flex size-7 items-center justify-center rounded-full border border-brand-ink/15 bg-white text-brand-ink/60 shadow-[0_1px_3px_rgba(0,44,21,0.06)] transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45 sm:size-8"
       >
         <Info className="size-4" aria-hidden />
       </button>

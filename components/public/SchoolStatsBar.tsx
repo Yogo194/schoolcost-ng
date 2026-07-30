@@ -46,14 +46,13 @@ export function SchoolStatsBar({
   const hasSession = Boolean(sessionLabel);
 
   return (
-    <section className="relative z-20 bg-brand-lime-light px-4 pb-2 sm:px-10 lg:px-20">
+    <section className="relative z-20 bg-brand-lime-light px-4 pb-2 pt-6 sm:px-10 sm:pt-0 lg:px-20">
       {/* Desktop: reserve the cream half while cards are absolutely centered on the seam */}
       <div className="mx-auto hidden h-20 max-w-[1240px] sm:block" aria-hidden />
       <div
         className={cn(
           "mx-auto grid max-w-[1240px] grid-cols-1 items-stretch gap-3 sm:grid-cols-3 sm:gap-4",
-          // Mobile: modest overlap into lime (half of one card)
-          "-mt-3",
+          "mt-0",
           // Desktop: pin to the lime | cream seam, then shift up by exactly half the row height
           "sm:absolute sm:left-0 sm:right-0 sm:top-0 sm:mt-0 sm:w-full sm:max-w-[1240px] sm:px-10 sm:-translate-y-1/2 lg:px-20"
         )}

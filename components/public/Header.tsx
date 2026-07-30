@@ -31,6 +31,7 @@ export function Header() {
     isFeeDetail ||
     isHowItWorks;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMenuMounted, setMobileMenuMounted] = useState(false);
   const [hasScrolled, setHasScrolled] = useState(false);
 
   useEffect(() => {
@@ -61,6 +62,16 @@ export function Header() {
       document.documentElement.style.removeProperty("--public-header-height");
     };
   }, []);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      setMobileMenuMounted(true);
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setMobileMenuMounted(false), 220);
+    return () => window.clearTimeout(timeout);
+  }, [mobileOpen]);
 
   return (
     <>
@@ -153,16 +164,28 @@ export function Header() {
             "p-2 -mr-2 transition-colors md:hidden",
             overlayNav ? "text-brand-ink" : "text-gray-600 hover:text-gray-900"
           )}
-          onClick={() => setMobileOpen((o) => !o)}
+          onClick={() => setMobileOpen((open) => !open)}
           aria-label="Toggle menu"
         >
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
-      {mobileOpen && (
-        <div className="relative border-t border-brand-ink/10 bg-white md:hidden">
-          <nav className="mx-auto max-w-[1440px] px-4 py-4 sm:px-10">
+      {mobileMenuMounted && (
+        <div
+          className={cn(
+            "relative overflow-hidden border-t border-brand-ink/10 bg-white transition-[max-height,opacity,transform] duration-200 ease-out md:hidden motion-reduce:transition-none",
+            mobileOpen
+              ? "max-h-[430px] translate-y-0 opacity-100"
+              : "max-h-0 -translate-y-2 opacity-0"
+          )}
+        >
+          <nav
+            className={cn(
+              "mx-auto max-w-[1440px] px-4 py-4 transition-transform duration-200 ease-out sm:px-10 motion-reduce:transition-none",
+              mobileOpen ? "translate-y-0" : "-translate-y-3"
+            )}
+          >
             <div className="overflow-hidden rounded-[8px] border border-[#e5ebe5] bg-white">
               {NAV_LINKS.map((link) => {
                 const active = pathname === link.href;
@@ -173,10 +196,10 @@ export function Header() {
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
                     className={cn(
-                      "flex min-h-12 items-center justify-between gap-3 border-b border-[#edf0ed] px-4 py-3 text-[15px] tracking-[-0.02em] transition-colors last:border-b-0",
+                      "flex min-h-12 items-center justify-between gap-3 border-b border-[#edf0ed] px-4 py-3 text-[15px] tracking-[-0.02em] transition-[background-color,color,transform] last:border-b-0",
                       active
                         ? "bg-brand-lime-light font-medium text-brand-ink"
-                        : "font-normal text-brand-ink/72 hover:bg-brand-lime-light/60 hover:text-brand-ink"
+                        : "font-normal text-brand-ink/72 hover:translate-x-0.5 hover:bg-brand-lime-light/60 hover:text-brand-ink"
                     )}
                   >
                     <span>{link.label}</span>
@@ -195,7 +218,7 @@ export function Header() {
             <Link
               href="/schools"
               onClick={() => setMobileOpen(false)}
-              className="mt-4 flex min-h-[58px] items-center justify-between gap-4 rounded-[8px] bg-[#166D3E] px-4 text-base font-medium tracking-[-0.02em] text-white shadow-[0_8px_18px_rgba(22,109,62,0.22)] transition-colors hover:bg-[#145f36]"
+              className="mt-4 flex min-h-[58px] items-center justify-between gap-4 rounded-[8px] bg-[#166D3E] px-4 text-base font-medium tracking-[-0.02em] text-white shadow-[0_8px_18px_rgba(22,109,62,0.22)] transition-[background-color,transform] hover:-translate-y-0.5 hover:bg-[#145f36]"
             >
               <span>
                 <span className="block">Find a school</span>

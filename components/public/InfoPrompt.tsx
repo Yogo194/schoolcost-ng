@@ -53,7 +53,7 @@ export function InfoPrompt({
               "text-[15px] tracking-[-0.02em] text-brand-ink/60 sm:text-base",
               isRich
                 ? "mt-1.5 max-w-prose leading-relaxed"
-                : "mt-0.5 leading-[22px] sm:leading-6"
+                : "mt-0 leading-5 sm:leading-5"
             )}
           >
             {description}

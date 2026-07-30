@@ -53,40 +53,16 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
           <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
             No verified fee schedule yet
           </h2>
-          <p className="mt-3 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
-            We have not published fees for {school.abbreviation} yet. An empty
-            page is better than guessing from blogs. If you have an official
-            circular, bursary PDF, or portal pay advice, contribute it and we
-            will verify before listing.
+          <p className="mx-auto mt-3 max-w-xl text-base leading-6 tracking-[-0.02em] text-brand-ink/75 sm:text-lg sm:leading-7">
+            We do not have a verified fee schedule for {school.abbreviation} yet.
+            Share an official schedule or portal receipt and we will verify it.
           </p>
-          <div className="mt-8 rounded-2xl border border-[#e5ebe5] bg-white px-5 py-5 text-left sm:px-6">
-            <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/80">
-              Student portal amounts are usually the final figure for your
-              programme and level. Screenshots or Remita receipts with the
-              school name and session help us publish faster.
-            </p>
-            {school.website_url && school.website_url !== "#" ? (
-              <a
-                href={school.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-ink underline-offset-2 hover:underline"
-              >
-                Visit {school.abbreviation} website
-                <ExternalLink className="size-3.5 opacity-70" aria-hidden />
-              </a>
-            ) : null}
-            <p className="mt-4 text-sm tracking-[-0.02em] text-brand-ink/65">
-              Have a {school.abbreviation} schedule we can verify?{" "}
-              <Link
-                href="/submit-fees"
-                className="font-medium text-brand-ink underline-offset-2 hover:underline"
-              >
-                Contribute it
-              </Link>
-              .
-            </p>
-          </div>
+          <Link
+            href="/submit-fees"
+            className="mt-7 inline-flex h-11 items-center justify-center rounded-[12px] bg-[#166d3e] px-5 text-sm font-medium text-white shadow-[0_5px_12px_rgba(22,109,62,0.24)] transition-colors hover:bg-[#145f36]"
+          >
+            Contribute fee evidence
+          </Link>
         </div>
       </section>
     );

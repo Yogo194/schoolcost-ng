@@ -54,7 +54,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
   );
 
   const isFresh = studentType === "fresh";
-  const heroLabel = isFresh ? "First-year total" : `${level} total`;
+  const heroLabel = "Estimated fees";
   const heroAmount = totals?.compulsory ?? 0;
   const needsConfirmation = isCommunityReport(
     record.verification_status,
@@ -576,7 +576,7 @@ function MobileFeeBreakdown({
               Accommodation and extras
             </p>
             <p className="mt-1 text-sm text-brand-ink/65">
-              Optional costs not included in the compulsory total
+              Optional costs not included in the required fees
             </p>
           </div>
           <div className="divide-y divide-[#edf0ed]">

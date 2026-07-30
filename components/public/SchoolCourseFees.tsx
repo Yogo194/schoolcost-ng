@@ -147,7 +147,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
                   [
                     categoryHeading,
                     "Level",
-                    "Compulsory total",
+                    "Estimated fees",
                     "Session",
                     "Source",
                   ] as const

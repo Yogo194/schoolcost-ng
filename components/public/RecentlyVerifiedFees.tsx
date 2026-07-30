@@ -88,7 +88,7 @@ function FeesTable({ rows }: { rows: RecentFeeRow[] }) {
                   { label: "Institution", className: "w-[28%] text-left" },
                   { label: "Course", className: "w-[22%] text-center" },
                   { label: "Level", className: "w-[10%] text-center" },
-                  { label: "Verified total", className: "w-[14%] text-center" },
+                  { label: "Estimated fees", className: "w-[14%] text-center" },
                   { label: "Academic session", className: "w-[14%] text-center" },
                   { label: "Source", className: "w-[12%] text-center" },
                 ] as const
@@ -215,7 +215,7 @@ function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
         </div>
         <div className="shrink-0 text-right">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-            Verified total
+            Estimated fees
           </p>
           <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[#355955]">
             {formatCurrency(fee.first_year_total)}

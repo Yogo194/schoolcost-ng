@@ -281,7 +281,7 @@ function OwnershipTabs({
       ref={listRef}
       role="tablist"
       aria-label="Filter by ownership"
-      className="relative inline-flex items-center gap-2 rounded-[54px] border border-solid border-[#e5ebe5] bg-brand-ink/[0.06] p-1"
+      className="relative flex w-full items-center gap-1 rounded-[54px] border border-solid border-[#e5ebe5] bg-brand-ink/[0.06] p-1 sm:inline-flex sm:w-auto sm:gap-2"
     >
       <span
         aria-hidden
@@ -311,7 +311,7 @@ function OwnershipTabs({
             }}
             onClick={() => onChange(tab.value)}
             className={cn(
-              "relative z-10 inline-flex items-center justify-center gap-2 rounded-[42px] bg-transparent px-4 py-2.5 text-base font-semibold leading-6 tracking-[-0.25px] transition-colors duration-300 ease-out motion-reduce:transition-none",
+              "relative z-10 inline-flex flex-1 items-center justify-center gap-2 rounded-[42px] bg-transparent px-3 py-2.5 text-base font-semibold leading-6 tracking-[-0.25px] transition-colors duration-300 ease-out motion-reduce:transition-none sm:flex-none sm:px-4",
               selected
                 ? "text-brand-ink"
                 : "text-brand-ink/45 hover:text-brand-ink/70"

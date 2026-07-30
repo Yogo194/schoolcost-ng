@@ -93,19 +93,29 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
   const searchIndex = useMemo(() => createSchoolSearchIndex(schools), [schools]);
 
   const filtered = useMemo(() => {
-    return searchIndex.search(query).filter((school) => {
-      if (activeState && school.state !== activeState) return false;
-      if (
-        activeInstitutionType &&
-        school.institution_type !== activeInstitutionType
-      ) {
-        return false;
-      }
-      if (activeOwnershipType && school.ownership_type !== activeOwnershipType) {
-        return false;
-      }
-      return true;
-    });
+    return searchIndex
+      .search(query)
+      .filter((school) => {
+        if (activeState && school.state !== activeState) return false;
+        if (
+          activeInstitutionType &&
+          school.institution_type !== activeInstitutionType
+        ) {
+          return false;
+        }
+        if (
+          activeOwnershipType &&
+          school.ownership_type !== activeOwnershipType
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          Number(Boolean(b.has_published_fees)) -
+          Number(Boolean(a.has_published_fees))
+      );
   }, [
     searchIndex,
     query,

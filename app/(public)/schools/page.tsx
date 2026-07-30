@@ -63,6 +63,11 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
     ]);
 
     const coursesByInstitution = new Map<string, string[]>();
+    const publishedFeeInstitutions = new Set(
+      ((fees ?? []) as Array<{ institution_id: string }>).map(
+        (fee) => fee.institution_id
+      )
+    );
     for (const row of (courseRows ?? []) as Array<{
       name: string;
       institution_id: string;
@@ -110,6 +115,7 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
       logo_url: institution.logo_url,
       courses: coursesByInstitution.get(institution.id) ?? [],
       first_year_from: lowestFees.get(institution.id) ?? null,
+      has_published_fees: publishedFeeInstitutions.has(institution.id),
     }));
   } catch {
     return [];

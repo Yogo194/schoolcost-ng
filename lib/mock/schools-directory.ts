@@ -16,6 +16,8 @@ export interface SchoolsDirectoryItem {
   logo_url: string | null;
   /** Lowest published first-year compulsory total, if known. */
   first_year_from: number | null;
+  /** Whether any published fee record exists, even if it is not price-comparable. */
+  has_published_fees?: boolean;
 }
 
 /** Directory mock used when Supabase has no institutions yet. */

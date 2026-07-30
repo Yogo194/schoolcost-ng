@@ -22,7 +22,7 @@ export default async function ComparePage() {
     <main className="bg-brand-lime-light">
       {/* Hero + explainer band together fill one screen on desktop. */}
       <div className="lg:flex lg:h-screen lg:flex-col">
-        <section className="relative isolate min-h-[670px] overflow-hidden bg-white sm:h-[672px] sm:min-h-0 lg:h-auto lg:min-h-0 lg:flex-1">
+        <section className="relative isolate min-h-[560px] overflow-hidden bg-white h-[80svh] sm:h-[672px] sm:min-h-0 lg:h-auto lg:min-h-0 lg:flex-1">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/figma/how-it-works/hero-bg.jpg"
@@ -31,7 +31,7 @@ export default async function ComparePage() {
             aria-hidden
           />
 
-          <div className="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-col px-5 pb-12 pt-36 sm:px-10 sm:pt-[215px] lg:flex-row lg:items-center lg:gap-10 lg:px-20 lg:pb-16 lg:pt-32">
+          <div className="relative z-10 mx-auto flex h-full w-full max-w-[1440px] flex-col justify-center px-5 pb-10 pt-28 sm:px-10 sm:justify-start sm:pb-12 sm:pt-[215px] lg:flex-row lg:items-center lg:gap-10 lg:px-20 lg:pb-16 lg:pt-32">
             <div className="max-w-[649px] lg:flex-1">
               <div>
                 <span className="inline-flex h-8 items-center justify-center rounded-lg border border-brand-amber bg-white px-3 text-sm font-medium tracking-[-0.02em] text-brand-ink sm:text-base">

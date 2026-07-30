@@ -64,8 +64,8 @@ export function LegalPolicyNav({
   }
 
   return (
-    <nav aria-label={navLabel} className="mt-5">
-      <ul className="flex gap-x-4 gap-y-2 overflow-x-auto pb-1 text-sm lg:flex-col lg:gap-2 lg:overflow-visible">
+    <nav aria-label={navLabel} className="mt-5 min-w-0">
+      <ul className="flex max-w-full gap-x-4 gap-y-2 overflow-x-auto pb-1 text-sm [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-col lg:gap-2 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
         {sections.map((section) => (
           <li key={section.id} className="shrink-0">
             <a

@@ -36,7 +36,7 @@ function TermsSection({
       <h2 className="text-[26px] font-medium leading-[1.15] tracking-[-0.04em] text-brand-ink sm:text-[32px]">
         {title}
       </h2>
-      <div className="mt-4 space-y-4 text-[15px] leading-7 tracking-[-0.01em] text-brand-ink/75 sm:text-base">
+      <div className="mt-4 min-w-0 space-y-4 text-[15px] leading-7 tracking-[-0.01em] text-brand-ink/75 [overflow-wrap:anywhere] sm:text-base">
         {children}
       </div>
     </section>
@@ -46,8 +46,8 @@ function TermsSection({
 export default function TermsPage() {
   return (
     <section className="bg-[#fcfdef] px-4 py-16 sm:px-10 sm:py-24 lg:px-20 lg:py-[120px]">
-      <div className="mx-auto grid max-w-[1120px] gap-12 lg:grid-cols-[220px_minmax(0,650px)] lg:gap-20">
-        <aside className="lg:sticky lg:top-28 lg:self-start">
+      <div className="mx-auto grid max-w-[1120px] min-w-0 gap-12 lg:grid-cols-[220px_minmax(0,650px)] lg:gap-20">
+        <aside className="min-w-0 lg:sticky lg:top-28 lg:self-start">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-brand-ink/50">
             Legal
           </p>
@@ -57,7 +57,7 @@ export default function TermsPage() {
           <LegalPolicyNav sections={SECTIONS} navLabel="Terms sections" />
         </aside>
 
-        <article>
+        <article className="min-w-0">
           <Link
             href="/"
             className="text-sm font-medium text-brand-green underline decoration-brand-green/40 underline-offset-4 transition-colors hover:text-brand-ink"

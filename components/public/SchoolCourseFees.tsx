@@ -132,7 +132,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
                     href={coverage.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-[#c96d18] underline-offset-2 hover:text-[#a95812] hover:underline"
+                    className="inline-flex items-center gap-1 font-medium text-[#166d3e] underline-offset-2 hover:text-[#145f36] hover:underline"
                   >
                     {coverage.sourceLabel ?? "View official source"}
                     <ExternalLink className="size-3.5" aria-hidden />

@@ -29,6 +29,9 @@ type LiveFeeDetailRow = {
   institutions: {
     name: string;
     slug: string;
+    abbreviation: string | null;
+    state: string;
+    ownership_type: string;
   } | null;
   courses: {
     name: string;
@@ -177,6 +180,9 @@ function mapFeeDetail(
     id: row.id,
     schoolSlug: row.institutions.slug,
     schoolName: row.institutions.name,
+    schoolAbbreviation: row.institutions.abbreviation,
+    schoolState: row.institutions.state,
+    schoolOwnership: row.institutions.ownership_type,
     course: row.courses.name,
     session: row.academic_sessions.name,
     programmeDuration: `${duration}-year programme`,
@@ -222,7 +228,7 @@ export async function getLiveFeeDetail(
         first_year_total, returning_year_total, estimated_degree_total,
         accommodation_total, verification_status, confidence_level, source_type,
         last_reviewed_at, admin_note,
-        institutions ( name, slug ),
+        institutions ( name, slug, abbreviation, state, ownership_type ),
         courses ( name, duration_years ),
         academic_sessions ( name ),
         fee_items ( id, name, category, amount, is_compulsory, frequency, applies_to, description ),

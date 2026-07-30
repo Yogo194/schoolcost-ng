@@ -103,9 +103,10 @@ export function getCourseCompareColumns(
     id: record.id,
     schoolName: record.schoolName,
     schoolSlug: record.schoolSlug,
-    abbreviation: "UNILAG",
-    state: "Lagos",
-    ownership: "Federal",
+    abbreviation:
+      record.schoolAbbreviation ?? record.schoolName.slice(0, 2).toUpperCase(),
+    state: record.schoolState ?? "Nigeria",
+    ownership: record.schoolOwnership ?? "Not specified",
     course: record.course,
     level,
     session: record.session,

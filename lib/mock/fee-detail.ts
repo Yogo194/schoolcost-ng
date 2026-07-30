@@ -23,6 +23,9 @@ export interface FeeDetailRecord {
   id: string;
   schoolSlug: string;
   schoolName: string;
+  schoolAbbreviation?: string | null;
+  schoolState?: string | null;
+  schoolOwnership?: string | null;
   course: string;
   session: string;
   programmeDuration: string;

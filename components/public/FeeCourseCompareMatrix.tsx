@@ -162,7 +162,7 @@ function FeeCourseCompareContent({
   showExamples: boolean;
 }) {
   const [selectedIds, setSelectedIds] = useState<string[]>(() =>
-    startEmpty ? [] : allColumns.slice(0, 2).map((column) => column.id)
+    startEmpty ? [] : allColumns.slice(0, 1).map((column) => column.id)
   );
   const stickySentinelRef = useRef<HTMLDivElement>(null);
   const [headerStuck, setHeaderStuck] = useState(false);

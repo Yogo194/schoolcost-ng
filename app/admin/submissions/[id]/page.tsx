@@ -42,6 +42,14 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
     sub.submission_type === "new_fee"
       ? (sub.submitted_payload as SubmitFeePayload)
       : null;
+  const correctionPayload =
+    sub.submission_type === "correction"
+      ? (sub.submitted_payload as Record<string, unknown>)
+      : null;
+  const correctionFeeRecordId =
+    typeof correctionPayload?.fee_record_id === "string"
+      ? correctionPayload.fee_record_id
+      : null;
 
   async function handleModeration(status: SubmissionStatus, feedback?: string) {
     "use server";
@@ -185,6 +193,55 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
                 {feePayload.notes}
               </p>
             )}
+          </div>
+        ) : correctionPayload ? (
+          <div className="space-y-4 text-sm">
+            <dl className="grid grid-cols-2 gap-3">
+              <dt className="text-gray-500">Correction type</dt>
+              <dd className="text-gray-700">
+                {String(correctionPayload.correction_type ?? "-").replace(
+                  /_/g,
+                  " "
+                )}
+              </dd>
+              {typeof correctionPayload.suggested_amount === "number" && (
+                <>
+                  <dt className="text-gray-500">Suggested amount</dt>
+                  <dd className="font-medium text-gray-900">
+                    {formatCurrency(correctionPayload.suggested_amount)}
+                  </dd>
+                </>
+              )}
+              {correctionFeeRecordId && (
+                <>
+                  <dt className="text-gray-500">Linked fee record</dt>
+                  <dd>
+                    <Link
+                      href={`/admin/fees/${correctionFeeRecordId}`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      Open fee record
+                    </Link>
+                  </dd>
+                </>
+              )}
+            </dl>
+            {typeof correctionPayload.description === "string" && (
+              <p className="rounded-lg bg-gray-50 p-3 text-gray-700">
+                {correctionPayload.description}
+              </p>
+            )}
+            {typeof correctionPayload.source_url === "string" &&
+              correctionPayload.source_url && (
+                <a
+                  href={correctionPayload.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex text-primary hover:underline"
+                >
+                  Open submitted source
+                </a>
+              )}
           </div>
         ) : (
           <pre className="overflow-x-auto rounded bg-gray-50 p-3 text-xs text-gray-600">

@@ -1,8 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { notFound } from "next/navigation";
-import { FeeRecordEditor } from "@/components/admin/FeeRecordEditor";
+import { notFound, redirect } from "next/navigation";
+import {
+  FeeRecordEditor,
+  type FeeRecordEditorValues,
+} from "@/components/admin/FeeRecordEditor";
+import {
+  getAdminFeeFormOptions,
+  getAdminFeeRecord,
+  updateAdminFeeRecord,
+} from "@/lib/admin/fee-records";
 
 export const metadata: Metadata = { title: "Edit Fee Record | Admin" };
 
@@ -13,15 +21,17 @@ interface PageProps {
 export default async function EditFeeRecordPage({ params }: PageProps) {
   const { id } = await params;
 
-  // TODO: fetch fee record + items from Supabase
-  const record = null;
-  const items = null;
+  const [record, options] = await Promise.all([
+    getAdminFeeRecord(id),
+    getAdminFeeFormOptions(),
+  ]);
 
   if (!record) notFound();
 
-  async function handleUpdate(values: unknown) {
+  async function handleUpdate(values: FeeRecordEditorValues) {
     "use server";
-    console.log("Update fee record", id, values);
+    await updateAdminFeeRecord(id, values);
+    redirect("/admin/fees");
   }
 
   return (
@@ -35,9 +45,12 @@ export default async function EditFeeRecordPage({ params }: PageProps) {
       </Link>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Edit Fee Record</h1>
       <FeeRecordEditor
-        record={record ?? undefined}
-        items={items ?? []}
-        onSubmit={handleUpdate as never}
+        record={record}
+        items={record.fee_items}
+        sessionName={record.academic_session?.name ?? ""}
+        institutionOptions={options.institutions}
+        courseOptions={options.courses}
+        onSubmit={handleUpdate}
       />
     </div>
   );

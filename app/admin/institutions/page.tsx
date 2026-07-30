@@ -5,13 +5,12 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { INSTITUTION_TYPE_LABELS, OWNERSHIP_TYPE_LABELS } from "@/types/institution";
-import type { Institution } from "@/types/institution";
+import { listAdminInstitutions } from "@/lib/admin/institutions";
 
 export const metadata: Metadata = { title: "Institutions | Admin" };
 
 export default async function AdminInstitutionsPage() {
-  // TODO: fetch from Supabase (all institutions, not just active)
-  const institutions: Institution[] = [];
+  const institutions = await listAdminInstitutions();
 
   return (
     <div className="max-w-5xl space-y-6">

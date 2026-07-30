@@ -17,23 +17,37 @@ import {
 import { NIGERIA_STATES } from "@/types/institution";
 import type { Institution } from "@/types/institution";
 
+const optionalUrlOrPath = z
+  .string()
+  .trim()
+  .optional()
+  .refine(
+    (value) =>
+      !value ||
+      value.startsWith("/") ||
+      z.string().url().safeParse(value).success,
+    "Enter a valid URL or local path"
+  );
+
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
   slug: z.string().min(2, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug must be lowercase with hyphens only"),
   abbreviation: z.string().optional(),
+  logo_url: optionalUrlOrPath,
   institution_type: z.enum(["university", "polytechnic", "college_of_education", "health_institution"]),
   ownership_type: z.enum(["federal", "state", "private"]),
   state: z.string().min(1, "State is required"),
   city: z.string().optional(),
   website_url: z.string().url("Enter a valid URL").optional().or(z.literal("")),
   description: z.string().optional(),
+  is_active: z.boolean(),
 });
 
-type FormValues = z.infer<typeof schema>;
+export type InstitutionEditorValues = z.infer<typeof schema>;
 
 interface InstitutionEditorProps {
   institution?: Partial<Institution>;
-  onSubmit: (values: FormValues) => Promise<void>;
+  onSubmit: (values: InstitutionEditorValues) => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -42,24 +56,39 @@ export function InstitutionEditor({
   onSubmit,
   isLoading,
 }: InstitutionEditorProps) {
-  const form = useForm<FormValues>({
+  const form = useForm<InstitutionEditorValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: institution?.name ?? "",
       slug: institution?.slug ?? "",
       abbreviation: institution?.abbreviation ?? "",
+      logo_url: institution?.logo_url ?? "",
       institution_type: institution?.institution_type ?? "university",
       ownership_type: institution?.ownership_type ?? "federal",
       state: institution?.state ?? "",
       city: institution?.city ?? "",
       website_url: institution?.website_url ?? "",
       description: institution?.description ?? "",
+      is_active: institution?.is_active ?? true,
     },
   });
+  async function handleSubmit(values: InstitutionEditorValues) {
+    try {
+      await onSubmit(values);
+    } catch (error) {
+      form.setError("root", {
+        type: "manual",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong saving this institution.",
+      });
+    }
+  }
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(handleSubmit)}
       className="space-y-5 max-w-xl"
     >
       <Field label="Institution Name" error={form.formState.errors.name?.message}>
@@ -74,11 +103,15 @@ export function InstitutionEditor({
         <Input {...form.register("abbreviation")} placeholder="UNILAG" />
       </Field>
 
+      <Field label="Logo URL" error={form.formState.errors.logo_url?.message}>
+        <Input {...form.register("logo_url")} placeholder="/schools/logos/unilag.png" />
+      </Field>
+
       <div className="grid grid-cols-2 gap-4">
         <Field label="Institution Type" error={form.formState.errors.institution_type?.message}>
           <Select
             value={form.watch("institution_type")}
-            onValueChange={(v) => form.setValue("institution_type", v as FormValues["institution_type"])}
+            onValueChange={(v) => form.setValue("institution_type", v as InstitutionEditorValues["institution_type"])}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -93,7 +126,7 @@ export function InstitutionEditor({
         <Field label="Ownership" error={form.formState.errors.ownership_type?.message}>
           <Select
             value={form.watch("ownership_type")}
-            onValueChange={(v) => form.setValue("ownership_type", v as FormValues["ownership_type"])}
+            onValueChange={(v) => form.setValue("ownership_type", v as InstitutionEditorValues["ownership_type"])}
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -136,6 +169,23 @@ export function InstitutionEditor({
           rows={3}
         />
       </Field>
+
+      <label className="flex cursor-pointer items-center gap-2">
+        <input
+          type="checkbox"
+          {...form.register("is_active")}
+          className="accent-primary"
+        />
+        <span className="text-sm font-medium text-gray-900">
+          Active in public directory
+        </span>
+      </label>
+
+      {form.formState.errors.root && (
+        <p className="text-sm text-destructive">
+          {form.formState.errors.root.message}
+        </p>
+      )}
 
       <Button type="submit" disabled={isLoading}>
         {isLoading ? "Saving…" : institution?.id ? "Save Changes" : "Create Institution"}

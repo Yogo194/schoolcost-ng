@@ -6,13 +6,12 @@ import { cn } from "@/lib/utils";
 import { AdminTable } from "@/components/admin/AdminTable";
 import { VerificationBadge, SourceBadge } from "@/components/public/SourceBadge";
 import { formatCurrency, formatDate } from "@/lib/utils/format";
-import type { FeeRecord } from "@/types/fee";
+import { listAdminFeeRecords } from "@/lib/admin/fee-records";
 
 export const metadata: Metadata = { title: "Fee Records | Admin" };
 
 export default async function AdminFeesPage() {
-  // TODO: fetch fee records with institution and course info from Supabase
-  const records: (FeeRecord & { institution_name?: string; course_name?: string })[] = [];
+  const records = await listAdminFeeRecords();
 
   return (
     <div className="max-w-6xl space-y-6">
@@ -37,10 +36,10 @@ export default async function AdminFeesPage() {
             render: (row) => (
               <div>
                 <p className="font-medium text-gray-900 text-sm">
-                  {(row as unknown as { institution_name: string }).institution_name ?? "-"}
+                  {row.institution?.name ?? "-"}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {(row as unknown as { course_name?: string }).course_name ?? "All courses"} · {row.student_type} · {row.level ?? "all levels"}
+                  {row.course?.name ?? "All courses"} · {row.student_type} · {row.level ?? "all levels"}
                 </p>
               </div>
             ),

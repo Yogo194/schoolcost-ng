@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import { InstitutionEditor } from "@/components/admin/InstitutionEditor";
+import {
+  InstitutionEditor,
+  type InstitutionEditorValues,
+} from "@/components/admin/InstitutionEditor";
+import { createAdminInstitution } from "@/lib/admin/institutions";
 
 export const metadata: Metadata = { title: "Add Institution | Admin" };
 
 export default function NewInstitutionPage() {
-  async function handleCreate(values: unknown) {
+  async function handleCreate(values: InstitutionEditorValues) {
     "use server";
-    // TODO: insert into institutions table via Supabase service role
-    console.log("Create institution:", values);
+    await createAdminInstitution(values);
+    redirect("/admin/institutions");
   }
 
   return (
@@ -22,7 +27,7 @@ export default function NewInstitutionPage() {
         Back to institutions
       </Link>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Add Institution</h1>
-      <InstitutionEditor onSubmit={handleCreate as never} />
+      <InstitutionEditor onSubmit={handleCreate} />
     </div>
   );
 }

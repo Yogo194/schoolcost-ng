@@ -71,17 +71,6 @@ export function ModerationActions({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => handleAction("approved_with_edits")}
-          disabled={!!loading}
-          className="gap-2"
-        >
-          <CheckCircle className="w-4 h-4" />
-          {loading === "approved_with_edits" ? "Saving…" : "Approve with Edits"}
-        </Button>
-
-        <Button
-          size="sm"
-          variant="outline"
           onClick={() => handleAction("needs_more_evidence")}
           disabled={!!loading}
           className="gap-2"

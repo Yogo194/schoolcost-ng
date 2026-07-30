@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import { FeeRecordEditor } from "@/components/admin/FeeRecordEditor";
+import {
+  FeeRecordEditor,
+  type FeeRecordEditorValues,
+} from "@/components/admin/FeeRecordEditor";
+import {
+  createAdminFeeRecord,
+  getAdminFeeFormOptions,
+} from "@/lib/admin/fee-records";
 
 export const metadata: Metadata = { title: "Add Fee Record | Admin" };
 
-export default function NewFeeRecordPage() {
-  async function handleCreate(values: unknown) {
+export default async function NewFeeRecordPage() {
+  const options = await getAdminFeeFormOptions();
+
+  async function handleCreate(values: FeeRecordEditorValues) {
     "use server";
-    // TODO: insert fee_record + fee_items in Supabase
-    console.log("Create fee record:", values);
+    const id = await createAdminFeeRecord(values);
+    redirect(`/admin/fees/${id}`);
   }
 
   return (
@@ -22,7 +32,11 @@ export default function NewFeeRecordPage() {
         Back to fee records
       </Link>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Add Fee Record</h1>
-      <FeeRecordEditor onSubmit={handleCreate as never} />
+      <FeeRecordEditor
+        institutionOptions={options.institutions}
+        courseOptions={options.courses}
+        onSubmit={handleCreate}
+      />
     </div>
   );
 }

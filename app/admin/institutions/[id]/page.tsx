@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { notFound } from "next/navigation";
-import { InstitutionEditor } from "@/components/admin/InstitutionEditor";
+import { notFound, redirect } from "next/navigation";
+import {
+  InstitutionEditor,
+  type InstitutionEditorValues,
+} from "@/components/admin/InstitutionEditor";
+import {
+  getAdminInstitution,
+  updateAdminInstitution,
+} from "@/lib/admin/institutions";
 
 export const metadata: Metadata = { title: "Edit Institution | Admin" };
 
@@ -13,15 +20,14 @@ interface PageProps {
 export default async function EditInstitutionPage({ params }: PageProps) {
   const { id } = await params;
 
-  // TODO: fetch institution from Supabase by id
-  const institution = null;
+  const institution = await getAdminInstitution(id);
 
   if (!institution) notFound();
 
-  async function handleUpdate(values: unknown) {
+  async function handleUpdate(values: InstitutionEditorValues) {
     "use server";
-    // TODO: update institution in Supabase
-    console.log("Update institution", id, values);
+    await updateAdminInstitution(id, values);
+    redirect("/admin/institutions");
   }
 
   return (
@@ -34,7 +40,7 @@ export default async function EditInstitutionPage({ params }: PageProps) {
         Back to institutions
       </Link>
       <h1 className="text-xl font-bold text-gray-900 mb-6">Edit Institution</h1>
-      <InstitutionEditor institution={institution ?? undefined} onSubmit={handleUpdate as never} />
+      <InstitutionEditor institution={institution} onSubmit={handleUpdate} />
     </div>
   );
 }

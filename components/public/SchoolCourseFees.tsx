@@ -80,26 +80,6 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
           </p>
         </div>
 
-        {coverage.notice ? (
-          <InfoPrompt
-            className="mx-auto mt-8 max-w-3xl"
-            title="About these figures"
-            description={coverage.notice}
-          >
-            {coverage.sourceUrl ? (
-              <a
-                href={coverage.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink underline-offset-2 hover:underline"
-              >
-                {coverage.sourceLabel ?? "Open official source"}
-                <ExternalLink className="size-3.5 opacity-70" aria-hidden />
-              </a>
-            ) : null}
-          </InfoPrompt>
-        ) : null}
-
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
           <FilterSelect
             label={coverage.categoryFilterLabel}
@@ -139,6 +119,26 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
             ]}
           />
         </div>
+
+        {coverage.notice ? (
+          <InfoPrompt
+            className="mt-8 w-full"
+            title="About these figures"
+            description={coverage.notice}
+          >
+            {coverage.sourceUrl ? (
+              <a
+                href={coverage.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink underline-offset-2 hover:underline"
+              >
+                {coverage.sourceLabel ?? "Open official source"}
+                <ExternalLink className="size-3.5 opacity-70" aria-hidden />
+              </a>
+            ) : null}
+          </InfoPrompt>
+        ) : null}
 
         <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
           <Table className="min-w-[800px]">

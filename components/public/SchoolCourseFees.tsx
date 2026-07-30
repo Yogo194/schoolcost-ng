@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown, ExternalLink, Info, X } from "lucide-react";
+import { ChevronDown, ChevronRight, ExternalLink, Info, X } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
 import {
   Table,
@@ -128,7 +128,18 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
           />
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
+        <div className="mt-8 space-y-3 md:hidden">
+          {rows.map((fee) => (
+            <MobileSchoolFeeCard key={fee.id} fee={fee} slug={school.slug} />
+          ))}
+          {rows.length === 0 && (
+            <div className="rounded-2xl border border-[#e5ebe5] bg-white px-4 py-8 text-center text-sm text-brand-ink/60">
+              No fees match these filters yet.
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 hidden overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white md:block">
           <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -310,6 +321,50 @@ function FeeRow({ fee, slug }: { fee: SchoolFeeRow; slug: string }) {
         </Link>
       </TableCell>
     </TableRow>
+  );
+}
+
+function MobileSchoolFeeCard({
+  fee,
+  slug,
+}: {
+  fee: SchoolFeeRow;
+  slug: string;
+}) {
+  const href = `/schools/${slug}/fees/${fee.id}`;
+
+  return (
+    <Link
+      href={href}
+      className="group block rounded-2xl border border-[#e5ebe5] bg-white p-4 shadow-[0_1px_2px_rgba(3,48,42,0.04)] transition-[transform,box-shadow] active:scale-[0.99]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-base font-semibold leading-tight tracking-[-0.03em] text-[#355955]">
+            {fee.course}
+          </p>
+          <p className="mt-1 text-sm text-brand-ink/62">
+            {fee.level} <span aria-hidden>·</span> {fee.session}
+          </p>
+        </div>
+        <ChevronRight
+          className="mt-0.5 size-5 shrink-0 text-brand-ink/35 transition-transform group-hover:translate-x-0.5"
+          aria-hidden
+        />
+      </div>
+
+      <div className="mt-4 flex items-end justify-between gap-4 border-t border-[#edf0ed] pt-4">
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+            Compulsory total
+          </p>
+          <p className="mt-1 text-2xl font-semibold leading-none tracking-[-0.04em] text-brand-ink">
+            {formatCurrency(fee.compulsory_total)}
+          </p>
+        </div>
+        <SourceBadge sourceType={fee.source_type} compact />
+      </div>
+    </Link>
   );
 }
 

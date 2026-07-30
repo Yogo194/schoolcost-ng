@@ -123,22 +123,24 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         {coverage.notice ? (
           <InfoPrompt
             className="mt-8 w-full"
-            childrenClassName="mt-2 border-0 pt-0"
             title="About these figures"
-            description={coverage.notice}
-          >
-            {coverage.sourceUrl ? (
-              <a
-                href={coverage.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink underline-offset-2 hover:underline"
-              >
-                {coverage.sourceLabel ?? "Open official source"}
-                <ExternalLink className="size-3.5 opacity-70" aria-hidden />
-              </a>
-            ) : null}
-          </InfoPrompt>
+            description={
+              <>
+                {coverage.notice}{" "}
+                {coverage.sourceUrl ? (
+                  <a
+                    href={coverage.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-medium text-[#c96d18] underline-offset-2 hover:text-[#a95812] hover:underline"
+                  >
+                    {coverage.sourceLabel ?? "View official source"}
+                    <ExternalLink className="size-3.5" aria-hidden />
+                  </a>
+                ) : null}
+              </>
+            }
+          />
         ) : null}
 
         <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">

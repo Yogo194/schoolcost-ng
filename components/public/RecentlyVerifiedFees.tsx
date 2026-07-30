@@ -217,7 +217,7 @@ function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
           <SourceBadge sourceType={fee.source_type} compact />
         </div>
 
-        <div className="mt-4 flex items-baseline justify-between gap-4 rounded-xl bg-[#fcffe7]/70 px-3 py-3">
+        <div className="mt-4 flex items-baseline justify-between gap-4 rounded-lg border border-[#f2ac5b]/18 bg-[#fff7ed] px-3 py-3">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
             Estimated fees
           </p>

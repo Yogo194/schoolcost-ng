@@ -364,9 +364,6 @@ function MobileSchoolFeeCard({
         </div>
         <div className="mt-4 flex items-center justify-between">
           <SourceBadge sourceType={fee.source_type} compact />
-          <span className="text-sm font-medium text-brand-ink/65">
-            View breakdown
-          </span>
         </div>
       </div>
     </Link>

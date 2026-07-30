@@ -227,9 +227,6 @@ function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
         </div>
       </div>
 
-      <div className="mt-4 flex justify-end">
-        <span className="text-sm font-medium text-brand-ink/65">View breakdown</span>
-      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Building2, Check, Search } from "lucide-react";
+import { Building2, Check, ChevronDown, Search } from "lucide-react";
 import type { SchoolsDirectoryItem } from "@/lib/mock/schools-directory";
 import { POPULAR_STATES } from "@/lib/mock/schools-directory";
 import {
@@ -33,6 +33,7 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [moreStatesOpen, setMoreStatesOpen] = useState(false);
 
   const q = searchParams.get("q") ?? "";
   const state = searchParams.get("state") ?? "";
@@ -130,6 +131,16 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
 
   const visible = filtered.slice(0, visibleCount);
   const canShowMore = visibleCount < filtered.length;
+  const availableStates = useMemo(
+    () => Array.from(new Set(schools.map((school) => school.state))).sort(),
+    [schools]
+  );
+  const visibleStates = POPULAR_STATES.filter((item) =>
+    availableStates.includes(item)
+  );
+  const moreStates = availableStates.filter(
+    (item) => !visibleStates.includes(item as (typeof visibleStates)[number])
+  );
 
   function updateParams(patch: Record<string, string | null>) {
     const next = new URLSearchParams(searchParams.toString());
@@ -143,6 +154,7 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
       ownershipType: next.get("ownership_type") ?? "",
     });
     setVisibleCount(PAGE_SIZE);
+    setMoreStatesOpen(false);
     startTransition(() => {
       const query = next.toString();
       router.replace(query ? `/schools?${query}` : "/schools", {
@@ -269,7 +281,7 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
                 selected={!activeState}
                 onClick={() => updateParams({ state: null })}
               />
-              {POPULAR_STATES.map((item) => (
+              {visibleStates.map((item) => (
                 <StatePill
                   key={item}
                   label={item}
@@ -281,6 +293,65 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
                   }
                 />
               ))}
+              {moreStates.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    aria-expanded={moreStatesOpen}
+                    onClick={() => setMoreStatesOpen((open) => !open)}
+                    className={cn(
+                      "inline-flex h-11 items-center justify-center gap-2 rounded-full border px-4 text-sm font-medium tracking-[-0.02em] transition-colors",
+                      activeState && moreStates.includes(activeState)
+                        ? "border-transparent bg-brand-lime text-brand-ink"
+                        : "border-[#b8c8c4] bg-white text-brand-ink/80 hover:bg-brand-lime-light"
+                    )}
+                  >
+                    {activeState && moreStates.includes(activeState)
+                      ? activeState
+                      : "More states"}
+                    <ChevronDown
+                      className={cn(
+                        "size-4 transition-transform",
+                        moreStatesOpen && "rotate-180"
+                      )}
+                      aria-hidden
+                    />
+                  </button>
+
+                  {moreStatesOpen && (
+                    <div className="absolute left-0 top-12 z-20 w-[min(260px,calc(100vw-2rem))] overflow-hidden rounded-[8px] border border-[#e5ebe5] bg-white p-1 shadow-[0_12px_30px_rgba(3,48,42,0.12)]">
+                      <div className="max-h-64 overflow-y-auto">
+                        {moreStates.map((item) => {
+                          const selected = activeState === item;
+
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() =>
+                                updateParams({
+                                  state: selected ? null : item,
+                                })
+                              }
+                              className={cn(
+                                "flex w-full items-center justify-between rounded-[8px] px-3 py-2.5 text-left text-sm transition-colors",
+                                selected
+                                  ? "bg-brand-lime-light font-medium text-brand-ink"
+                                  : "text-brand-ink/70 hover:bg-brand-lime-light/70 hover:text-brand-ink"
+                              )}
+                            >
+                              {item}
+                              {selected && (
+                                <Check className="size-4" aria-hidden />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </aside>

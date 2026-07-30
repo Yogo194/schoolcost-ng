@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 const SOURCE_BADGE = {
   official: {
     label: "Official source",
-    className: "bg-[#d9f9e6] text-[#2f9461]",
+    className: "border border-[#166d3e]/18 bg-white/82 text-[#166d3e] shadow-[0_1px_0_rgba(3,48,42,0.08)]",
   },
   community: {
     label: "Community reported",

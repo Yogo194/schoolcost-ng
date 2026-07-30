@@ -379,7 +379,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
             </div>
 
             {(record.evidence || record.reviewerNote) && (
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {record.evidence && (
                   <a
                     href={record.evidence.url}

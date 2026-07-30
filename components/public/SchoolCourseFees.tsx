@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown, ExternalLink } from "lucide-react";
+import { ChevronDown, ExternalLink, Info } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
 import { InfoPrompt } from "@/components/public/InfoPrompt";
 import {
@@ -123,7 +123,12 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         {coverage.notice ? (
           <InfoPrompt
             className="mt-8 w-full"
-            title="About these figures"
+            title={
+              <span className="inline-flex items-center gap-2">
+                About these figures
+                <FigureInfoTooltip />
+              </span>
+            }
             description={
               <>
                 {coverage.notice}{" "}
@@ -187,6 +192,27 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         </div>
       </div>
     </section>
+  );
+}
+
+function FigureInfoTooltip() {
+  return (
+    <span className="group relative inline-flex align-middle">
+      <button
+        type="button"
+        aria-label="About this fee note"
+        className="inline-flex size-5 items-center justify-center rounded-full border border-brand-ink/15 bg-white/70 text-brand-ink/55 transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45"
+      >
+        <Info className="size-3.5" aria-hidden />
+      </button>
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute left-1/2 top-7 z-20 w-[250px] -translate-x-1/2 rounded-lg bg-brand-ink px-3 py-2 text-xs font-normal leading-5 text-white opacity-0 shadow-[0_8px_20px_rgba(0,44,21,0.14)] transition group-hover:opacity-100 group-focus-within:opacity-100 sm:left-0 sm:translate-x-0"
+      >
+        This note explains what the table includes and what may still need
+        checking before payment.
+      </span>
+    </span>
   );
 }
 

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface InfoPromptProps {
-  title: string;
+  title: ReactNode;
   description?: ReactNode;
   children?: ReactNode;
   className?: string;
@@ -46,9 +46,9 @@ export function InfoPrompt({
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        <p className="text-[15px] font-medium leading-[22px] tracking-[-0.02em] text-brand-ink sm:text-base sm:leading-6">
+        <div className="text-[15px] font-medium leading-[22px] tracking-[-0.02em] text-brand-ink sm:text-base sm:leading-6">
           {title}
-        </p>
+        </div>
         {description ? (
           <p
             className={cn(

@@ -28,7 +28,7 @@ export function InfoPrompt({
   return (
     <div
       className={cn(
-        "flex overflow-hidden rounded-[14px] bg-gradient-to-b from-[#fef7ee] to-white",
+        "flex overflow-hidden rounded-[14px] bg-white",
         "shadow-[0_2px_6px_rgba(11,19,36,0.05),0_0_0_1px_rgba(11,19,36,0.06)]",
         isRich
           ? "items-start gap-4 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4"

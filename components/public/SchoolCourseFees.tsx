@@ -356,7 +356,7 @@ function MobileSchoolFeeCard({
       <div className="mt-4 flex items-end justify-between gap-4 border-t border-[#edf0ed] pt-4">
         <div className="min-w-0">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-            Compulsory total
+            Estimated school fees
           </p>
           <p className="mt-1 text-2xl font-semibold leading-none tracking-[-0.04em] text-brand-ink">
             {formatCurrency(fee.compulsory_total)}

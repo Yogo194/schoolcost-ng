@@ -65,7 +65,7 @@ export function SchoolStatsBar({
           >
             <Wallet className="size-5" aria-hidden />
           </span>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+          <p className="max-w-[calc(100%-3.5rem)] text-xs font-medium uppercase tracking-[0.06em] text-brand-ink/45 sm:max-w-none sm:tracking-[0.08em]">
             {rangeEyebrow}
           </p>
           {hasRange ? (
@@ -108,7 +108,7 @@ export function SchoolStatsBar({
           <span className={cn(iconClass, "bg-brand-lime text-brand-ink")}>
             <BookOpen className="size-5" aria-hidden />
           </span>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+          <p className="max-w-[calc(100%-3.5rem)] text-xs font-medium uppercase tracking-[0.06em] text-brand-ink/45 sm:max-w-none sm:tracking-[0.08em]">
             Coverage
           </p>
           <p className="mt-3 text-[40px] font-medium leading-none tracking-[-0.04em] text-brand-ink tabular-nums">
@@ -124,7 +124,7 @@ export function SchoolStatsBar({
           <span className={cn(iconClass, "bg-emerald-50 text-emerald-700")}>
             <CalendarDays className="size-5" aria-hidden />
           </span>
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+          <p className="max-w-[calc(100%-3.5rem)] text-xs font-medium uppercase tracking-[0.06em] text-brand-ink/45 sm:max-w-none sm:tracking-[0.08em]">
             Session
           </p>
           {hasSession ? (

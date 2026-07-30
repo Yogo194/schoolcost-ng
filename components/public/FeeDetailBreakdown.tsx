@@ -103,13 +103,6 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
 
         {activeView === "breakdown" ? (
           <>
-            {needsConfirmation && (
-              <InfoPrompt
-                className="mb-6"
-                title="Community-reported fee. Confirm before you pay."
-                description="This figure is shown for planning only. It is not used in lowest-cost highlights or verified comparisons until we review stronger evidence."
-              />
-            )}
             <div id="overview" className="scroll-mt-28">
               <div className="min-w-0">
                 <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/50">
@@ -163,6 +156,14 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                 />
               </div>
             </div>
+
+            {needsConfirmation && (
+              <InfoPrompt
+                className="mt-8"
+                title="Community-reported fee. Confirm before you pay."
+                description="Shown for planning only until stronger evidence is reviewed."
+              />
+            )}
 
             <div id="breakdown" className="mt-7 md:hidden">
               <MobileFeeBreakdown

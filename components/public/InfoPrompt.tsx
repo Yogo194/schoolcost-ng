@@ -29,7 +29,7 @@ export function InfoPrompt({
         "flex overflow-hidden rounded-[14px] bg-gradient-to-b from-[#fef7ee] to-white",
         "shadow-[0_4px_8px_rgba(11,19,36,0.1),0_0_0_1px_rgba(11,19,36,0.07)]",
         isRich
-          ? "items-start gap-4 px-4 py-4 sm:gap-4 sm:px-5 sm:py-[18px]"
+          ? "items-start gap-4 px-4 py-3.5 sm:gap-4 sm:px-5 sm:py-4"
           : "items-center gap-4 px-3 py-2.5 sm:gap-5",
         className
       )}
@@ -52,7 +52,7 @@ export function InfoPrompt({
             className={cn(
               "text-[15px] tracking-[-0.02em] text-brand-ink/60 sm:text-base",
               isRich
-                ? "mt-1.5 max-w-prose leading-relaxed"
+                ? "mt-1 max-w-prose leading-6"
                 : "mt-0 leading-5 sm:leading-5"
             )}
           >
@@ -60,7 +60,7 @@ export function InfoPrompt({
           </p>
         ) : null}
         {children ? (
-          <div className="mt-3 flex flex-col items-start gap-2.5 border-t border-brand-ink/[0.08] pt-3">
+          <div className="mt-2.5 flex flex-col items-start gap-2 border-t border-brand-ink/[0.08] pt-2.5">
             {children}
           </div>
         ) : null}

@@ -83,7 +83,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         {coverage.notice ? (
           <InfoPrompt
             className="mx-auto mt-8 max-w-3xl"
-            title="Before you rely on these figures"
+            title="About these figures"
             description={coverage.notice}
           >
             {coverage.sourceUrl ? (
@@ -93,20 +93,19 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink underline-offset-2 hover:underline"
               >
-                {coverage.sourceLabel ?? "View official source"}
+                {coverage.sourceLabel ?? "Open official source"}
                 <ExternalLink className="size-3.5 opacity-70" aria-hidden />
               </a>
             ) : null}
             <p className="text-sm leading-relaxed tracking-[-0.02em] text-brand-ink/55">
-              Have a {school.abbreviation} pay advice or Remita receipt for a
-              specific course?{" "}
+              Have newer {school.abbreviation} figures?{" "}
               <Link
                 href="/submit-fees"
                 className="font-medium text-brand-ink underline-offset-2 hover:underline"
               >
-                Contribute it
-              </Link>{" "}
-              so we can upgrade this page.
+                Contribute an update
+              </Link>
+              .
             </p>
           </InfoPrompt>
         ) : null}

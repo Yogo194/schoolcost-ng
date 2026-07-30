@@ -76,7 +76,7 @@ const BAND_SCHOOLS: Record<string, SchoolFeeCoverage> = {
   "obafemi-awolowo-university": {
     kind: "bands",
     notice:
-      "OAU publishes fees by faculty band, not by every course. Figures below are from the official Senate announcement (September 2023) for the 2023/2024 session. Confirm on the student portal before paying.",
+      "OAU publishes faculty bands, not course-by-course fees. These figures come from its official 2023/2024 announcement. Check your student portal before paying.",
     sourceUrl: "https://oauife.edu.ng/oau-announces-new-fees-payable-by-students/",
     sourceLabel: "Official OAU fee announcement",
     coverageLabel: "Official fee bands listed",

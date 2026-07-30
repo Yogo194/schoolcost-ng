@@ -719,11 +719,23 @@ function MobileMetricCard({
               )}
             >
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-lime text-xs font-semibold text-brand-ink">
-                  {(column.abbreviation || column.schoolName.slice(0, 2))
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </span>
+                {column.logoUrl ? (
+                  <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+                    <Image
+                      src={column.logoUrl}
+                      alt=""
+                      width={36}
+                      height={36}
+                      className="size-full object-contain p-1"
+                    />
+                  </span>
+                ) : (
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-lime text-xs font-semibold text-brand-ink">
+                    {(column.abbreviation || column.schoolName.slice(0, 2))
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </span>
+                )}
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-brand-ink">
                     {column.schoolName}

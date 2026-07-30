@@ -29,6 +29,7 @@ type CompareRow = {
     abbreviation: string | null;
     state: string;
     ownership_type: string;
+    logo_url: string | null;
   } | null;
   courses: { name: string } | null;
   academic_sessions: { name: string } | null;
@@ -58,7 +59,7 @@ export async function getCompareOptions(): Promise<CompareCourseOption[]> {
         id, level, first_year_total, returning_year_total, compulsory_total,
         accommodation_total, estimated_degree_total, verification_status,
         confidence_level, source_type, last_reviewed_at,
-        institutions ( name, slug, abbreviation, state, ownership_type ),
+        institutions ( name, slug, abbreviation, state, ownership_type, logo_url ),
         courses ( name ),
         academic_sessions ( name )
       `
@@ -89,6 +90,7 @@ export async function getCompareOptions(): Promise<CompareCourseOption[]> {
         abbreviation: row.institutions.abbreviation,
         state: row.institutions.state,
         ownership: row.institutions.ownership_type,
+        logoUrl: row.institutions.logo_url,
         course: row.courses.name,
         level: row.level ?? "100L",
         session: row.academic_sessions.name,

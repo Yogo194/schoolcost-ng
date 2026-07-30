@@ -14,6 +14,7 @@ import type {
 type LiveFeeRow = {
   id: string;
   level: string | null;
+  compulsory_total: number;
   first_year_total: number;
   source_type: SourceType;
   verification_status: VerificationStatus;
@@ -56,7 +57,7 @@ export async function getLiveSchoolProfile(
         .from("fee_records")
         .select(
           `
-        id, level, first_year_total, source_type, verification_status, confidence_level,
+        id, level, compulsory_total, first_year_total, source_type, verification_status, confidence_level,
         courses ( name ),
         academic_sessions ( name )
       `
@@ -73,7 +74,9 @@ export async function getLiveSchoolProfile(
         id: row.id,
         course: row.courses!.name,
         level: row.level ?? "100L",
-        compulsory_total: Number(row.first_year_total) || 0,
+        // Per-level total. first_year_total is the Year 1 figure on every row,
+        // so using it here showed the same amount at 100L through 400L.
+        compulsory_total: Number(row.compulsory_total) || 0,
         session: row.academic_sessions!.name,
         source_type: row.source_type,
       }))

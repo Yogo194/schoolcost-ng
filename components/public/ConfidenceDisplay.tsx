@@ -57,7 +57,7 @@ export function ConfidenceDisplay({
                     ? "bg-primary"
                     : level === "medium"
                       ? "bg-[#f2ac5b]"
-                      : "bg-brand-ink/35"
+                      : "bg-[#ef4444]"
                   : "bg-brand-ink/10"
               )}
             />

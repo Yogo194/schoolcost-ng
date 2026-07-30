@@ -60,7 +60,7 @@ export function InfoPrompt({
           </p>
         ) : null}
         {children ? (
-          <div className="mt-2.5 flex flex-col items-start gap-2 border-t border-brand-ink/[0.08] pt-2.5">
+          <div className="mt-2.5 flex w-full flex-col items-start gap-2 border-t border-brand-ink/[0.08] pt-2.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
             {children}
           </div>
         ) : null}

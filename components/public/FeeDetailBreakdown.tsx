@@ -467,9 +467,10 @@ function renderReviewerNote(note: string): ReactNode {
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="font-medium text-brand-ink underline-offset-2 hover:underline"
+        className="inline-flex items-center gap-1 font-medium text-[#c96d18] underline-offset-2 hover:text-[#a95812] hover:underline"
       >
-        Open
+        View source
+        <ExternalLink className="size-3.5" aria-hidden />
       </a>
       .
     </>

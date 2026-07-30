@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -103,13 +104,14 @@ export function HowItWorksContext() {
           ref={cardRef}
           className="relative overflow-hidden rounded-[24px] sm:rounded-[32px]"
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          {/* next/image, not a raw img: the source is a 6.9MB JPEG behind a
+              dark scrim, so it was the single heaviest asset on the site. */}
+          <Image
             src="/figma/how-it-works/context-students.jpg"
             alt=""
-            width={1280}
-            height={597}
-            className="absolute inset-0 h-full w-full object-cover"
+            fill
+            sizes="(max-width: 1280px) 100vw, 1280px"
+            className="object-cover"
             aria-hidden
           />
           <div className="absolute inset-0 bg-[rgba(5,10,6,0.4)]" aria-hidden />

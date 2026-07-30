@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Building2,
@@ -32,6 +33,7 @@ interface SchoolProfileHeroProps {
 
 export function SchoolProfileHero({ school }: SchoolProfileHeroProps) {
   const badge = SOURCE_BADGE[school.source_badge];
+  const isLongName = school.name.length > 42;
   const typeLine = [
     `${OWNERSHIP_TYPE_LABELS[school.ownership_type]} ${INSTITUTION_TYPE_LABELS[
       school.institution_type
@@ -53,12 +55,14 @@ export function SchoolProfileHero({ school }: SchoolProfileHeroProps) {
       />
 
       <div className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-center px-4 pb-24 pt-28 text-center sm:px-10 sm:pb-28 sm:pt-32 lg:px-20 lg:pb-28 lg:pt-[140px]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {/* next/image, not a raw img: the source crests are up to 1.4MB each
+            and were being served in full for a 120px render. */}
+        <Image
           src={school.logo_url}
           alt={`${school.name} crest`}
           width={120}
           height={120}
+          priority
           className="size-[100px] rounded-full object-contain sm:size-[120px]"
         />
 
@@ -72,7 +76,14 @@ export function SchoolProfileHero({ school }: SchoolProfileHeroProps) {
           {badge.label}
         </span>
 
-        <h1 className="mt-4 text-[2.5rem] font-medium leading-none tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[60px]">
+        <h1
+          className={cn(
+            "mt-4 mx-auto max-w-[1120px] text-balance font-medium leading-[0.98] tracking-[-0.04em] text-brand-ink",
+            isLongName
+              ? "text-[2.15rem] sm:text-[44px] lg:text-[52px]"
+              : "text-[2.5rem] sm:text-5xl lg:text-[56px]"
+          )}
+        >
           {school.name}
         </h1>
 

@@ -76,7 +76,6 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
         <ConfidenceDisplay
           level={record.confidence_level}
           compact
-          align="center"
         />
       ),
     },
@@ -678,21 +677,41 @@ function MobileVerificationList({ rows }: { rows: VerificationRow[] }) {
         </p>
       </div>
       <dl className="divide-y divide-[#edf0ed]">
-        {rows.map((row) => (
-          <div key={row.label} className="px-5 py-4">
-            <dt className="text-sm font-semibold tracking-[-0.02em] text-[#355955]">
-              {row.label}
-            </dt>
-            {row.note && (
-              <p className="mt-1 text-sm leading-5 text-brand-ink/60">
-                {row.note}
-              </p>
-            )}
-            <dd className="mt-2 text-sm font-medium text-brand-ink">
-              {row.value}
-            </dd>
-          </div>
-        ))}
+        {rows.map((row) => {
+          const isConfidence = row.label === "Data confidence";
+
+          return (
+            <div key={row.label} className="px-5 py-4">
+              <div
+                className={cn(
+                  "gap-4",
+                  isConfidence
+                    ? "space-y-3"
+                    : "grid grid-cols-[minmax(0,1fr)_auto] items-start"
+                )}
+              >
+                <dt>
+                  <span className="block text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+                    {row.label}
+                  </span>
+                  {row.note && (
+                    <span className="mt-1 block text-sm leading-5 text-brand-ink/58">
+                      {row.note}
+                    </span>
+                  )}
+                </dt>
+                <dd
+                  className={cn(
+                    "text-base font-semibold leading-6 tracking-[-0.02em] text-brand-ink",
+                    isConfidence ? "mt-0" : "text-right"
+                  )}
+                >
+                  {row.value}
+                </dd>
+              </div>
+            </div>
+          );
+        })}
       </dl>
     </div>
   );

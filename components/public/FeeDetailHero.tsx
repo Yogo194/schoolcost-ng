@@ -19,10 +19,10 @@ export function FeeDetailHero({ record }: FeeDetailHeroProps) {
         }}
       />
 
-      <div className="relative z-10 mx-auto flex max-w-[900px] flex-col items-center px-4 pb-16 pt-28 text-center sm:px-10 sm:pb-20 sm:pt-32 lg:px-20 lg:pb-[70px] lg:pt-[130px]">
+      <div className="relative z-10 mx-auto flex max-w-[900px] flex-col items-center px-4 pb-14 pt-24 text-center sm:px-10 sm:pb-20 sm:pt-32 lg:px-20 lg:pb-[70px] lg:pt-[130px]">
         <nav
           aria-label="Breadcrumb"
-          className="flex flex-wrap items-center justify-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/55"
+          className="flex max-w-full flex-wrap items-center justify-center gap-x-1.5 gap-y-2 text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/55"
         >
           <Link href="/schools" className="transition-colors hover:text-brand-ink">
             Schools
@@ -35,12 +35,12 @@ export function FeeDetailHero({ record }: FeeDetailHeroProps) {
             {record.schoolName}
           </Link>
           <ChevronRight className="size-3.5 opacity-50" aria-hidden />
-          <span className="rounded-full bg-white px-2.5 py-1 text-brand-ink">
+          <span className="max-w-full rounded-full bg-white px-3 py-1 text-brand-ink">
             {record.course}
           </span>
         </nav>
 
-        <h1 className="mt-5 text-[2.5rem] font-medium leading-none tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[60px]">
+        <h1 className="mt-7 max-w-[11ch] text-[2.8rem] font-medium leading-[0.96] tracking-[-0.04em] text-brand-ink sm:max-w-none sm:text-5xl sm:leading-none lg:text-[60px]">
           {record.course}
         </h1>
       </div>

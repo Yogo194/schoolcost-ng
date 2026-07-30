@@ -79,7 +79,7 @@ export function DetailViewTabs({
       ref={listRef}
       role="tablist"
       aria-label="Fee detail view"
-      className="relative inline-flex max-w-full items-center rounded-[54px] border border-[#e5ebe5] bg-brand-ink/[0.06] p-1"
+      className="relative flex w-full max-w-full items-center rounded-[54px] border border-[#e5ebe5] bg-brand-ink/[0.06] p-1 sm:inline-flex sm:w-auto"
     >
       <span
         aria-hidden
@@ -108,7 +108,7 @@ export function DetailViewTabs({
             }}
             onClick={() => onChange(tab.value)}
             className={cn(
-              "relative z-10 inline-flex items-center justify-center rounded-[42px] px-4 py-2.5 text-base font-semibold leading-6 tracking-[-0.25px] transition-colors duration-300",
+              "relative z-10 inline-flex flex-1 items-center justify-center rounded-[42px] px-3 py-2.5 text-base font-semibold leading-6 tracking-[-0.25px] transition-colors duration-300 sm:flex-none sm:px-4",
               selected
                 ? "text-brand-ink"
                 : "text-brand-ink/45 hover:text-brand-ink/70"

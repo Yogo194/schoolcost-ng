@@ -353,16 +353,21 @@ function MobileSchoolFeeCard({
         />
       </div>
 
-      <div className="mt-4 flex items-end justify-between gap-4 border-t border-[#edf0ed] pt-4">
-        <div className="min-w-0">
+      <div className="mt-4 border-t border-[#edf0ed] pt-4">
+        <div className="flex items-baseline justify-between gap-4 rounded-xl bg-[#fcffe7]/70 px-3 py-3">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
             Estimated fees
           </p>
-          <p className="mt-1 text-2xl font-semibold leading-none tracking-[-0.04em] text-brand-ink">
+          <p className="text-xl font-semibold leading-none tracking-[-0.04em] text-brand-ink">
             {formatCurrency(fee.compulsory_total)}
           </p>
         </div>
-        <SourceBadge sourceType={fee.source_type} compact />
+        <div className="mt-4 flex items-center justify-between">
+          <SourceBadge sourceType={fee.source_type} compact />
+          <span className="text-sm font-medium text-brand-ink/65">
+            View breakdown
+          </span>
+        </div>
       </div>
     </Link>
   );

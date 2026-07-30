@@ -203,28 +203,31 @@ function MobileFeeCard({ fee }: { fee: RecentFeeRow }) {
         />
       </div>
 
-      <div className="mt-5 flex items-end justify-between gap-4 border-t border-[#edf0ed] pt-4">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-            {fee.courses.name}
-          </p>
-          <p className="mt-1 text-sm text-brand-ink/65">
-            {fee.level ?? "Level pending"} <span aria-hidden>·</span>{" "}
-            {fee.academic_sessions.name}
-          </p>
+      <div className="mt-5 border-t border-[#edf0ed] pt-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-base font-semibold leading-tight tracking-[-0.03em] text-[#355955]">
+              {fee.courses.name}
+            </p>
+            <p className="mt-1 text-sm text-brand-ink/65">
+              {fee.level ?? "Level pending"} <span aria-hidden>·</span>{" "}
+              {fee.academic_sessions.name}
+            </p>
+          </div>
+          <SourceBadge sourceType={fee.source_type} compact />
         </div>
-        <div className="shrink-0 text-right">
+
+        <div className="mt-4 flex items-baseline justify-between gap-4 rounded-xl bg-[#fcffe7]/70 px-3 py-3">
           <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
             Estimated fees
           </p>
-          <p className="mt-1 text-lg font-semibold tracking-[-0.03em] text-[#355955]">
+          <p className="text-xl font-semibold leading-none tracking-[-0.04em] text-brand-ink">
             {formatCurrency(fee.first_year_total)}
           </p>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <SourceBadge sourceType={fee.source_type} compact />
+      <div className="mt-4 flex justify-end">
         <span className="text-sm font-medium text-brand-ink/65">View breakdown</span>
       </div>
     </div>

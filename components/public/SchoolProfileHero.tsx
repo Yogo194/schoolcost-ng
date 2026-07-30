@@ -52,16 +52,6 @@ export function SchoolProfileHero({ school }: SchoolProfileHeroProps) {
         }}
       />
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/figma/school-hero-squiggle.svg"
-        alt=""
-        width={121}
-        height={111}
-        className="pointer-events-none absolute right-[8%] top-[42%] hidden w-[120px] animate-deco-float lg:block"
-        aria-hidden
-      />
-
       <div className="relative z-10 mx-auto flex max-w-[1280px] flex-col items-center px-4 pb-24 pt-28 text-center sm:px-10 sm:pb-28 sm:pt-32 lg:px-20 lg:pb-28 lg:pt-[140px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

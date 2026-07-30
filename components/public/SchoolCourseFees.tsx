@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronDown, ExternalLink, Info } from "lucide-react";
+import { ChevronDown, ExternalLink, Info, X } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
 import {
   Table,
@@ -184,34 +184,97 @@ function FigureInfoTooltip({
   sourceLabel?: string;
   sourceUrl?: string;
 }) {
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
   return (
     <span className="group relative inline-flex">
       <button
         type="button"
         aria-label="About these figures"
+        onClick={() => setIsSheetOpen(true)}
         className="inline-flex size-7 items-center justify-center rounded-full border border-brand-ink/15 bg-white text-brand-ink/60 shadow-[0_1px_3px_rgba(0,44,21,0.06)] transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45 sm:size-8"
       >
         <Info className="size-4" aria-hidden />
       </button>
       <span
         role="tooltip"
-        className="pointer-events-none absolute right-0 top-11 z-20 w-[min(320px,calc(100vw-48px))] rounded-xl bg-brand-ink px-4 py-3 text-left text-sm font-normal leading-6 text-white opacity-0 shadow-[0_8px_20px_rgba(0,44,21,0.14)] transition group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
+        className="pointer-events-none absolute right-0 top-11 z-20 hidden w-[320px] rounded-xl bg-brand-ink px-4 py-3 text-left text-sm font-normal leading-6 text-white opacity-0 shadow-[0_8px_20px_rgba(0,44,21,0.14)] transition group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 sm:block"
       >
-        <span className="block font-medium">About these figures</span>
-        <span className="mt-1 block text-white/78">{notice}</span>
-        {sourceUrl ? (
-          <a
-            href={sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-1 font-medium text-[#f2ac5b] hover:underline"
-          >
-            {sourceLabel ?? "View official source"}
-            <ExternalLink className="size-3.5" aria-hidden />
-          </a>
-        ) : null}
+        <FigureInfoContent
+          notice={notice}
+          sourceLabel={sourceLabel}
+          sourceUrl={sourceUrl}
+        />
       </span>
+      {isSheetOpen ? (
+        <div className="fixed inset-0 z-50 sm:hidden">
+          <button
+            type="button"
+            aria-label="Close about these figures"
+            className="absolute inset-0 bg-brand-ink/30"
+            onClick={() => setIsSheetOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-[20px] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-4 text-left shadow-[0_-12px_30px_rgba(0,44,21,0.16)]">
+            <div className="mb-3 flex items-center justify-between gap-4">
+              <p className="text-base font-medium tracking-[-0.02em] text-brand-ink">
+                About these figures
+              </p>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setIsSheetOpen(false)}
+                className="inline-flex size-9 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink/65"
+              >
+                <X className="size-4" aria-hidden />
+              </button>
+            </div>
+            <div className="text-sm leading-6 text-brand-ink/70">
+              <FigureInfoContent
+                notice={notice}
+                sourceLabel={sourceLabel}
+                sourceUrl={sourceUrl}
+                mobile
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </span>
+  );
+}
+
+function FigureInfoContent({
+  notice,
+  sourceLabel,
+  sourceUrl,
+  mobile = false,
+}: {
+  notice: string;
+  sourceLabel?: string;
+  sourceUrl?: string;
+  mobile?: boolean;
+}) {
+  return (
+    <>
+      {!mobile ? <span className="block font-medium">About these figures</span> : null}
+      <span className={cn("block", mobile ? "text-brand-ink/70" : "mt-1 text-white/78")}>
+        {notice}
+      </span>
+      {sourceUrl ? (
+        <a
+          href={sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            "mt-3 inline-flex items-center gap-1 font-medium hover:underline",
+            mobile ? "text-[#166d3e]" : "text-[#f2ac5b]"
+          )}
+        >
+          {sourceLabel ?? "View official source"}
+          <ExternalLink className="size-3.5" aria-hidden />
+        </a>
+      ) : null}
+    </>
   );
 }
 

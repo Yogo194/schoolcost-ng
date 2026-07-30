@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, ExternalLink, Info } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
-import { InfoPrompt } from "@/components/public/InfoPrompt";
 import {
   Table,
   TableBody,
@@ -121,34 +120,16 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
         </div>
 
         {coverage.notice ? (
-          <InfoPrompt
-            className="mt-8 w-full"
-            title={
-              <span className="inline-flex items-center gap-2">
-                About these figures
-                <FigureInfoTooltip />
-              </span>
-            }
-            description={
-              <>
-                {coverage.notice}{" "}
-                {coverage.sourceUrl ? (
-                  <a
-                    href={coverage.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-medium text-[#166d3e] underline-offset-2 hover:text-[#145f36] hover:underline"
-                  >
-                    {coverage.sourceLabel ?? "View official source"}
-                    <ExternalLink className="size-3.5" aria-hidden />
-                  </a>
-                ) : null}
-              </>
-            }
-          />
+          <div className="mt-8 flex justify-end">
+            <FigureInfoTooltip
+              notice={coverage.notice}
+              sourceLabel={coverage.sourceLabel}
+              sourceUrl={coverage.sourceUrl}
+            />
+          </div>
         ) : null}
 
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
+        <div className="mt-4 overflow-x-auto rounded-2xl border border-[#e5ebe5] bg-white">
           <Table className="min-w-[800px]">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
@@ -195,22 +176,41 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
   );
 }
 
-function FigureInfoTooltip() {
+function FigureInfoTooltip({
+  notice,
+  sourceLabel,
+  sourceUrl,
+}: {
+  notice: string;
+  sourceLabel?: string;
+  sourceUrl?: string;
+}) {
   return (
-    <span className="group relative inline-flex align-middle">
+    <span className="group relative inline-flex">
       <button
         type="button"
-        aria-label="About this fee note"
-        className="inline-flex size-5 items-center justify-center rounded-full border border-brand-ink/15 bg-white/70 text-brand-ink/55 transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45"
+        aria-label="About these figures"
+        className="inline-flex size-9 items-center justify-center rounded-full border border-brand-ink/15 bg-white text-brand-ink/60 shadow-[0_1px_3px_rgba(0,44,21,0.06)] transition hover:border-brand-ink/25 hover:text-brand-ink focus:outline-none focus:ring-2 focus:ring-[#f2ac5b]/45"
       >
-        <Info className="size-3.5" aria-hidden />
+        <Info className="size-4" aria-hidden />
       </button>
       <span
         role="tooltip"
-        className="pointer-events-none absolute left-1/2 top-7 z-20 w-[250px] -translate-x-1/2 rounded-lg bg-brand-ink px-3 py-2 text-xs font-normal leading-5 text-white opacity-0 shadow-[0_8px_20px_rgba(0,44,21,0.14)] transition group-hover:opacity-100 group-focus-within:opacity-100 sm:left-0 sm:translate-x-0"
+        className="pointer-events-none absolute right-0 top-11 z-20 w-[min(320px,calc(100vw-48px))] rounded-xl bg-brand-ink px-4 py-3 text-left text-sm font-normal leading-6 text-white opacity-0 shadow-[0_8px_20px_rgba(0,44,21,0.14)] transition group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100"
       >
-        This note explains what the table includes and what may still need
-        checking before payment.
+        <span className="block font-medium">About these figures</span>
+        <span className="mt-1 block text-white/78">{notice}</span>
+        {sourceUrl ? (
+          <a
+            href={sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-flex items-center gap-1 font-medium text-[#f2ac5b] hover:underline"
+          >
+            {sourceLabel ?? "View official source"}
+            <ExternalLink className="size-3.5" aria-hidden />
+          </a>
+        ) : null}
       </span>
     </span>
   );

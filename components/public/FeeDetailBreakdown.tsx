@@ -405,12 +405,17 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                   </a>
                 )}
                 {record.reviewerNote && (
-                  <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4">
+                  <div
+                    className={cn(
+                      "rounded-2xl border border-[#e5ebe5] bg-white p-4",
+                      !record.evidence && "md:col-span-2"
+                    )}
+                  >
                     <p className="text-[15px] font-medium tracking-[-0.02em] text-brand-ink">
                       Reviewer note
                     </p>
                     <p className="mt-1 text-[15px] leading-[1.5] tracking-[-0.02em] text-brand-ink/70">
-                      {record.reviewerNote}
+                      {renderReviewerNote(record.reviewerNote)}
                     </p>
                   </div>
                 )}
@@ -442,6 +447,29 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
         )}
       </div>
     </section>
+  );
+}
+
+function renderReviewerNote(note: string): ReactNode {
+  const match = note.match(/Source:\s*(https?:\/\/\S+)/i);
+  if (!match) return note;
+
+  const url = match[1].replace(/[.,)]$/, "");
+  const withoutSource = note.replace(match[0], "").trim();
+
+  return (
+    <>
+      {withoutSource} Source: {" "}
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium text-brand-ink underline-offset-2 hover:underline"
+      >
+        Open
+      </a>
+      .
+    </>
   );
 }
 

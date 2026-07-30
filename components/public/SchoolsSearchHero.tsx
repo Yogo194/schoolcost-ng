@@ -14,7 +14,7 @@ export function SchoolsSearchHero() {
 
       {/* Copy sits just above the skyline on mobile; centered on larger screens */}
       <div className="relative z-10 mx-auto flex w-full max-w-[920px] flex-1 flex-col items-center justify-end px-4 pb-3 pt-28 text-center sm:justify-center sm:px-10 sm:pb-8 sm:pt-32 lg:pt-[120px]">
-        <h1 className="text-[2.5rem] font-medium leading-none tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[60px]">
+        <h1 className="text-[2.5rem] font-medium leading-[1.05] tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[56px]">
           Find any school&apos;s fees.
         </h1>
         <p className="mt-4 max-w-[720px] text-base tracking-[-0.02em] text-brand-ink/75 sm:text-lg">

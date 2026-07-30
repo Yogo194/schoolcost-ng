@@ -17,7 +17,7 @@ export function HowItWorksHero() {
           <span className="inline-flex h-8 items-center justify-center rounded-lg border border-brand-amber bg-white px-3 text-base font-medium tracking-[-0.02em] text-brand-ink">
             Trust &amp; verification
           </span>
-          <h1 className="relative text-[2.5rem] font-medium leading-[1.1] tracking-[-0.04em] text-brand-ink sm:whitespace-nowrap sm:text-[clamp(1.75rem,6.8vw,3.75rem)] sm:leading-none">
+          <h1 className="relative text-[2.5rem] font-medium leading-[1.05] tracking-[-0.04em] text-brand-ink sm:whitespace-nowrap sm:text-[clamp(1.75rem,6.4vw,3.5rem)]">
             How we verify school fees
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

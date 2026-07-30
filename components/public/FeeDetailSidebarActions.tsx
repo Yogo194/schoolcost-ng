@@ -124,10 +124,10 @@ export function DetailViewTabs({
             }}
             onClick={() => onChange(tab.value)}
             className={cn(
-              "relative z-10 inline-flex flex-1 items-center justify-center rounded-[42px] px-3 py-2.5 text-base font-semibold leading-6 tracking-[-0.25px] transition-colors duration-300 sm:flex-none sm:px-4",
+              "relative z-10 inline-flex flex-1 items-center justify-center rounded-[42px] px-3 py-2.5 text-base leading-6 tracking-[-0.25px] transition-colors duration-300 sm:flex-none sm:px-4",
               selected
-                ? "text-brand-ink"
-                : "text-brand-ink/45 hover:text-brand-ink/70"
+                ? "font-semibold text-brand-ink"
+                : "font-normal text-brand-ink/45 hover:text-brand-ink/70"
             )}
           >
             {tab.label}

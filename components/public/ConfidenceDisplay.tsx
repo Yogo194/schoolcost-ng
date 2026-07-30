@@ -37,6 +37,7 @@ export function ConfidenceDisplay({
     <div
       className={cn(
         "flex flex-col gap-1",
+        align === "left" && "items-start text-left",
         align === "center" && "items-center text-center",
         className
       )}

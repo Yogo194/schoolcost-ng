@@ -1,3 +1,5 @@
+import "server-only";
+
 import { revalidatePath } from "next/cache";
 import {
   accommodationTotal,
@@ -156,6 +158,7 @@ async function toFeeRecordRow(input: AdminFeeRecordInput) {
 }
 
 export async function listAdminFeeRecords(): Promise<AdminFeeRecordListRow[]> {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("fee_records")
@@ -172,6 +175,7 @@ export async function listAdminFeeRecords(): Promise<AdminFeeRecordListRow[]> {
 export async function getAdminFeeRecord(
   id: string
 ): Promise<AdminFeeRecordDetail | null> {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const { data: record, error } = await supabase
     .from("fee_records")
@@ -199,6 +203,7 @@ export async function getAdminFeeRecord(
 }
 
 export async function getAdminFeeFormOptions(): Promise<AdminFeeFormOptions> {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const [institutions, courses] = await Promise.all([
     fetchAllRows<Pick<Institution, "id" | "name">>((from, to) =>

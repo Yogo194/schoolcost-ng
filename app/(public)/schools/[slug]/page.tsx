@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     path: `/schools/${school.slug}`,
     title: `${school.name} fees`,
     description: isBands
-      ? `Official fee bands for ${school.name} (${school.abbreviation}), with session year and source notes. Course-level totals welcome via contribute.`
+      ? `Official fee groups for ${school.name} (${school.abbreviation}), with session year and source notes. Course-level totals welcome via contribute.`
       : `View ${verifiedWord} course fees for ${school.name} (${school.abbreviation}), including first-year totals by level and session.`,
   });
 }

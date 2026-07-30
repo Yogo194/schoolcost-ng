@@ -265,7 +265,9 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
         <p className="text-xs text-gray-500">
           {sub.submission_type === "correction"
             ? "Approve records this correction as reviewed. It does not automatically change the published fee yet."
-            : "Approve publishes fee submissions to the public site and adds approved school suggestions to the live directory."}
+            : sub.submission_type === "suggest_school"
+              ? "Approve creates the institution and adds it to the public directory. Schools with published fees still appear first."
+              : "Approve publishes the fee submission to the public site."}
         </p>
       </section>
     </div>

@@ -17,4 +17,4 @@ export interface SearchSuggestionsResponse {
 
 export const SEARCH_SUGGESTION_LIMIT = 8;
 export const SEARCH_MIN_CHARS = 2;
-export const SEARCH_DEBOUNCE_MS = 180;
+export const SEARCH_DEBOUNCE_MS = 120;

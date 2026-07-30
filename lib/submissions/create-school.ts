@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createServiceClient } from "@/lib/supabase/service";
 import { emptyToNull, type SubmissionResult } from "@/lib/submissions/evidence";
 import {

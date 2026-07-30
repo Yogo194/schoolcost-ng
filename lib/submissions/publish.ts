@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   accommodationTotal,
   compulsoryTotal,
@@ -118,9 +120,7 @@ export async function publishFeeFromSubmission(
       last_reviewed_at: new Date().toISOString(),
       review_due_at: null,
       is_published: true,
-      admin_note: `Created from submission ${submission.id}${
-        submission.submitter_email ? ` (${submission.submitter_email})` : ""
-      }`,
+      admin_note: `Created from submission ${submission.id}`,
     })
     .select("id")
     .single();

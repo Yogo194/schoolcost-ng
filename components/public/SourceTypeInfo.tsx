@@ -75,9 +75,9 @@ export function SourceTypeInfo({ className }: { className?: string }) {
             )}
           >
             <div className="mb-3 flex items-center justify-between gap-4">
-              <p className="text-base font-medium tracking-[-0.02em] text-brand-ink">
+              <span className="block text-base font-medium tracking-[-0.02em] text-brand-ink">
                 Where the figure comes from
-              </p>
+              </span>
               <button
                 type="button"
                 aria-label="Close"

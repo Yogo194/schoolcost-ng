@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   ACCEPTED_FILE_TYPES,
   MAX_FILE_SIZE,

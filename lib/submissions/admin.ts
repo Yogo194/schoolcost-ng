@@ -1,3 +1,5 @@
+import "server-only";
+
 import { createServiceClient } from "@/lib/supabase/service";
 import { requireAdminUser } from "@/lib/admin/require-admin";
 import { signEvidenceFileUrl } from "@/lib/submissions/evidence";
@@ -17,6 +19,7 @@ const SUBMISSION_SELECT = `
 `;
 
 export async function listSubmissions(): Promise<SubmissionWithDetails[]> {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("submissions")
@@ -31,6 +34,7 @@ export async function listSubmissions(): Promise<SubmissionWithDetails[]> {
 }
 
 export async function getAdminDashboardStats() {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -83,6 +87,7 @@ export async function getSubmissionById(id: string): Promise<{
   submission: SubmissionWithDetails;
   evidence: Evidence[];
 } | null> {
+  await requireAdminUser();
   const supabase = createServiceClient();
 
   const { data: submission, error } = await supabase

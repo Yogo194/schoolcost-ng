@@ -64,7 +64,7 @@ export default function TermsPage() {
           >
             SchoolCost NG
           </Link>
-          <h1 className="mt-4 text-[42px] font-medium leading-[0.98] tracking-[-0.055em] text-brand-ink sm:text-[56px]">
+          <h1 className="mt-4 text-[2.5rem] font-medium leading-[1.05] tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[56px]">
             Terms of Use
           </h1>
           <p className="mt-4 text-sm leading-6 text-brand-ink/55">

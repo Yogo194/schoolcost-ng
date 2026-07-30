@@ -1,4 +1,8 @@
 import { createServerClient } from "@/lib/supabase/server";
+import {
+  PRICE_COMPARABLE_STATUSES,
+  PRICE_EXCLUDED_CONFIDENCE,
+} from "@/lib/fees/trust";
 import type { CourseCompareColumn } from "@/lib/mock/course-compare";
 import type { ConfidenceLevel, SourceType, VerificationStatus } from "@/types/database";
 
@@ -66,8 +70,8 @@ export async function getCompareOptions(): Promise<CompareCourseOption[]> {
       )
       .eq("is_published", true)
       .eq("level", "100L")
-      .in("verification_status", ["officially_verified", "community_verified"])
-      .neq("confidence_level", "low");
+      .in("verification_status", PRICE_COMPARABLE_STATUSES)
+      .neq("confidence_level", PRICE_EXCLUDED_CONFIDENCE);
 
     if (error || !data) return [];
 

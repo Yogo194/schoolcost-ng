@@ -1,3 +1,5 @@
+import "server-only";
+
 import { isAdminUser } from "@/lib/admin/auth";
 import { createServerClient } from "@/lib/supabase/server";
 

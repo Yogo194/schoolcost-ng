@@ -6,7 +6,11 @@ import {
   RECENT_FEES_MAX_PER_SCHOOL,
   type RecentFeeRow,
 } from "@/lib/mock/recent-fees";
-import { canUseForPriceComparison } from "@/lib/fees/trust";
+import {
+  PRICE_COMPARABLE_STATUSES,
+  PRICE_EXCLUDED_CONFIDENCE,
+  canUseForPriceComparison,
+} from "@/lib/fees/trust";
 import { publicPageMetadata } from "@/lib/seo";
 import { createServerClient } from "@/lib/supabase/server";
 import type {
@@ -103,6 +107,10 @@ function pickRowsForSchool(rows: RecentFeeQueryRow[]): RecentFeeQueryRow[] {
 /**
  * Build the homepage candidate pool by school, not by raw newest fees.
  * That way a bulk seed (Redeemer's / UI) cannot empty Federal or State.
+ *
+ * The trust rule is applied in the queries as well as in memory. Ranking by
+ * recency alone would let a large seed of reported rows claim every school slot
+ * and then lose them all to the in-memory filter, emptying a whole tab.
  */
 async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
   try {
@@ -119,6 +127,8 @@ async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
           )
           .eq("is_published", true)
           .eq("institutions.ownership_type", ownership)
+          .in("verification_status", PRICE_COMPARABLE_STATUSES)
+          .neq("confidence_level", PRICE_EXCLUDED_CONFIDENCE)
           .order("created_at", { ascending: false })
           .limit(800);
 
@@ -156,6 +166,8 @@ async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
               )
               .eq("institution_id", institutionId)
               .eq("is_published", true)
+              .in("verification_status", PRICE_COMPARABLE_STATUSES)
+              .neq("confidence_level", PRICE_EXCLUDED_CONFIDENCE)
               .order("created_at", { ascending: false })
               .limit(ROWS_PER_SCHOOL_SCAN);
 

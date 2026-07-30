@@ -40,7 +40,7 @@ export function FeeDetailHero({ record }: FeeDetailHeroProps) {
           </span>
         </nav>
 
-        <h1 className="mt-7 max-w-[11ch] text-[2.8rem] font-medium leading-[0.96] tracking-[-0.04em] text-brand-ink sm:max-w-none sm:text-5xl sm:leading-none lg:text-[60px]">
+        <h1 className="mt-7 max-w-[15ch] text-[2.25rem] font-medium leading-[1.08] tracking-[-0.04em] text-brand-ink sm:max-w-[900px] sm:text-[44px] lg:text-[52px]">
           {record.course}
         </h1>
       </div>

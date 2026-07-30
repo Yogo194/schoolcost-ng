@@ -12,9 +12,13 @@ import {
   OWNERSHIP_TYPE_LABELS,
 } from "@/types/institution";
 import type { InstitutionType, OwnershipType } from "@/types/database";
-import { createSchoolSearchIndex } from "@/lib/search/school-search";
+import {
+  createSchoolSearchIndex,
+  normalizeSearchText,
+} from "@/lib/search/school-search";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils";
+import { AnalyticsEvents, track } from "@/lib/analytics";
 
 const PAGE_SIZE = 9;
 
@@ -93,36 +97,92 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
   // Built once per dataset; each keystroke is a synchronous ranked lookup.
   const searchIndex = useMemo(() => createSchoolSearchIndex(schools), [schools]);
 
+  const courseMatchedIds = useMemo(() => {
+    const normalizedQuery = normalizeSearchText(query);
+    if (!normalizedQuery) return null;
+
+    const matched = new Set<string>();
+    for (const school of schools) {
+      if (
+        (school.courses ?? []).some((courseName) =>
+          courseNameMatchesQuery(courseName, normalizedQuery)
+        )
+      ) {
+        matched.add(school.id);
+      }
+    }
+
+    return matched.size > 0 ? matched : null;
+  }, [schools, query]);
+
   const filtered = useMemo(() => {
-    return searchIndex
-      .search(query)
-      .filter((school) => {
-        if (activeState && school.state !== activeState) return false;
-        if (
-          activeInstitutionType &&
-          school.institution_type !== activeInstitutionType
-        ) {
-          return false;
-        }
-        if (
-          activeOwnershipType &&
-          school.ownership_type !== activeOwnershipType
-        ) {
-          return false;
-        }
-        return true;
-      })
-      .sort(
-        (a, b) =>
-          Number(Boolean(b.has_published_fees)) -
-          Number(Boolean(a.has_published_fees))
-      );
+    const baseMatches = courseMatchedIds
+      ? schools.filter((school) => courseMatchedIds.has(school.id))
+      : searchIndex.search(query);
+
+    const matches = baseMatches.filter((school) => {
+      if (activeState && school.state !== activeState) return false;
+      if (
+        activeInstitutionType &&
+        school.institution_type !== activeInstitutionType
+      ) {
+        return false;
+      }
+      if (
+        activeOwnershipType &&
+        school.ownership_type !== activeOwnershipType
+      ) {
+        return false;
+      }
+      return true;
+    });
+
+    // Browse mode only: fee schools first, then priced "From ₦…" ahead of
+    // "Fees listed", then schools with no fees yet. Keep search ranking when
+    // the user is typing so empty schools still match by name.
+    if (query.trim()) return matches;
+
+    return [...matches].sort((a, b) => {
+      const aHasFees = a.has_published_fees ? 1 : 0;
+      const bHasFees = b.has_published_fees ? 1 : 0;
+      if (bHasFees !== aHasFees) return bHasFees - aHasFees;
+
+      const aPriced = a.first_year_from != null ? 1 : 0;
+      const bPriced = b.first_year_from != null ? 1 : 0;
+      if (bPriced !== aPriced) return bPriced - aPriced;
+
+      return a.name.localeCompare(b.name);
+    });
   }, [
+    schools,
     searchIndex,
+    courseMatchedIds,
     query,
     activeState,
     activeInstitutionType,
     activeOwnershipType,
+  ]);
+
+  // Fire once the query settles so we learn what people search and whether it hits.
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) return;
+    const timer = window.setTimeout(() => {
+      track(AnalyticsEvents.directorySearch, {
+        query: trimmed.slice(0, 120),
+        result_count: filtered.length,
+        state: activeState || undefined,
+        ownership: activeOwnershipType || undefined,
+        institution_type: activeInstitutionType || undefined,
+      });
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [
+    query,
+    filtered.length,
+    activeState,
+    activeOwnershipType,
+    activeInstitutionType,
   ]);
 
   useEffect(() => {
@@ -462,14 +522,29 @@ function StatePill({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3.5 py-2 text-sm font-medium tracking-[-0.02em] transition-colors",
+        "rounded-full border px-3.5 py-2 text-sm tracking-[-0.02em] transition-colors",
         selected
-          ? "border-transparent bg-brand-lime text-brand-ink"
-          : "border-[#355955]/40 bg-white text-brand-ink/75 hover:border-brand-ink/40"
+          ? "border-transparent bg-brand-lime font-medium text-brand-ink"
+          : "border-[#355955]/40 bg-white font-normal text-brand-ink/75 hover:border-brand-ink/40"
       )}
     >
       {label}
     </button>
+  );
+}
+
+function courseNameMatchesQuery(courseName: string, normalizedQuery: string) {
+  const courseText = normalizeSearchText(courseName);
+  if (!courseText) return false;
+  if (courseText === normalizedQuery || courseText.includes(normalizedQuery)) {
+    return true;
+  }
+
+  const words = courseText.split(" ");
+  const tokens = normalizedQuery.split(" ").filter(Boolean);
+
+  return tokens.every((token) =>
+    words.some((word) => word === token || word.startsWith(token))
   );
 }
 

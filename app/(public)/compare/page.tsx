@@ -37,7 +37,7 @@ export default async function ComparePage() {
                 <span className="inline-flex h-8 items-center justify-center rounded-lg border border-brand-amber bg-white px-3 text-sm font-medium tracking-[-0.02em] text-brand-ink sm:text-base">
                   School cost comparison
                 </span>
-                <h1 className="mt-[18px] max-w-[620px] text-[2.65rem] font-medium leading-[1.02] tracking-[-0.05em] text-brand-ink sm:text-5xl lg:text-[60px]">
+                <h1 className="mt-[18px] max-w-[620px] text-[2.5rem] font-medium leading-[1.05] tracking-[-0.04em] text-brand-ink sm:text-5xl lg:text-[56px]">
                   Compare school costs, clearly.
                 </h1>
                 <p className="mt-[14px] max-w-[633px] text-base leading-[1.4] tracking-[-0.02em] text-brand-ink/80 sm:text-lg">

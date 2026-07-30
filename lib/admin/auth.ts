@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { User } from "@supabase/supabase-js";
 
 const ADMIN_EMAILS_ENV = "SCHOOLCOST_ADMIN_EMAILS";

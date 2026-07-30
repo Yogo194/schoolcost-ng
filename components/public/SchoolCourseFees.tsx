@@ -45,7 +45,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
   );
 
   const categoryHeading =
-    coverage.kind === "bands" ? "Fee band" : "Course";
+    coverage.kind === "bands" ? "Fee group" : "Course";
 
   if (school.fees.length === 0) {
     return (
@@ -99,7 +99,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
               {
                 value: "all",
                 label:
-                  coverage.kind === "bands" ? "All fee bands" : "All courses",
+                  coverage.kind === "bands" ? "All fee groups" : "All courses",
               },
               ...school.courses.map((name) => ({ value: name, label: name })),
             ]}

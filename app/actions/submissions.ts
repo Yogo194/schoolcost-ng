@@ -4,6 +4,7 @@ import { createFeeSubmission } from "@/lib/submissions/create-fee";
 import { createCorrectionSubmission } from "@/lib/submissions/create-correction";
 import { createSchoolSuggestion } from "@/lib/submissions/create-school";
 import type { SubmissionResult } from "@/lib/submissions/evidence";
+import { enforceSubmissionRateLimit } from "@/lib/security/rate-limit";
 import {
   submitCorrectionSchema,
   submitFeeSchema,
@@ -14,6 +15,9 @@ import {
 export async function submitFeeAction(
   formData: FormData
 ): Promise<SubmissionResult> {
+  const limited = await enforceSubmissionRateLimit("submit_fee");
+  if (!limited.ok) return limited;
+
   const raw = formData.get("payload");
   if (typeof raw !== "string") {
     return { ok: false, error: "Missing submission payload" };
@@ -47,6 +51,9 @@ export async function submitFeeAction(
 export async function suggestSchoolAction(
   input: SuggestSchoolInput
 ): Promise<SubmissionResult> {
+  const limited = await enforceSubmissionRateLimit("suggest_school");
+  if (!limited.ok) return limited;
+
   const parsed = suggestSchoolSchema.safeParse(input);
   if (!parsed.success) {
     return {
@@ -60,6 +67,9 @@ export async function suggestSchoolAction(
 export async function submitCorrectionAction(
   formData: FormData
 ): Promise<SubmissionResult> {
+  const limited = await enforceSubmissionRateLimit("submit_correction");
+  if (!limited.ok) return limited;
+
   const raw = formData.get("payload");
   if (typeof raw !== "string") {
     return { ok: false, error: "Missing correction payload" };

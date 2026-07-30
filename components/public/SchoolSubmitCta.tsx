@@ -1,7 +1,8 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 interface SchoolSubmitCtaProps {
-  title?: string;
+  title?: ReactNode;
   description?: string;
   href?: string;
   ctaLabel?: string;

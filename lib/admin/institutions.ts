@@ -1,3 +1,5 @@
+import "server-only";
+
 import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/admin/require-admin";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -42,6 +44,7 @@ function toInstitutionRow(
 }
 
 export async function listAdminInstitutions(): Promise<Institution[]> {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("institutions")
@@ -55,6 +58,7 @@ export async function listAdminInstitutions(): Promise<Institution[]> {
 export async function getAdminInstitution(
   id: string
 ): Promise<Institution | null> {
+  await requireAdminUser();
   const supabase = createServiceClient();
   const { data, error } = await supabase
     .from("institutions")

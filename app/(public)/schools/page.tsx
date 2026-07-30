@@ -27,7 +27,12 @@ export default async function SchoolsPage() {
       <Suspense fallback={<DirectorySkeleton />}>
         <SchoolsDirectory schools={schools} />
       </Suspense>
-      <SchoolSubmitCta />
+      <SchoolSubmitCta
+        title="Missing a school or fee we should list?"
+        description="Suggest a school we have not covered yet, or share fee evidence for one that is already here."
+        href="/suggest-school"
+        ctaLabel="Suggest a school"
+      />
     </div>
   );
 }

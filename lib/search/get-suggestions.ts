@@ -7,6 +7,7 @@ import {
   normalizeSearchText,
   type SchoolSearchIndex,
 } from "@/lib/search/school-search";
+import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
 import type { SearchSuggestion } from "@/lib/search/types";
 import { SEARCH_SUGGESTION_LIMIT } from "@/lib/search/types";
 
@@ -23,6 +24,14 @@ interface InstitutionSuggestionRow {
 interface CourseSuggestionRow {
   name: string;
   institutions: { name: string; slug: string } | null;
+}
+
+interface IndexedCourseSuggestion {
+  name: string;
+  aliases: readonly string[];
+  row: CourseSuggestionRow & {
+    institutions: { name: string; slug: string };
+  };
 }
 
 function schoolMeta(row: {
@@ -111,41 +120,78 @@ const stateIndex = createSchoolSearchIndex(
   NIGERIA_STATES.map((state) => ({ name: state }))
 );
 
+let coursesIndex: SchoolSearchIndex<IndexedCourseSuggestion> | null = null;
+let coursesFetchedAt = 0;
+let coursesRefresh: Promise<void> | null = null;
+
+async function refreshCoursesIndex(): Promise<void> {
+  const supabase = await createServerClient();
+
+  const rows = await fetchAllRows<CourseSuggestionRow>((from, to) =>
+    supabase
+      .from("courses")
+      .select("name, institutions ( name, slug )")
+      .eq("is_active", true)
+      .order("name")
+      .range(from, to)
+  );
+
+  const indexedRows: IndexedCourseSuggestion[] = rows
+    .filter(
+      (
+        row
+      ): row is CourseSuggestionRow & {
+        institutions: { name: string; slug: string };
+      } => Boolean(row.institutions)
+    )
+    .map((row) => ({
+      name: row.name,
+      aliases: [row.institutions.name],
+      row,
+    }));
+
+  coursesIndex =
+    indexedRows.length > 0 ? createSchoolSearchIndex(indexedRows) : null;
+  coursesFetchedAt = Date.now();
+}
+
+async function getCoursesIndex(): Promise<
+  SchoolSearchIndex<IndexedCourseSuggestion> | null
+> {
+  const stale = Date.now() - coursesFetchedAt > INSTITUTIONS_CACHE_TTL_MS;
+
+  if (coursesIndex && !stale) return coursesIndex;
+
+  if (!coursesRefresh) {
+    coursesRefresh = refreshCoursesIndex().finally(() => {
+      coursesRefresh = null;
+    });
+  }
+
+  if (!coursesIndex) {
+    await coursesRefresh;
+  } else {
+    coursesRefresh.catch(() => {});
+  }
+
+  return coursesIndex;
+}
+
 async function getCourseSuggestions(
   query: string
 ): Promise<SearchSuggestion[]> {
-  // Courses can grow much larger than institutions, so they stay in the
-  // database: ILIKE narrows candidates, the shared engine ranks them.
   const tokens = normalizeSearchText(query).split(" ").filter(Boolean);
   if (tokens.length === 0) return [];
 
-  const supabase = await createServerClient();
-  const { data } = await supabase
-    .from("courses")
-    .select("name, institutions ( name, slug )")
-    .eq("is_active", true)
-    .ilike("name", `%${tokens[0]}%`)
-    .limit(30);
-
-  const rows = ((data ?? []) as CourseSuggestionRow[]).filter(
-    (row) => row.institutions
-  );
+  const index = await getCoursesIndex();
+  const rows =
+    index?.searchScored(query).filter(({ score }) => score > 0) ?? [];
   if (rows.length === 0) return [];
 
-  const index = createSchoolSearchIndex(
-    rows.map((row) => ({
-      name: row.name,
-      aliases: [row.institutions!.name],
-      row,
-    }))
-  );
-
-  return index
-    .searchScored(query)
-    .filter(({ score }) => score > 0)
+  return rows
     .slice(0, 5)
     .map(({ item }) => {
-      const institution = item.row.institutions!;
+      const institution = item.row.institutions;
       return {
         id: `course-${institution.slug}-${item.name.toLowerCase().replace(/\s+/g, "-")}`,
         kind: "course" as const,

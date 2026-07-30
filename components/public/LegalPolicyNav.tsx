@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LegalPolicyNavProps {
@@ -13,6 +14,9 @@ export function LegalPolicyNav({
   navLabel = "Page sections",
 }: LegalPolicyNavProps) {
   const [activeId, setActiveId] = useState(sections[0]?.id ?? "");
+  const [isOpen, setIsOpen] = useState(false);
+  const activeSection =
+    sections.find((section) => section.id === activeId) ?? sections[0];
 
   useEffect(() => {
     const sectionElements = sections
@@ -54,6 +58,7 @@ export function LegalPolicyNav({
 
     event.preventDefault();
     setActiveId(sectionId);
+    setIsOpen(false);
     window.history.replaceState(null, "", `#${sectionId}`);
     target.scrollIntoView({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -65,7 +70,49 @@ export function LegalPolicyNav({
 
   return (
     <nav aria-label={navLabel} className="mt-5 min-w-0">
-      <ul className="flex max-w-full gap-x-4 gap-y-2 overflow-x-auto pb-1 text-sm [-ms-overflow-style:none] [scrollbar-width:none] lg:flex-col lg:gap-2 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
+      <div className="lg:hidden">
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((open) => !open)}
+          className="flex h-11 w-full items-center justify-between gap-3 rounded-[12px] border border-[#d9e0dc] bg-white px-4 text-left text-sm font-medium tracking-[-0.02em] text-brand-ink shadow-[0_1px_2px_rgba(3,48,42,0.04)]"
+        >
+          <span className="truncate">{activeSection?.label ?? "Sections"}</span>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-brand-ink/50 transition-transform",
+              isOpen && "rotate-180"
+            )}
+            aria-hidden
+          />
+        </button>
+
+        {isOpen ? (
+          <ul className="mt-2 max-h-[280px] overflow-y-auto rounded-[12px] border border-[#e5ebe5] bg-white p-1 text-sm shadow-[0_8px_24px_rgba(3,48,42,0.08)]">
+            {sections.map((section) => (
+              <li key={section.id}>
+                <a
+                  href={`#${section.id}`}
+                  aria-current={
+                    activeId === section.id ? "location" : undefined
+                  }
+                  onClick={(event) => scrollToSection(event, section.id)}
+                  className={cn(
+                    "block rounded-[8px] px-3 py-2.5 transition-colors",
+                    activeId === section.id
+                      ? "bg-brand-lime-light font-medium text-brand-ink"
+                      : "text-brand-ink/65 hover:bg-brand-lime-light/70 hover:text-brand-ink"
+                  )}
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      <ul className="hidden text-sm lg:flex lg:flex-col lg:gap-2">
         {sections.map((section) => (
           <li key={section.id} className="shrink-0">
             <a

@@ -36,7 +36,7 @@ const ROTATION = [
     sourceType: "community_reported",
     confidence: {
       label: "Low",
-      filled: 2,
+      filled: 1,
       color: "bg-[#fe5f2b]",
       faded: "bg-[#fe5f2b]/40",
     },

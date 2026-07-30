@@ -19,7 +19,7 @@ const LEVELS = [
     label: "Low",
     description:
       "A single unverified submission, no official source, or an unclear academic session.",
-    filled: 2,
+    filled: 1,
     color: "bg-[#fe5f2b]",
     faded: "bg-[#fe5f2b]/40",
   },

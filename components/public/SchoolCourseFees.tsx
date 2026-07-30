@@ -51,11 +51,11 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
       <section className="bg-brand-lime-light px-4 pb-16 pt-6 sm:px-10 sm:pb-20 sm:pt-8 lg:px-20">
         <div className="mx-auto max-w-[720px] text-center">
           <h2 className="text-2xl font-medium tracking-[-0.04em] text-brand-ink sm:text-[32px] lg:text-[38px]">
-            No verified fee schedule yet
+            No verified fees yet
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-base leading-6 tracking-[-0.02em] text-brand-ink/75 sm:text-lg sm:leading-7">
-            We do not have a verified fee schedule for {school.abbreviation} yet.
-            Share an official schedule or portal receipt and we will verify it.
+            We do not have verified fees for {school.abbreviation} yet. Share an
+            official schedule or portal receipt and we will verify it.
           </p>
           <Link
             href="/submit-fees"

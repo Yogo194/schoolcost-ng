@@ -92,31 +92,23 @@ export default async function SchoolProfilePage({ params }: PageProps) {
     <div>
       <JsonLd data={schoolJsonLd(school)} />
       <SchoolProfileHero school={school} />
-      <SchoolStatsBar
-        coursesListed={school.courses_listed}
-        firstYearMin={school.first_year_min}
-        firstYearMax={school.first_year_max}
-        coverageLabel={
-          hasFees
-            ? school.fee_coverage.coverageLabel
-            : "Verified fee schedules"
-        }
-        rangeEyebrow={
-          hasFees ? school.fee_coverage.rangeEyebrow : "Fee range"
-        }
-        rangeDescription={
-          hasFees
-            ? school.fee_coverage.rangeDescription
-            : "Compulsory fee range across courses"
-        }
-        showRangeExtremes={!hasOnlyCommunityReports}
-        sessionLabel={sessionLabel}
-        sessionDescription={
-          hasOnlyCommunityReports
-            ? "Latest reported session"
-            : "Latest verified session"
-        }
-      />
+      {hasFees ? (
+        <SchoolStatsBar
+          coursesListed={school.courses_listed}
+          firstYearMin={school.first_year_min}
+          firstYearMax={school.first_year_max}
+          coverageLabel={school.fee_coverage.coverageLabel}
+          rangeEyebrow={school.fee_coverage.rangeEyebrow}
+          rangeDescription={school.fee_coverage.rangeDescription}
+          showRangeExtremes={!hasOnlyCommunityReports}
+          sessionLabel={sessionLabel}
+          sessionDescription={
+            hasOnlyCommunityReports
+              ? "Latest reported session"
+              : "Latest verified session"
+          }
+        />
+      ) : null}
       <SchoolCourseFees school={school} />
       <SchoolSubmitCta
         title={

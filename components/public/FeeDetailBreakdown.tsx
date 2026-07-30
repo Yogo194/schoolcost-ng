@@ -22,6 +22,7 @@ import {
 } from "@/components/public/FeeDetailSidebarActions";
 import { ConfidenceDisplay } from "@/components/public/ConfidenceDisplay";
 import { SourceBadge } from "@/components/public/SourceBadge";
+import { SourceTypeInfo } from "@/components/public/SourceTypeInfo";
 import { cn } from "@/lib/utils";
 import { isCommunityReport } from "@/lib/fees/trust";
 import type { ReactNode } from "react";
@@ -34,6 +35,8 @@ interface VerificationRow {
   label: string;
   note?: string;
   value: ReactNode;
+  /** Optional affordance rendered beside the label, e.g. an info tooltip. */
+  info?: ReactNode;
 }
 
 export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
@@ -76,6 +79,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
         <ConfidenceDisplay
           level={record.confidence_level}
           compact
+          align="center"
         />
       ),
     },
@@ -89,6 +93,7 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
     {
       label: "Source type",
       value: <SourceBadge sourceType={record.source_type} compact />,
+      info: <SourceTypeInfo />,
     },
     {
       label: "Students confirmed",
@@ -379,8 +384,9 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                   {verificationRows.map((row) => (
                     <tr key={row.label} className="border-t border-[#e5ebe5]">
                       <td className="px-4 py-4 align-middle">
-                        <p className="text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955]">
+                        <p className="flex items-center gap-2 text-lg font-medium leading-[1.2] tracking-[-0.04em] text-[#355955]">
                           {row.label}
+                          {row.info}
                         </p>
                         {row.note && (
                           <p className="mt-0.5 text-base leading-[1.4] tracking-[-0.02em] text-brand-ink/80">
@@ -691,8 +697,9 @@ function MobileVerificationList({ rows }: { rows: VerificationRow[] }) {
                 )}
               >
                 <dt>
-                  <span className="block text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+                  <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
                     {row.label}
+                    {row.info}
                   </span>
                   {row.note && (
                     <span className="mt-1 block text-sm leading-5 text-brand-ink/58">

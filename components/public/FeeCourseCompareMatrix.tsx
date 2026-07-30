@@ -22,7 +22,8 @@ import {
   ConfidenceDisplay,
   parseConfidenceLevel,
 } from "@/components/public/ConfidenceDisplay";
-import { SourceBadge, SourceLegend } from "@/components/public/SourceBadge";
+import { SourceBadge } from "@/components/public/SourceBadge";
+import { SourceTypeInfo } from "@/components/public/SourceTypeInfo";
 
 interface FeeCourseCompareMatrixProps {
   record: FeeDetailRecord;
@@ -656,10 +657,10 @@ function MobileComparison({ columns }: { columns: CourseCompareColumn[] }) {
       ))}
 
       <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4">
-        <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
           Can you trust these numbers?
+          <SourceTypeInfo />
         </p>
-        <SourceLegend className="mt-3" />
         <div className="mt-3 space-y-3">
           {columns.map((column) => (
             <div

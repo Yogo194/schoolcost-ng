@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, Info, X } from "lucide-react";
-import { SourceBadge, SourceLegend } from "@/components/public/SourceBadge";
+import { SourceBadge } from "@/components/public/SourceBadge";
 import {
   Table,
   TableBody,
@@ -88,7 +88,6 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
           <p className="mt-2 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
             {coverage.sectionDescription}
           </p>
-          <SourceLegend className="mt-5 justify-center" />
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">

@@ -13,9 +13,9 @@ const SOURCE_BADGE_STYLES: Record<SourceType, string> = {
 
 /**
  * Compact table badges. One word so the pill has a fixed width that fits any
- * column: the colour carries the tier and SourceLegend explains it once per
- * surface. The longer phrase is kept in SOURCE_FULL_LABELS for the tooltip and
- * for screen readers, so nothing is lost.
+ * column: the colour carries the tier and SourceTypeInfo explains it behind an
+ * info tooltip. The longer phrase is kept in SOURCE_FULL_LABELS for the badge
+ * tooltip and for screen readers, so nothing is lost.
  */
 const SOURCE_COMPACT_LABELS: Record<SourceType, string> = {
   official_school_source: "Official",
@@ -96,34 +96,6 @@ export function SourceBadge({ sourceType, className, compact = false }: SourceBa
     >
       {SOURCE_TYPE_LABELS[sourceType]}
     </span>
-  );
-}
-
-const LEGEND_ITEMS: Array<{ sourceType: SourceType; meaning: string }> = [
-  { sourceType: "official_school_source", meaning: "published on the school's own site" },
-  { sourceType: "student_portal_evidence", meaning: "from a portal pay advice or receipt" },
-  { sourceType: "community_reported", meaning: "reported to us, not yet verified" },
-];
-
-/**
- * Explains the compact badge tiers once per surface, so the one-word pills stay
- * unambiguous. Pair this with any table that renders <SourceBadge compact />.
- */
-export function SourceLegend({ className }: { className?: string }) {
-  return (
-    <ul
-      className={cn(
-        "flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-brand-ink/60",
-        className
-      )}
-    >
-      {LEGEND_ITEMS.map((item) => (
-        <li key={item.sourceType} className="flex items-center gap-2">
-          <SourceBadge sourceType={item.sourceType} compact />
-          <span>{item.meaning}</span>
-        </li>
-      ))}
-    </ul>
   );
 }
 

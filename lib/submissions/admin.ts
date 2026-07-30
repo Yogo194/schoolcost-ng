@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { requireAdminUser } from "@/lib/admin/require-admin";
 import { signEvidenceFileUrl } from "@/lib/submissions/evidence";
 import {
   publishFeeFromSubmission,
@@ -124,6 +125,8 @@ export async function moderateSubmission(
   status: SubmissionStatus,
   feedback?: string
 ): Promise<ModerateResult> {
+  await requireAdminUser();
+
   const supabase = createServiceClient();
   const result: ModerateResult = {};
 

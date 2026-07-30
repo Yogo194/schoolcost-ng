@@ -206,8 +206,9 @@ export default async function ReviewSubmissionPage({ params }: PageProps) {
           onAction={handleModeration}
         />
         <p className="text-xs text-gray-500">
-          Approve publishes verified fee submissions to the public site and
-          adds approved school suggestions to the live directory.
+          {sub.submission_type === "correction"
+            ? "Approve records this correction as reviewed. It does not automatically change the published fee yet."
+            : "Approve publishes fee submissions to the public site and adds approved school suggestions to the live directory."}
         </p>
       </section>
     </div>

@@ -1,8 +1,10 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import {
   emptyToNull,
+  cleanupUploadedEvidenceFiles,
   insertEvidenceRows,
   uploadEvidenceFiles,
+  validateEvidenceFiles,
   type SubmissionResult,
 } from "@/lib/submissions/evidence";
 import {
@@ -35,6 +37,7 @@ export async function createFeeSubmission(
   const files = input.evidenceFiles ?? [];
 
   try {
+    validateEvidenceFiles(files);
     const supabase = createServiceClient();
 
     const institutionOk = await assertActiveInstitution(
@@ -95,18 +98,20 @@ export async function createFeeSubmission(
       };
     }
 
-    const uploaded = await uploadEvidenceFiles(
-      supabase,
-      submission.id,
-      files
-    );
-
-    await insertEvidenceRows(supabase, {
-      submissionId: submission.id,
-      submitterEmail: data.submitter_email.trim().toLowerCase(),
-      sourceUrl: emptyToNull(data.source_url),
-      uploaded,
-    });
+    const uploaded: { path: string; name: string }[] = [];
+    try {
+      uploaded.push(...(await uploadEvidenceFiles(supabase, submission.id, files)));
+      await insertEvidenceRows(supabase, {
+        submissionId: submission.id,
+        submitterEmail: data.submitter_email.trim().toLowerCase(),
+        sourceUrl: emptyToNull(data.source_url),
+        uploaded,
+      });
+    } catch (error) {
+      await cleanupUploadedEvidenceFiles(supabase, uploaded);
+      await supabase.from("submissions").delete().eq("id", submission.id);
+      throw error;
+    }
 
     return { ok: true, submissionId: submission.id };
   } catch (error) {

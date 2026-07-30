@@ -25,38 +25,58 @@ export async function uploadEvidenceFiles(
 ): Promise<{ path: string; name: string }[]> {
   const uploaded: { path: string; name: string }[] = [];
 
+  validateEvidenceFiles(files);
+
+  try {
+    for (const file of files) {
+      const safeName = file.name.replace(/[^\w.\-()+ ]+/g, "_").slice(0, 120);
+      const path = `${submissionId}/${crypto.randomUUID()}-${safeName}`;
+      const buffer = Buffer.from(await file.arrayBuffer());
+
+      const { error } = await supabase.storage
+        .from(EVIDENCE_BUCKET)
+        .upload(path, buffer, {
+          contentType: file.type,
+          upsert: false,
+        });
+
+      if (error) {
+        if (/bucket|not found|does not exist/i.test(error.message)) {
+          throw new Error(
+            "Proof uploads are not available yet (storage bucket missing). Apply migration 004, or submit without a file."
+          );
+        }
+        throw new Error(`Could not upload “${file.name}”: ${error.message}`);
+      }
+
+      uploaded.push({ path, name: file.name });
+    }
+  } catch (error) {
+    await cleanupUploadedEvidenceFiles(supabase, uploaded);
+    throw error;
+  }
+
+  return uploaded;
+}
+
+export function validateEvidenceFiles(files: File[]): void {
   for (const file of files) {
     if (file.size > MAX_FILE_SIZE) {
       throw new Error(`“${file.name}” is larger than 10 MB`);
     }
-    if (file.type && !ACCEPTED_FILE_TYPES.includes(file.type)) {
+    if (!file.type || !ACCEPTED_FILE_TYPES.includes(file.type)) {
       throw new Error(`“${file.name}” must be a PDF or image`);
     }
-
-    const safeName = file.name.replace(/[^\w.\-()+ ]+/g, "_").slice(0, 120);
-    const path = `${submissionId}/${crypto.randomUUID()}-${safeName}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    const { error } = await supabase.storage
-      .from(EVIDENCE_BUCKET)
-      .upload(path, buffer, {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-
-    if (error) {
-      if (/bucket|not found|does not exist/i.test(error.message)) {
-        throw new Error(
-          "Proof uploads are not available yet (storage bucket missing). Apply migration 004, or submit without a file."
-        );
-      }
-      throw new Error(`Could not upload “${file.name}”: ${error.message}`);
-    }
-
-    uploaded.push({ path, name: file.name });
   }
+}
 
-  return uploaded;
+export async function cleanupUploadedEvidenceFiles(
+  supabase: ServiceClient,
+  uploaded: { path: string }[]
+): Promise<void> {
+  const paths = uploaded.map((file) => file.path).filter(Boolean);
+  if (paths.length === 0) return;
+  await supabase.storage.from(EVIDENCE_BUCKET).remove(paths);
 }
 
 export async function insertEvidenceRows(

@@ -75,8 +75,22 @@ export function SubmitCorrectionForm({
     onSubmittingChange?.(true);
     try {
       await onSubmit({ ...data, evidenceFiles });
+      const { track, AnalyticsEvents } = await import("@/lib/analytics");
+      track(AnalyticsEvents.submitCorrectionSucceeded, {
+        fee_record_id: feeRecordId,
+        correction_type: data.correction_type,
+        has_evidence_files: evidenceFiles.length > 0,
+      });
       setSuccess(true);
       onSubmitted?.();
+    } catch (error) {
+      form.setError("root", {
+        type: "manual",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Something went wrong sending this. Please try again.",
+      });
     } finally {
       onSubmittingChange?.(false);
     }
@@ -185,10 +199,18 @@ export function SubmitCorrectionForm({
         )}
       </div>
 
+      {form.formState.errors.root && (
+        <p className="text-xs text-destructive">
+          {form.formState.errors.root.message}
+        </p>
+      )}
+
       {!hideSubmitButton && (
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? "Submitting…" : "Submit correction"}
-        </Button>
+        <div>
+          <Button type="submit" disabled={form.formState.isSubmitting}>
+            {form.formState.isSubmitting ? "Submitting…" : "Submit correction"}
+          </Button>
+        </div>
       )}
     </form>
   );

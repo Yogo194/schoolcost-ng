@@ -3,6 +3,7 @@ import { SubmitFeesClient } from "@/components/public/SubmitFeesClient";
 import { SubmitFeeTestimonialPanel } from "@/components/public/SubmitFeeTestimonialPanel";
 import { createServerClient } from "@/lib/supabase/server";
 import { publicPageMetadata } from "@/lib/seo";
+import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
 import type { SubmitCourseOption } from "@/lib/mock/courses";
 import type { Institution } from "@/types/institution";
 
@@ -46,13 +47,14 @@ export default async function SubmitFeesPage({
 async function getInstitutionsForSubmit(): Promise<Institution[]> {
   try {
     const supabase = await createServerClient();
-    const { data, error } = await supabase
-      .from("institutions")
-      .select("*")
-      .eq("is_active", true)
-      .order("name");
-
-    if (!error && data?.length) return data as Institution[];
+    return await fetchAllRows<Institution>((from, to) =>
+      supabase
+        .from("institutions")
+        .select("*")
+        .eq("is_active", true)
+        .order("name")
+        .range(from, to)
+    );
   } catch {
     // Empty list below.
   }
@@ -64,13 +66,14 @@ async function getInstitutionsForSubmit(): Promise<Institution[]> {
 async function getCoursesForSubmit(): Promise<SubmitCourseOption[]> {
   try {
     const supabase = await createServerClient();
-    const { data, error } = await supabase
-      .from("courses")
-      .select("id, institution_id, name")
-      .eq("is_active", true)
-      .order("name");
-
-    if (!error && data?.length) return data as SubmitCourseOption[];
+    return await fetchAllRows<SubmitCourseOption>((from, to) =>
+      supabase
+        .from("courses")
+        .select("id, institution_id, name")
+        .eq("is_active", true)
+        .order("name")
+        .range(from, to)
+    );
   } catch {
     // Empty list below.
   }

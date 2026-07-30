@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { Plus } from "lucide-react";
+import { submitCorrectionAction } from "@/app/actions/submissions";
 import type { FeeDetailRecord } from "@/lib/mock/fee-detail";
 import { SubmitCorrectionForm } from "@/components/forms/SubmitCorrectionForm";
 import { EvidenceUploadField } from "@/components/forms/EvidenceUploadField";
@@ -24,6 +25,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import type { SubmitCorrectionPayload } from "@/components/forms/SubmitCorrectionForm";
 
 export type FeeDetailView = "breakdown" | "verification" | "compare";
 
@@ -34,6 +36,20 @@ const VIEW_TABS = [
   { value: "verification", label: "Verification" },
   { value: "compare", label: "Compare" },
 ] as const;
+
+async function submitCorrectionPayload(data: SubmitCorrectionPayload) {
+  const formData = new FormData();
+  const { evidenceFiles, ...payload } = data;
+  formData.set("payload", JSON.stringify(payload));
+  for (const file of evidenceFiles) {
+    formData.append("evidence", file);
+  }
+
+  const result = await submitCorrectionAction(formData);
+  if (!result.ok) {
+    throw new Error(result.error);
+  }
+}
 
 export function DetailViewTabs({
   activeView,
@@ -262,16 +278,7 @@ export function VerificationActions({
               hideSubmitButton
               onSubmittingChange={setIsErrorSubmitting}
               onSubmitted={() => setHasSubmittedError(true)}
-              onSubmit={async (data) => {
-                console.log("Correction submission:", {
-                  ...data,
-                  evidence: data.evidenceFiles.map((file) => ({
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                  })),
-                });
-              }}
+              onSubmit={submitCorrectionPayload}
             />
           </div>
           <div className="flex shrink-0 gap-3 border-t border-[#e5ebe5] bg-white px-6 py-4 sm:px-7">
@@ -346,6 +353,7 @@ function CourseUpdateForm({
   const [email, setEmail] = useState("");
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
   const [evidenceError, setEvidenceError] = useState<string | undefined>();
+  const [submitError, setSubmitError] = useState<string | undefined>();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -353,26 +361,38 @@ function CourseUpdateForm({
       setEvidenceError("Please upload at least one supporting file.");
       return;
     }
+    const parsedAmount = Number(amount);
+    if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+      setSubmitError("Enter a valid updated amount.");
+      return;
+    }
     setEvidenceError(undefined);
+    setSubmitError(undefined);
     onSubmittingChange(true);
-    console.log("Course fee update:", {
-      recordId: record.id,
-      school: record.schoolName,
-      course: record.course,
-      level,
-      amount,
-      notes,
-      email,
-      evidence: evidenceFiles.map((file) => ({
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      })),
-    });
-    await new Promise((r) => setTimeout(r, 400));
-    onSubmittingChange(false);
-    setSuccess(true);
-    onSubmitted();
+    try {
+      await submitCorrectionPayload({
+        fee_record_id: record.id,
+        correction_type: "wrong_amount",
+        description:
+          notes.trim() ||
+          `Updated estimated fees for ${record.course} at ${record.schoolName}.`,
+        suggested_amount: parsedAmount,
+        source_url: "",
+        submitter_name: "",
+        submitter_email: email,
+        evidenceFiles,
+      });
+      setSuccess(true);
+      onSubmitted();
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong sending this. Please try again."
+      );
+    } finally {
+      onSubmittingChange(false);
+    }
   }
 
   if (success) {
@@ -422,6 +442,9 @@ function CourseUpdateForm({
         error={evidenceError}
         label="Proof of the updated fee"
       />
+      {submitError && (
+        <p className="text-xs text-destructive">{submitError}</p>
+      )}
       <div className="border-t border-[#edf0ed] pt-5">
         <Label>Your email (optional)</Label>
         <Input

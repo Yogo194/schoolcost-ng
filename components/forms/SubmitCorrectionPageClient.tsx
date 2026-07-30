@@ -1,5 +1,6 @@
 "use client";
 
+import { submitCorrectionAction } from "@/app/actions/submissions";
 import { SubmitCorrectionForm } from "@/components/forms/SubmitCorrectionForm";
 
 export function SubmitCorrectionPageClient({
@@ -11,15 +12,17 @@ export function SubmitCorrectionPageClient({
     <SubmitCorrectionForm
       feeRecordId={feeRecordId}
       onSubmit={async (data) => {
-        // TODO: upload evidence to storage + insert correction into submissions
-        console.log("Correction submission:", {
-          ...data,
-          evidenceFiles: data.evidenceFiles.map((file) => ({
-            name: file.name,
-            size: file.size,
-            type: file.type,
-          })),
-        });
+        const formData = new FormData();
+        const { evidenceFiles, ...payload } = data;
+        formData.set("payload", JSON.stringify(payload));
+        for (const file of evidenceFiles) {
+          formData.append("evidence", file);
+        }
+
+        const result = await submitCorrectionAction(formData);
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
       }}
     />
   );

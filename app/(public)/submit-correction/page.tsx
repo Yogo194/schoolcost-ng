@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { SubmitCorrectionPageClient } from "@/components/forms/SubmitCorrectionPageClient";
 import { publicPageMetadata } from "@/lib/seo";
 
@@ -15,6 +16,10 @@ interface PageProps {
 export default async function SubmitCorrectionPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const feeRecordId = params.record ?? "";
+
+  if (!feeRecordId) {
+    redirect("/submit-fees");
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">

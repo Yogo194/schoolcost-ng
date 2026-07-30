@@ -11,8 +11,23 @@ const SOURCE_BADGE_STYLES: Record<SourceType, string> = {
   community_reported: "bg-amber-50 text-amber-700 border-amber-200",
 };
 
-/** Compact homepage labels (Figma table badges). */
+/**
+ * Compact table badges. One word so the pill has a fixed width that fits any
+ * column: the colour carries the tier and SourceLegend explains it once per
+ * surface. The longer phrase is kept in SOURCE_FULL_LABELS for the tooltip and
+ * for screen readers, so nothing is lost.
+ */
 const SOURCE_COMPACT_LABELS: Record<SourceType, string> = {
+  official_school_source: "Official",
+  official_fee_circular: "Official",
+  school_representative: "Official",
+  student_portal_evidence: "Student",
+  payment_invoice: "Student",
+  community_reported: "Community",
+};
+
+/** Full phrase, exposed via title and sr-only. */
+const SOURCE_FULL_LABELS: Record<SourceType, string> = {
   official_school_source: "Official source",
   official_fee_circular: "Official source",
   school_representative: "Official source",
@@ -55,13 +70,18 @@ export function SourceBadge({ sourceType, className, compact = false }: SourceBa
   if (compact) {
     return (
       <span
+        title={SOURCE_FULL_LABELS[sourceType]}
         className={cn(
-          "inline-flex min-w-[112px] items-center justify-center whitespace-nowrap rounded-full border px-2 py-[3px] text-sm font-medium",
+          // min-w keeps pills aligned down a column; max-w-full lets it shrink
+          // rather than overflow the cell. No whitespace-nowrap, so if a label
+          // ever grows it wraps instead of being clipped by the next column.
+          "inline-flex min-w-[88px] max-w-full items-center justify-center rounded-full border px-2 py-[3px] text-center text-sm font-medium",
           SOURCE_COMPACT_STYLES[sourceType],
           className
         )}
       >
-        {SOURCE_COMPACT_LABELS[sourceType]}
+        <span aria-hidden>{SOURCE_COMPACT_LABELS[sourceType]}</span>
+        <span className="sr-only">{SOURCE_FULL_LABELS[sourceType]}</span>
       </span>
     );
   }
@@ -76,6 +96,34 @@ export function SourceBadge({ sourceType, className, compact = false }: SourceBa
     >
       {SOURCE_TYPE_LABELS[sourceType]}
     </span>
+  );
+}
+
+const LEGEND_ITEMS: Array<{ sourceType: SourceType; meaning: string }> = [
+  { sourceType: "official_school_source", meaning: "published on the school's own site" },
+  { sourceType: "student_portal_evidence", meaning: "from a portal pay advice or receipt" },
+  { sourceType: "community_reported", meaning: "reported to us, not yet verified" },
+];
+
+/**
+ * Explains the compact badge tiers once per surface, so the one-word pills stay
+ * unambiguous. Pair this with any table that renders <SourceBadge compact />.
+ */
+export function SourceLegend({ className }: { className?: string }) {
+  return (
+    <ul
+      className={cn(
+        "flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-brand-ink/60",
+        className
+      )}
+    >
+      {LEGEND_ITEMS.map((item) => (
+        <li key={item.sourceType} className="flex items-center gap-2">
+          <SourceBadge sourceType={item.sourceType} compact />
+          <span>{item.meaning}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
 

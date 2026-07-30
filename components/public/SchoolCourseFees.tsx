@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronDown, ChevronRight, ExternalLink, Info, X } from "lucide-react";
-import { SourceBadge } from "@/components/public/SourceBadge";
+import { SourceBadge, SourceLegend } from "@/components/public/SourceBadge";
 import {
   Table,
   TableBody,
@@ -27,7 +27,9 @@ interface SchoolCourseFeesProps {
 export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
   const coverage = school.fee_coverage;
   const [course, setCourse] = useState("all");
-  const [level, setLevel] = useState(coverage.defaultLevelFilter);
+  const [level, setLevel] = useState(() =>
+    resolveDefaultLevel(coverage.defaultLevelFilter, school.levels)
+  );
   const [session, setSession] = useState(
     school.fees[0]?.session ?? school.sessions[0] ?? "all"
   );
@@ -86,6 +88,7 @@ export function SchoolCourseFees({ school }: SchoolCourseFeesProps) {
           <p className="mt-2 text-base tracking-[-0.02em] text-brand-ink/80 sm:text-lg">
             {coverage.sectionDescription}
           </p>
+          <SourceLegend className="mt-5 justify-center" />
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
@@ -298,11 +301,26 @@ function FigureInfoContent({
   );
 }
 
+/**
+ * Level names are authored per school, so they range from a bare code ("100L")
+ * to a descriptive band ("Faculty band: Law"). A hardcoded default can therefore
+ * name a level a school does not have, which leaves the select with no matching
+ * option: it reads as "All levels" while the table filters every row out.
+ */
+function resolveDefaultLevel(preferred: string, levels: string[]): string {
+  if (preferred === "all" || levels.includes(preferred)) return preferred;
+  // Keep the first-year default where the school expresses it differently,
+  // so the table still agrees with the "First-year" range card.
+  return levels.find((level) => level.startsWith("100")) ?? "all";
+}
+
 function formatLevelLabel(name: string): string {
   if (name === "Undergraduate") return "Undergraduate (annual)";
   if (name.includes("+")) return name;
   if (name.includes("DE")) return name;
-  return name.replace("L", " Level");
+  // Anchor on the level code so band names keep their own wording. A bare
+  // replace turned "Faculty band: Law" into "Faculty band:  Levelaw".
+  return name.replace(/(\d{3})L\b/g, "$1 Level");
 }
 
 function FeeRow({ fee, slug }: { fee: SchoolFeeRow; slug: string }) {

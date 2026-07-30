@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { ArrowRight, ChevronRight, Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AnnouncementBar } from "@/components/public/AnnouncementBar";
@@ -161,38 +161,49 @@ export function Header() {
       </div>
 
       {mobileOpen && (
-        <div
-          className={cn(
-            "relative border-t md:hidden",
-            hasScrolled || !overlayNav
-              ? "border-brand-ink/10 bg-white/95 backdrop-blur-xl"
-              : "border-brand-ink/10 bg-brand-lime"
-          )}
-        >
-          <nav className="mx-auto flex max-w-[1440px] flex-col gap-1 px-4 py-3 sm:px-10">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200",
-                  pathname === link.href
-                    ? "bg-primary/10 text-primary"
-                    : overlayNav
-                      ? "text-brand-ink hover:bg-brand-ink/5"
-                      : "text-gray-700 hover:bg-gray-50"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+        <div className="relative border-t border-brand-ink/10 bg-white md:hidden">
+          <nav className="mx-auto max-w-[1440px] px-4 py-4 sm:px-10">
+            <div className="overflow-hidden rounded-[8px] border border-[#e5ebe5] bg-white">
+              {NAV_LINKS.map((link) => {
+                const active = pathname === link.href;
+
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "flex min-h-12 items-center justify-between gap-3 border-b border-[#edf0ed] px-4 py-3 text-[15px] tracking-[-0.02em] transition-colors last:border-b-0",
+                      active
+                        ? "bg-brand-lime-light font-medium text-brand-ink"
+                        : "font-normal text-brand-ink/72 hover:bg-brand-lime-light/60 hover:text-brand-ink"
+                    )}
+                  >
+                    <span>{link.label}</span>
+                    <ChevronRight
+                      className={cn(
+                        "size-4 shrink-0 transition-transform",
+                        active ? "text-brand-ink" : "text-brand-ink/32"
+                      )}
+                      aria-hidden
+                    />
+                  </Link>
+                );
+              })}
+            </div>
+
             <Link
               href="/schools"
               onClick={() => setMobileOpen(false)}
-              className="mt-2 inline-flex h-12 items-center justify-center gap-2.5 rounded-[14px] bg-[#166D3E] px-7 text-lg font-medium leading-[1.2] tracking-[-0.02em] text-white shadow-[0_5px_12px_0_rgba(22,109,62,0.48)] transition-[transform,box-shadow,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[#145f36]"
+              className="mt-4 flex min-h-[58px] items-center justify-between gap-4 rounded-[8px] bg-[#166D3E] px-4 text-base font-medium tracking-[-0.02em] text-white shadow-[0_8px_18px_rgba(22,109,62,0.22)] transition-colors hover:bg-[#145f36]"
             >
-              Find a school
+              <span>
+                <span className="block">Find a school</span>
+                <span className="mt-0.5 block text-xs font-normal text-white/72">
+                  Search fees by school, course, or state
+                </span>
+              </span>
+              <ArrowRight className="size-4 shrink-0" aria-hidden />
             </Link>
           </nav>
         </div>

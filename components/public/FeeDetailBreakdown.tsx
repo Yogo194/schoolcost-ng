@@ -687,7 +687,7 @@ function MobileVerificationList({ rows }: { rows: VerificationRow[] }) {
                   "gap-4",
                   isConfidence
                     ? "space-y-3"
-                    : "grid grid-cols-[minmax(0,1fr)_auto] items-start"
+                    : "grid grid-cols-[minmax(0,1fr)_auto] items-center"
                 )}
               >
                 <dt>

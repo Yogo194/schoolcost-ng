@@ -455,7 +455,10 @@ function renderReviewerNote(note: string): ReactNode {
   if (!match) return note;
 
   const url = match[1].replace(/[.,)]$/, "");
-  const withoutSource = note.replace(match[0], "").trim();
+  const withoutSource = note
+    .replace(match[0], "")
+    .replace(/\s*Local copy:\s*\S+/i, "")
+    .trim();
 
   return (
     <>

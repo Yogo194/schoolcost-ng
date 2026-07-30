@@ -36,7 +36,9 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
     const supabase = await createServerClient();
     const { data, error } = await supabase
       .from("institutions")
-      .select("*")
+      .select(
+        "id, name, slug, abbreviation, city, state, institution_type, ownership_type, logo_url"
+      )
       .eq("is_active", true)
       .order("name");
 
@@ -45,19 +47,20 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
     const institutions = data as Institution[];
     const ids = institutions.map((institution) => institution.id);
 
-    const { data: fees } = await supabase
-      .from("fee_records")
-      .select(
-        "institution_id, first_year_total, level, student_type, verification_status, confidence_level"
-      )
-      .in("institution_id", ids)
-      .eq("is_published", true);
-
-    const { data: courseRows } = await supabase
-      .from("courses")
-      .select("name, institution_id")
-      .eq("is_active", true)
-      .in("institution_id", ids);
+    const [{ data: fees }, { data: courseRows }] = await Promise.all([
+      supabase
+        .from("fee_records")
+        .select(
+          "institution_id, first_year_total, level, student_type, verification_status, confidence_level"
+        )
+        .in("institution_id", ids)
+        .eq("is_published", true),
+      supabase
+        .from("courses")
+        .select("name, institution_id")
+        .eq("is_active", true)
+        .in("institution_id", ids),
+    ]);
 
     const coursesByInstitution = new Map<string, string[]>();
     for (const row of (courseRows ?? []) as Array<{

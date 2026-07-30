@@ -12,6 +12,8 @@ import {
 } from "@/lib/search/types";
 import { cn } from "@/lib/utils";
 
+const suggestionCache = new Map<string, SearchSuggestion[]>();
+
 const TYPING_PHRASES = [
   "Search for a school, course or state",
   "Babcock University tuition fees",
@@ -142,6 +144,14 @@ export function SearchBar({
     }
 
     const controller = new AbortController();
+    const cached = suggestionCache.get(trimmed.toLowerCase());
+    if (cached) {
+      setResults(cached);
+      setActiveIndex(cached.length > 0 ? 0 : -1);
+      setIsLoading(false);
+      return () => controller.abort();
+    }
+
     setIsLoading(true);
 
     const timer = window.setTimeout(async () => {
@@ -152,6 +162,7 @@ export function SearchBar({
         );
         if (!res.ok) throw new Error("Suggestions failed");
         const data = (await res.json()) as SearchSuggestionsResponse;
+        suggestionCache.set(trimmed.toLowerCase(), data.suggestions);
         setResults(data.suggestions);
         setActiveIndex(data.suggestions.length > 0 ? 0 : -1);
       } catch (err) {

@@ -19,8 +19,17 @@ export async function GET(request: Request) {
 
   const suggestions = await getSearchSuggestions(query, SEARCH_SUGGESTION_LIMIT);
 
-  return NextResponse.json({
-    query,
-    suggestions,
-  } satisfies SearchSuggestionsResponse);
+  return NextResponse.json(
+    {
+      query,
+      suggestions,
+    } satisfies SearchSuggestionsResponse,
+    {
+      headers: {
+        // Suggestions are public and change slowly; cache at the edge while
+        // keeping browser results fresh enough for newly added schools.
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    }
+  );
 }

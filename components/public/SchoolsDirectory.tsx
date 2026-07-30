@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Building2, Check, Search } from "lucide-react";
@@ -371,13 +372,13 @@ function SchoolDirectoryCard({ school }: { school: SchoolsDirectoryItem }) {
       <div className="flex items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#e5ebe5] bg-white">
           {school.logo_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={school.logo_url}
               alt=""
               width={40}
               height={40}
               className="size-full object-contain p-1"
+              loading="lazy"
             />
           ) : (
             <Building2 className="size-4 text-brand-ink/35" aria-hidden />

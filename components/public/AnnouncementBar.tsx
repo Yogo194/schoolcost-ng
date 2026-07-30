@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "scng-announcement-dismissed";
@@ -37,14 +38,17 @@ export function AnnouncementBar({
 
   return (
     <div className="relative flex w-full items-center bg-brand-amber px-4 py-2.5 pr-12 sm:justify-center sm:px-10 sm:pr-10 lg:px-20 lg:pr-20">
-      <p className="text-left text-sm tracking-[-0.02em] text-brand-ink sm:px-8 sm:text-center sm:text-base">
+      <Link
+        href="/submit-fees"
+        className="text-left text-sm tracking-[-0.02em] text-brand-ink underline-offset-4 transition-[text-decoration-color] hover:underline sm:px-8 sm:text-center sm:text-base"
+      >
         {message}
-      </p>
+      </Link>
       <button
         type="button"
         onClick={dismiss}
         aria-label="Dismiss announcement"
-        className="absolute right-4 flex size-6 shrink-0 items-center justify-center text-brand-ink/70 transition-colors hover:text-brand-ink sm:right-10 lg:right-20"
+        className="absolute right-4 z-10 flex size-8 shrink-0 cursor-pointer items-center justify-center text-brand-ink/70 transition-colors hover:text-brand-ink sm:right-10 lg:right-20"
       >
         <X className="size-5" strokeWidth={1.75} />
       </button>

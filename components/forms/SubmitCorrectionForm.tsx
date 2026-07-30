@@ -24,6 +24,16 @@ export type SubmitCorrectionPayload = SubmitCorrectionInput & {
   evidenceFiles: File[];
 };
 
+const CORRECTION_TYPE_LABELS: Record<
+  SubmitCorrectionInput["correction_type"],
+  string
+> = {
+  wrong_amount: "Wrong amount",
+  wrong_session: "Wrong academic session",
+  missing_item: "Missing fee item",
+  other: "Other",
+};
+
 interface SubmitCorrectionFormProps {
   feeRecordId: string;
   onSubmit: (data: SubmitCorrectionPayload) => Promise<void>;
@@ -99,13 +109,16 @@ export function SubmitCorrectionForm({
           }
         >
           <SelectTrigger>
-            <SelectValue />
+            <SelectValue>
+              {correctionType ? CORRECTION_TYPE_LABELS[correctionType] : null}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="wrong_amount">Wrong amount</SelectItem>
-            <SelectItem value="wrong_session">Wrong academic session</SelectItem>
-            <SelectItem value="missing_item">Missing fee item</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            {Object.entries(CORRECTION_TYPE_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>

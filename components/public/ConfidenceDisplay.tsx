@@ -69,7 +69,7 @@ export function ConfidenceDisplay({
       </span>
       <p
         className={cn(
-          "tracking-[-0.02em] text-brand-ink/65",
+          "font-normal tracking-[-0.02em] text-brand-ink/65",
           compact ? "text-sm leading-[1.35]" : "text-base leading-[1.4]"
         )}
       >

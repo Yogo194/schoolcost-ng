@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# local scratch (seed/QA working files, not app code)
+/tmp/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

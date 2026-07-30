@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Check } from "lucide-react";
+import { AnalyticsEvents, track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 interface CompareButtonProps {
@@ -47,6 +48,12 @@ export function CompareButton({
 
     setCompareList(next);
     setList(next);
+    track(AnalyticsEvents.compareSchoolToggled, {
+      school_slug: institutionSlug,
+      school_name: institutionName,
+      action: isAdded ? "removed" : "added",
+      compare_count: next.length,
+    });
   }
 
   if (compact) {

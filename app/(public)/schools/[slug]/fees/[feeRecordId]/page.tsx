@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { notFound } from "next/navigation";
+import { TrackEvent } from "@/components/analytics/TrackEvent";
 import { FeeDetailBreakdown } from "@/components/public/FeeDetailBreakdown";
 import { FeeDetailHero } from "@/components/public/FeeDetailHero";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { AnalyticsEvents } from "@/lib/analytics";
 import { getLiveFeeDetail } from "@/lib/fees/get-fee-detail";
 import { feeJsonLd, publicPageMetadata } from "@/lib/seo";
 
@@ -35,21 +37,23 @@ export default async function FeeBreakdownPage({ params }: PageProps) {
   const record = await getLiveFeeDetail(feeRecordId);
 
   if (!record || record.schoolSlug !== slug) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-sm text-brand-ink/70">Fee record not found.</p>
-        <Link
-          href={`/schools/${slug}`}
-          className="mt-2 inline-block text-sm text-primary hover:underline"
-        >
-          Back to school
-        </Link>
-      </div>
-    );
+    notFound();
   }
 
   return (
     <div>
+      <TrackEvent
+        event={AnalyticsEvents.feeDetailViewed}
+        properties={{
+          fee_record_id: record.id,
+          school_slug: record.schoolSlug,
+          school_name: record.schoolName,
+          course: record.course,
+          session: record.session,
+          verification_status: record.verification_status,
+          confidence_level: record.confidence_level,
+        }}
+      />
       <JsonLd
         data={feeJsonLd({
           id: record.id,

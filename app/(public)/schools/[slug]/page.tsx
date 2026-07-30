@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { EmptyState } from "@/components/public/EmptyState";
+import { notFound } from "next/navigation";
+import { TrackEvent } from "@/components/analytics/TrackEvent";
 import { SchoolCourseFees } from "@/components/public/SchoolCourseFees";
 import { SchoolProfileHero } from "@/components/public/SchoolProfileHero";
 import { SchoolStatsBar } from "@/components/public/SchoolStatsBar";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { AnalyticsEvents } from "@/lib/analytics";
 import { getLiveSchoolProfile } from "@/lib/fees/get-school-profile";
 import { publicPageMetadata, schoolJsonLd } from "@/lib/seo";
 import type { SchoolProfile } from "@/lib/mock/school-profile";
@@ -52,13 +54,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const isBands = school.fee_coverage.kind === "bands";
+  const verifiedWord = school.has_price_comparable_fees ? "verified" : "reported";
 
   return publicPageMetadata({
     path: `/schools/${school.slug}`,
     title: `${school.name} fees`,
     description: isBands
       ? `Official fee bands for ${school.name} (${school.abbreviation}), with session year and source notes. Course-level totals welcome via contribute.`
-      : `View verified course fees for ${school.name} (${school.abbreviation}), including first-year totals by level and session.`,
+      : `View ${verifiedWord} course fees for ${school.name} (${school.abbreviation}), including first-year totals by level and session.`,
   });
 }
 
@@ -67,29 +70,29 @@ export default async function SchoolProfilePage({ params }: PageProps) {
   const school = await getLiveSchoolProfile(slug);
 
   if (!school) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <EmptyState
-          title="We do not have this school yet."
-          description="You can suggest it and we will add it when we have enough verified fee data."
-          action={{
-            label: "Suggest this school",
-            href: `/suggest-school?name=${encodeURIComponent(slug.replace(/-/g, " "))}`,
-          }}
-          secondaryAction={{ label: "Browse all schools", href: "/schools" }}
-        />
-      </div>
-    );
+    notFound();
   }
 
   const hasFees = school.fees.length > 0;
   const isBands = school.fee_coverage.kind === "bands";
-  const hasOnlyCommunityReports =
-    hasFees && school.fees.every((fee) => fee.source_type === "community_reported");
+  // Trust tier, not source_type: a row can carry an official source_type and
+  // still be unverified, which is how unverified schools used to inherit
+  // "verified" copy.
+  const hasVerifiedFees = school.has_price_comparable_fees;
   const sessionLabel = pickPrimarySession(school);
 
   return (
     <div>
+      <TrackEvent
+        event={AnalyticsEvents.schoolViewed}
+        properties={{
+          school_slug: school.slug,
+          school_name: school.name,
+          ownership: school.ownership_type,
+          has_fees: hasFees,
+          fee_count: school.fees.length,
+        }}
+      />
       <JsonLd data={schoolJsonLd(school)} />
       <SchoolProfileHero school={school} />
       {hasFees ? (
@@ -100,12 +103,10 @@ export default async function SchoolProfilePage({ params }: PageProps) {
           coverageLabel={school.fee_coverage.coverageLabel}
           rangeEyebrow={school.fee_coverage.rangeEyebrow}
           rangeDescription={school.fee_coverage.rangeDescription}
-          showRangeExtremes={!hasOnlyCommunityReports}
+          showRangeExtremes={hasVerifiedFees}
           sessionLabel={sessionLabel}
           sessionDescription={
-            hasOnlyCommunityReports
-              ? "Latest reported session"
-              : "Latest verified session"
+            hasVerifiedFees ? "Latest verified session" : "Latest reported session"
           }
         />
       ) : null}

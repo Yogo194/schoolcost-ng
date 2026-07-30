@@ -4,6 +4,7 @@ import { SchoolsSearchHero } from "@/components/public/SchoolsSearchHero";
 import { SchoolsDirectory } from "@/components/public/SchoolsDirectory";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { createServerClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
 import { canUseForPriceComparison } from "@/lib/fees/trust";
 import { publicPageMetadata } from "@/lib/seo";
 import type { SchoolsDirectoryItem } from "@/lib/mock/schools-directory";
@@ -31,6 +32,20 @@ export default async function SchoolsPage() {
   );
 }
 
+type DirectoryFeeRow = {
+  institution_id: string;
+  first_year_total: number;
+  level: string | null;
+  student_type: string;
+  verification_status: VerificationStatus;
+  confidence_level: ConfidenceLevel;
+};
+
+type DirectoryCourseRow = {
+  name: string;
+  institution_id: string;
+};
+
 async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
   try {
     const supabase = await createServerClient();
@@ -47,45 +62,41 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
     const institutions = data as Institution[];
     const ids = institutions.map((institution) => institution.id);
 
-    const [{ data: fees }, { data: courseRows }] = await Promise.all([
-      supabase
-        .from("fee_records")
-        .select(
-          "institution_id, first_year_total, level, student_type, verification_status, confidence_level"
-        )
-        .in("institution_id", ids)
-        .eq("is_published", true),
-      supabase
-        .from("courses")
-        .select("name, institution_id")
-        .eq("is_active", true)
-        .in("institution_id", ids),
+    const [fees, courseRows] = await Promise.all([
+      fetchAllRows<DirectoryFeeRow>((from, to) =>
+        supabase
+          .from("fee_records")
+          .select(
+            "institution_id, first_year_total, level, student_type, verification_status, confidence_level"
+          )
+          .in("institution_id", ids)
+          .eq("is_published", true)
+          .order("id", { ascending: true })
+          .range(from, to)
+      ),
+      fetchAllRows<DirectoryCourseRow>((from, to) =>
+        supabase
+          .from("courses")
+          .select("name, institution_id")
+          .eq("is_active", true)
+          .in("institution_id", ids)
+          .order("id", { ascending: true })
+          .range(from, to)
+      ),
     ]);
 
     const coursesByInstitution = new Map<string, string[]>();
     const publishedFeeInstitutions = new Set(
-      ((fees ?? []) as Array<{ institution_id: string }>).map(
-        (fee) => fee.institution_id
-      )
+      fees.map((fee) => fee.institution_id)
     );
-    for (const row of (courseRows ?? []) as Array<{
-      name: string;
-      institution_id: string;
-    }>) {
+    for (const row of courseRows) {
       const list = coursesByInstitution.get(row.institution_id) ?? [];
       list.push(row.name);
       coursesByInstitution.set(row.institution_id, list);
     }
 
     const lowestFees = new Map<string, number>();
-    for (const fee of (fees ?? []) as Array<{
-      institution_id: string;
-      first_year_total: number;
-      level: string | null;
-      student_type: string;
-      verification_status: VerificationStatus;
-      confidence_level: ConfidenceLevel;
-    }>) {
+    for (const fee of fees) {
       if (!canUseForPriceComparison(fee.verification_status, fee.confidence_level)) {
         continue;
       }
@@ -96,7 +107,7 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
         fee.student_type === "fresh";
       if (!isFreshBand) continue;
       const amount = Number(fee.first_year_total);
-      if (!Number.isFinite(amount)) continue;
+      if (!Number.isFinite(amount) || amount <= 0) continue;
       const current = lowestFees.get(fee.institution_id);
       if (current == null || amount < current) {
         lowestFees.set(fee.institution_id, amount);

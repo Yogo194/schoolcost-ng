@@ -1,5 +1,7 @@
 import { createServerClient } from "@/lib/supabase/server";
+import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
 import { getSchoolFeeCoverage } from "@/lib/fees/school-fee-coverage";
+import { canUseForPriceComparison } from "@/lib/fees/trust";
 import type { SchoolFeeRow, SchoolProfile } from "@/lib/mock/school-profile";
 import type {
   ConfidenceLevel,
@@ -49,20 +51,23 @@ export async function getLiveSchoolProfile(
       logo_url: string | null;
     };
 
-    const { data: feeData } = await supabase
-      .from("fee_records")
-      .select(
-        `
+    const feeData = await fetchAllRows<LiveFeeRow>((from, to) =>
+      supabase
+        .from("fee_records")
+        .select(
+          `
         id, level, first_year_total, source_type, verification_status, confidence_level,
         courses ( name ),
         academic_sessions ( name )
       `
-      )
-      .eq("institution_id", institution.id)
-      .eq("is_published", true)
-      .order("first_year_total", { ascending: true });
+        )
+        .eq("institution_id", institution.id)
+        .eq("is_published", true)
+        .order("id", { ascending: true })
+        .range(from, to)
+    );
 
-    const fees: SchoolFeeRow[] = ((feeData ?? []) as unknown as LiveFeeRow[])
+    const fees: SchoolFeeRow[] = feeData
       .filter((row) => row.courses && row.academic_sessions)
       .map((row) => ({
         id: row.id,
@@ -71,7 +76,8 @@ export async function getLiveSchoolProfile(
         compulsory_total: Number(row.first_year_total) || 0,
         session: row.academic_sessions!.name,
         source_type: row.source_type,
-      }));
+      }))
+      .sort((a, b) => a.compulsory_total - b.compulsory_total);
 
     const courses = [...new Set(fees.map((fee) => fee.course))].sort();
     const sessions = [...new Set(fees.map((fee) => fee.session))];
@@ -109,11 +115,14 @@ export async function getLiveSchoolProfile(
     );
     const hasOnlyCommunityReports =
       fees.length > 0 &&
-      (feeData as unknown as LiveFeeRow[]).every(
+      feeData.every(
         (fee) =>
           fee.verification_status === "reported" ||
           fee.confidence_level === "low"
       );
+    const hasPriceComparableFees = feeData.some((fee) =>
+      canUseForPriceComparison(fee.verification_status, fee.confidence_level)
+    );
 
     return {
       slug: institution.slug,
@@ -142,7 +151,10 @@ export async function getLiveSchoolProfile(
       levels: levels.length ? levels : ["100L"],
       courses,
       fees,
-      fee_coverage: getSchoolFeeCoverage(institution.slug),
+      has_price_comparable_fees: hasPriceComparableFees,
+      fee_coverage: getSchoolFeeCoverage(institution.slug, {
+        hasPriceComparableFees,
+      }),
     };
   } catch {
     return null;

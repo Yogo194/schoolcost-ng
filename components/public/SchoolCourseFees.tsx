@@ -276,6 +276,15 @@ function FigureInfoContent({
           href={sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => {
+            void import("@/lib/analytics").then(({ track, AnalyticsEvents }) => {
+              track(AnalyticsEvents.sourceLinkClicked, {
+                source_url: sourceUrl,
+                source_label: sourceLabel ?? "View official source",
+                surface: "school_fee_coverage",
+              });
+            });
+          }}
           className={cn(
             "mt-3 inline-flex items-center gap-1 font-medium hover:underline",
             mobile ? "text-[#166d3e]" : "text-[#f2ac5b]"

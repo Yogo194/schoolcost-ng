@@ -35,12 +35,13 @@ export function SchoolStatsBar({
   coursesListed,
   firstYearMin,
   firstYearMax,
-  coverageLabel = "Courses with verified fees",
+  // Neutral defaults: never claim "verified" unless a caller passes it.
+  coverageLabel = "Courses listed",
   rangeEyebrow = "First-year · 100L",
   rangeDescription = "Compulsory fee range across courses",
   showRangeExtremes = true,
   sessionLabel,
-  sessionDescription = "Latest verified session",
+  sessionDescription = "Latest listed session",
 }: SchoolStatsBarProps) {
   const hasRange = firstYearMin > 0 && firstYearMax > 0;
   const hasSession = Boolean(sessionLabel);

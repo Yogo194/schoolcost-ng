@@ -519,6 +519,10 @@ function SchoolDirectoryCard({ school }: { school: SchoolsDirectoryItem }) {
           </span>{" "}
           first year
         </p>
+      ) : school.has_published_fees ? (
+        <p className="text-sm tracking-[-0.02em] text-brand-ink/65">
+          Fees listed · open to view
+        </p>
       ) : (
         <p className="text-sm tracking-[-0.02em] text-brand-ink/45">
           No fee record yet · contribute one

@@ -262,7 +262,8 @@ async function main() {
               estimated_degree_total: degreeTotal,
               verification_status: "community_verified",
               confidence_level: "medium",
-              source_type: "official_fee_circular",
+              // Levy amounts come from a republished NELFUND schedule, not a UI circular.
+              source_type: "community_reported",
               last_reviewed_at: now,
               review_due_at: null,
               is_published: true,

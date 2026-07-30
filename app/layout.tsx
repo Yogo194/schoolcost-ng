@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getSiteUrl } from "@/lib/site";
 import {
@@ -82,8 +83,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <JsonLd data={organizationJsonLd()} />
-        {children}
+        <PostHogProvider>
+          <JsonLd data={organizationJsonLd()} />
+          {children}
+        </PostHogProvider>
       </body>
     </html>
   );

@@ -6,6 +6,7 @@ import {
   suggestSchoolAction,
 } from "@/app/actions/submissions";
 import type { SubmitFeePayload } from "@/components/forms/SubmitFeeForm";
+import { AnalyticsEvents, track } from "@/lib/analytics";
 import type { SuggestSchoolInput } from "@/lib/validations/submission";
 import type { SubmitCourseOption } from "@/lib/mock/courses";
 import type { Institution } from "@/types/institution";
@@ -33,6 +34,12 @@ export function SubmitFeesClient({
     if (!result.ok) {
       throw new Error(result.error);
     }
+    track(AnalyticsEvents.submitFeesSucceeded, {
+      institution_id: payload.institution_id,
+      course_id: payload.course_id,
+      has_evidence_files: evidenceFiles.length > 0,
+      evidence_file_count: evidenceFiles.length,
+    });
   }
 
   async function handleSuggestSchool(data: SuggestSchoolInput) {
@@ -40,6 +47,11 @@ export function SubmitFeesClient({
     if (!result.ok) {
       throw new Error(result.error);
     }
+    track(AnalyticsEvents.submitSchoolSucceeded, {
+      school_name: data.school_name,
+      state: data.state,
+      ownership_type: data.ownership_type,
+    });
   }
 
   return (

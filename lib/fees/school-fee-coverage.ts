@@ -40,6 +40,23 @@ const COURSE_DEFAULT: SchoolFeeCoverage = {
   rangeDescription: "Compulsory fee range across courses",
 };
 
+/**
+ * Fallback for schools whose published rows all fail canUseForPriceComparison.
+ * Never claim "verified" for figures we have not verified.
+ */
+const COURSE_REPORTED: SchoolFeeCoverage = {
+  kind: "courses",
+  notice: "",
+  coverageLabel: "Courses with reported fees",
+  sectionTitle: "Reported course fees",
+  sectionDescription:
+    "Reported compulsory fees by course and level. Not yet verified, so they are excluded from lowest-cost highlights. Open any row for the full breakdown.",
+  categoryFilterLabel: "Course",
+  defaultLevelFilter: "100L",
+  rangeEyebrow: "First-year · 100L reported",
+  rangeDescription: "Reported fee range across courses",
+};
+
 const BAND_SCHOOLS: Record<string, SchoolFeeCoverage> = {
   "adekunle-ajasin-university": {
     kind: "courses",
@@ -56,6 +73,22 @@ const BAND_SCHOOLS: Record<string, SchoolFeeCoverage> = {
     defaultLevelFilter: "all",
     rangeEyebrow: "Reported annual figures",
     rangeDescription: "Not yet verified by AAUA",
+  },
+  "university-of-ibadan": {
+    kind: "courses",
+    notice:
+      "These are Total Levy amounts for 2025/2026 taken from a republished NELFUND fee schedule, not a circular published on ui.edu.ng. The acceptance fee for fresh students comes from an official UI notice. Hostel is not on this schedule. Confirm on the UI portal before paying.",
+    sourceUrl:
+      "https://www.scribd.com/document/984233555/Summarized-Nelfund-Fee-2025-2026",
+    sourceLabel: "View the republished NELFUND schedule",
+    coverageLabel: "Courses with reported levies",
+    sectionTitle: "Course fees",
+    sectionDescription:
+      "Total Levy by course and level as published on the NELFUND schedule. Open any row for the full breakdown.",
+    categoryFilterLabel: "Course",
+    defaultLevelFilter: "100L",
+    rangeEyebrow: "First-year · 100L total levy",
+    rangeDescription: "Total Levy range across courses",
   },
   "university-of-lagos": {
     kind: "bands",
@@ -183,6 +216,19 @@ const BAND_SCHOOLS: Record<string, SchoolFeeCoverage> = {
   },
 };
 
-export function getSchoolFeeCoverage(slug: string): SchoolFeeCoverage {
-  return BAND_SCHOOLS[slug] ?? COURSE_DEFAULT;
+/**
+ * Hand-written BAND_SCHOOLS copy always wins: it already states the exact
+ * provenance for that school. Everything else falls back to trust-aware
+ * defaults so a newly seeded, unverified school never inherits "verified"
+ * language just because nobody hardcoded an entry for it.
+ */
+export function getSchoolFeeCoverage(
+  slug: string,
+  options?: { hasPriceComparableFees?: boolean }
+): SchoolFeeCoverage {
+  const explicit = BAND_SCHOOLS[slug];
+  if (explicit) return explicit;
+  return options?.hasPriceComparableFees === false
+    ? COURSE_REPORTED
+    : COURSE_DEFAULT;
 }

@@ -34,6 +34,11 @@ export interface SchoolProfile {
   levels: string[];
   courses: string[];
   fees: SchoolFeeRow[];
+  /**
+   * True when at least one published row passes canUseForPriceComparison.
+   * Drives whether the profile may use "verified" language.
+   */
+  has_price_comparable_fees: boolean;
   /** How fee coverage is presented (courses vs official bands). */
   fee_coverage: SchoolFeeCoverage;
 }
@@ -146,6 +151,7 @@ export const MOCK_SCHOOL_PROFILES: Record<string, SchoolProfile> = {
         source_type: "student_portal_evidence",
       },
     ],
+    has_price_comparable_fees: true,
     fee_coverage: getSchoolFeeCoverage("university-of-lagos"),
   },
 };

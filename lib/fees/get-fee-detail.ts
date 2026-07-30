@@ -67,6 +67,20 @@ function formatReviewedLabel(iso: string | null): string {
   });
 }
 
+/** Readable host so people can tell an official school domain from a republish. */
+function evidenceTitle(sourceUrl: string): string {
+  try {
+    return new URL(sourceUrl).host.replace(/^www\./, "");
+  } catch {
+    return "Source link";
+  }
+}
+
+function evidenceTypeLabel(sourceType: string): string {
+  const words = sourceType.replace(/_/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 function lineNote(item: LiveFeeDetailRow["fee_items"][number]): string {
   const bits: string[] = [];
   if (item.frequency === "one_time") bits.push("One-time");
@@ -199,8 +213,8 @@ function mapFeeDetail(
     estimatedDegreeTotal: degreeTotal,
     evidence: approvedEvidence?.source_url
       ? {
-          title: "Source link",
-          typeLabel: "Web evidence",
+          title: evidenceTitle(approvedEvidence.source_url),
+          typeLabel: evidenceTypeLabel(approvedEvidence.source_type),
           url: approvedEvidence.source_url,
         }
       : undefined,

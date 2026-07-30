@@ -39,6 +39,25 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
   const institutionType = searchParams.get("institution_type") ?? "";
   const ownershipType = searchParams.get("ownership_type") ?? "";
 
+  const [filters, setFilters] = useState({
+    state,
+    institutionType,
+    ownershipType,
+  });
+
+  // Keep local filters aligned with shared links and browser navigation. A
+  // click updates local state first, so the visible list never waits for URL
+  // navigation to finish.
+  useEffect(() => {
+    // URL changes are external state (shared links and browser navigation).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFilters({ state, institutionType, ownershipType });
+  }, [state, institutionType, ownershipType]);
+
+  const activeState = filters.state;
+  const activeInstitutionType = filters.institutionType;
+  const activeOwnershipType = filters.ownershipType;
+
   /* The list filters from local state on every keystroke; the URL is synced
      a moment later so results stay instant but links remain shareable. */
   const [query, setQuery] = useState(q);
@@ -75,16 +94,25 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
 
   const filtered = useMemo(() => {
     return searchIndex.search(query).filter((school) => {
-      if (state && school.state !== state) return false;
-      if (institutionType && school.institution_type !== institutionType) {
+      if (activeState && school.state !== activeState) return false;
+      if (
+        activeInstitutionType &&
+        school.institution_type !== activeInstitutionType
+      ) {
         return false;
       }
-      if (ownershipType && school.ownership_type !== ownershipType) {
+      if (activeOwnershipType && school.ownership_type !== activeOwnershipType) {
         return false;
       }
       return true;
     });
-  }, [searchIndex, query, state, institutionType, ownershipType]);
+  }, [
+    searchIndex,
+    query,
+    activeState,
+    activeInstitutionType,
+    activeOwnershipType,
+  ]);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
@@ -99,10 +127,17 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
       if (!value) next.delete(key);
       else next.set(key, value);
     });
+    setFilters({
+      state: next.get("state") ?? "",
+      institutionType: next.get("institution_type") ?? "",
+      ownershipType: next.get("ownership_type") ?? "",
+    });
     setVisibleCount(PAGE_SIZE);
     startTransition(() => {
       const query = next.toString();
-      router.push(query ? `/schools?${query}` : "/schools", { scroll: false });
+      router.replace(query ? `/schools?${query}` : "/schools", {
+        scroll: false,
+      });
     });
   }
 
@@ -113,7 +148,7 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
     });
   }
 
-  const hasSidebarFilters = Boolean(institutionType || ownershipType);
+  const hasSidebarFilters = Boolean(activeInstitutionType || activeOwnershipType);
 
   return (
     <section className="bg-white px-4 py-12 sm:px-10 sm:py-16 lg:px-20">
@@ -136,7 +171,7 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
             </div>
             <ul className="space-y-1">
               {INSTITUTION_TYPES.map((type) => {
-                const selected = institutionType === type;
+                const selected = activeInstitutionType === type;
                 return (
                   <li key={type}>
                     <button
@@ -178,7 +213,7 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
             </h2>
             <ul className="space-y-1">
               {OWNERSHIP_TYPES.map((type) => {
-                const selected = ownershipType === type;
+                const selected = activeOwnershipType === type;
                 return (
                   <li key={type}>
                     <button
@@ -221,16 +256,18 @@ export function SchoolsDirectory({ schools }: SchoolsDirectoryProps) {
             <div className="flex flex-wrap gap-2">
               <StatePill
                 label="All"
-                selected={!state}
+                selected={!activeState}
                 onClick={() => updateParams({ state: null })}
               />
               {POPULAR_STATES.map((item) => (
                 <StatePill
                   key={item}
                   label={item}
-                  selected={state === item}
+                  selected={activeState === item}
                   onClick={() =>
-                    updateParams({ state: state === item ? null : item })
+                    updateParams({
+                      state: activeState === item ? null : item,
+                    })
                   }
                 />
               ))}

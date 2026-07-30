@@ -62,6 +62,16 @@ const BAND_LABELS: Record<MetricBand, string> = {
   trust: "Can you trust these numbers?",
 };
 
+function compareLogoClass(src: string | null | undefined, padded = false) {
+  const isBabcockLogo = src?.toLowerCase().includes("babcock");
+
+  return cn(
+    "size-full object-contain",
+    padded && "p-1",
+    isBabcockLogo && "scale-[1.22] p-0"
+  );
+}
+
 const METRICS: Array<{
   key: MetricKey;
   label: string;
@@ -327,7 +337,7 @@ function FeeCourseCompareContent({
                             alt=""
                             width={32}
                             height={32}
-                            className="size-full object-contain"
+                            className={compareLogoClass(col.logoUrl)}
                           />
                         </span>
                       ) : (
@@ -726,7 +736,7 @@ function MobileMetricCard({
                       alt=""
                       width={36}
                       height={36}
-                      className="size-full object-contain p-1"
+                      className={compareLogoClass(column.logoUrl, true)}
                     />
                   </span>
                 ) : (
@@ -779,7 +789,7 @@ function SchoolChip({
             alt=""
             width={40}
             height={40}
-            className="size-full object-contain p-1"
+            className={compareLogoClass(column.logoUrl, true)}
           />
         </span>
       ) : (

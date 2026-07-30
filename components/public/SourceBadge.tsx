@@ -56,7 +56,7 @@ export function SourceBadge({ sourceType, className, compact = false }: SourceBa
     return (
       <span
         className={cn(
-          "inline-flex items-center rounded-full border px-2 py-[3px] text-sm font-medium",
+          "inline-flex min-w-[112px] items-center justify-center whitespace-nowrap rounded-full border px-2 py-[3px] text-sm font-medium",
           SOURCE_COMPACT_STYLES[sourceType],
           className
         )}

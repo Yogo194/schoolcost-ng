@@ -36,6 +36,41 @@ type RecentFeeQueryRow = RecentFeeRow & {
 
 /** Max schools considered per ownership on the homepage teaser. */
 const SCHOOLS_PER_OWNERSHIP = 12;
+
+/**
+ * Schools most visitors recognise, surfaced first in the homepage teaser.
+ *
+ * Recency alone buries them: a later bulk seed or a trust upgrade rewrites the
+ * top of a created_at ordering, so the shop window ends up showing whichever
+ * schools were touched most recently rather than the ones people search for.
+ *
+ * This only reorders. Every row still has to pass canUseForPriceComparison in
+ * the queries and again in pickRowsForSchool, so a featured school with no
+ * verified fee simply does not appear.
+ */
+const FEATURED_SCHOOL_SLUGS = [
+  "covenant-university",
+  "babcock-university",
+  "pan-atlantic-university",
+  "redeemers-university",
+  "afe-babalola-university",
+  "university-of-ibadan",
+  "lead-city-university",
+  "bowen-university",
+  "federal-university-oye-ekiti",
+  "first-technical-university",
+  "adeleke-university",
+  "caleb-university",
+] as const;
+
+const FEATURED_RANK = new Map<string, number>(
+  FEATURED_SCHOOL_SLUGS.map((slug, index) => [slug, index])
+);
+
+function featuredRank(slug: string | undefined): number {
+  if (!slug) return Number.MAX_SAFE_INTEGER;
+  return FEATURED_RANK.get(slug) ?? Number.MAX_SAFE_INTEGER;
+}
 /** Candidate rows pulled per school before choosing one representative course. */
 const ROWS_PER_SCHOOL_SCAN = 40;
 
@@ -140,16 +175,58 @@ async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
           return [] as RecentFeeQueryRow[];
         }
 
-        const schoolIds: string[] = [];
+        // Deduplicate in recency order, then pull featured schools to the front
+        // BEFORE truncating. Truncating first would drop the well-known schools
+        // whenever a bulk seed or trust upgrade made other rows newer, which is
+        // exactly how Babcock and Redeemer's fell off the homepage.
+        const candidates: Array<{ id: string; slug?: string }> = [];
         const seen = new Set<string>();
         for (const row of (schoolRows ?? []) as Array<{
           institution_id: string;
+          institutions?: { slug?: string } | null;
         }>) {
           if (seen.has(row.institution_id)) continue;
           seen.add(row.institution_id);
-          schoolIds.push(row.institution_id);
-          if (schoolIds.length >= SCHOOLS_PER_OWNERSHIP) break;
+          candidates.push({
+            id: row.institution_id,
+            slug: row.institutions?.slug,
+          });
         }
+
+        // The recency window above is capped, so a featured school with older
+        // rows can fall outside it entirely and never become a candidate.
+        // Fetch them by slug so inclusion does not depend on the window.
+        const { data: featuredRows } = await supabase
+          .from("fee_records")
+          .select(`institution_id, institutions!inner ( slug, ownership_type )`)
+          .eq("is_published", true)
+          .eq("institutions.ownership_type", ownership)
+          .in("institutions.slug", [...FEATURED_SCHOOL_SLUGS])
+          .in("verification_status", PRICE_COMPARABLE_STATUSES)
+          .neq("confidence_level", PRICE_EXCLUDED_CONFIDENCE);
+
+        for (const row of (featuredRows ?? []) as Array<{
+          institution_id: string;
+          institutions?: { slug?: string } | null;
+        }>) {
+          if (seen.has(row.institution_id)) continue;
+          seen.add(row.institution_id);
+          candidates.push({
+            id: row.institution_id,
+            slug: row.institutions?.slug,
+          });
+        }
+
+        const schoolIds = candidates
+          .map((candidate, index) => ({ candidate, index }))
+          .sort((a, b) => {
+            const rankDiff =
+              featuredRank(a.candidate.slug) - featuredRank(b.candidate.slug);
+            if (rankDiff !== 0) return rankDiff;
+            return a.index - b.index; // keep recency order within each group
+          })
+          .slice(0, SCHOOLS_PER_OWNERSHIP)
+          .map(({ candidate }) => candidate.id);
 
         if (schoolIds.length === 0) return [] as RecentFeeQueryRow[];
 
@@ -192,6 +269,12 @@ async function getRecentlyVerifiedFees(): Promise<RecentFeeRow[]> {
     );
 
     const merged = ownershipPools.flat().sort((a, b) => {
+      // Recognisable schools first, then newest. Ordering only: the trust
+      // filters have already run, so nothing unverified can be promoted here.
+      const aRank = featuredRank(a.institutions?.slug);
+      const bRank = featuredRank(b.institutions?.slug);
+      if (aRank !== bRank) return aRank - bRank;
+
       const aTime = a.created_at ? Date.parse(a.created_at) : 0;
       const bTime = b.created_at ? Date.parse(b.created_at) : 0;
       return bTime - aTime;

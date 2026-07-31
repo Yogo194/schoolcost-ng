@@ -1,7 +1,7 @@
 import type { OwnershipType, SourceType } from "@/types/database";
 
 /** Homepage "Recently verified fees" display cap. */
-export const RECENT_FEES_LIMIT = 10;
+export const RECENT_FEES_LIMIT = 12;
 /** Show one representative course per school in the homepage teaser. */
 export const RECENT_FEES_MAX_PER_SCHOOL = 1;
 /**
@@ -9,8 +9,8 @@ export const RECENT_FEES_MAX_PER_SCHOOL = 1;
  * rows so a thin Federal/State pool does not leave the table short.
  */
 export const RECENT_FEES_ALL_QUOTAS: Record<OwnershipType, number> = {
-  federal: 3,
-  state: 3,
+  federal: 4,
+  state: 4,
   private: 4,
 };
 

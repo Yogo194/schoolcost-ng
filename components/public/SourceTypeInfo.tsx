@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Info, X } from "lucide-react";
 import { SourceBadge } from "@/components/public/SourceBadge";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,9 @@ const TIERS: Array<{ sourceType: SourceType; meaning: string }> = [
  * Opens on click as a fixed overlay rather than a hover tooltip: this sits
  * inside a table wrapped in overflow-x-auto, and an absolutely positioned panel
  * there would both extend the scrollable area and get clipped on open.
+ *
+ * Portaled to document.body so parent `uppercase` labels cannot transform the
+ * sheet copy.
  */
 export function SourceTypeInfo({ className }: { className?: string }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,9 +41,84 @@ export function SourceTypeInfo({ className }: { className?: string }) {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsOpen(false);
     };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
   }, [isOpen]);
+
+  const dialog =
+    isOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div className="fixed inset-0 z-50 normal-case">
+            <button
+              type="button"
+              aria-label="Close source type explanation"
+              className="absolute inset-0 bg-brand-ink/40"
+              onClick={() => setIsOpen(false)}
+            />
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="source-type-info-title"
+              className={cn(
+                // Bottom sheet on mobile, centred card on desktop.
+                "absolute inset-x-0 bottom-0 max-h-[min(88vh,640px)] overflow-y-auto rounded-t-[24px] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+28px)] pt-3 text-left shadow-[0_-12px_30px_rgba(0,44,21,0.16)]",
+                "sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[420px] sm:max-h-[min(90vh,640px)] sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:px-6 sm:pb-6 sm:pt-5 sm:shadow-[0_16px_40px_rgba(0,44,21,0.18)]"
+              )}
+            >
+              <div
+                className="mx-auto mb-3 h-1 w-10 rounded-full bg-brand-ink/15 sm:hidden"
+                aria-hidden
+              />
+
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="min-w-0 pt-0.5">
+                  <h2
+                    id="source-type-info-title"
+                    className="text-lg font-semibold tracking-[-0.03em] text-brand-ink"
+                  >
+                    Where the figure comes from
+                  </h2>
+                  <p className="mt-1 text-sm leading-5 text-brand-ink/60">
+                    How we label the evidence behind a fee.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Close"
+                  onClick={() => setIsOpen(false)}
+                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink/65 transition hover:border-brand-ink/25 hover:text-brand-ink"
+                >
+                  <X className="size-4" aria-hidden />
+                </button>
+              </div>
+
+              <ul className="space-y-2.5">
+                {TIERS.map((tier) => (
+                  <li
+                    key={tier.sourceType}
+                    className="rounded-2xl border border-[#e8ece8] bg-[#fafcfa] px-4 py-3.5"
+                  >
+                    <SourceBadge
+                      sourceType={tier.sourceType}
+                      compact
+                      className="min-w-0"
+                    />
+                    <p className="mt-2.5 text-[15px] leading-[1.45] tracking-[-0.01em] text-brand-ink/72">
+                      {tier.meaning}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
 
   return (
     <>
@@ -55,55 +134,7 @@ export function SourceTypeInfo({ className }: { className?: string }) {
       >
         <Info className="size-3.5" aria-hidden />
       </button>
-
-      {isOpen ? (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            aria-label="Close source type explanation"
-            className="absolute inset-0 bg-brand-ink/30"
-            onClick={() => setIsOpen(false)}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Where the figure comes from"
-            className={cn(
-              // Bottom sheet on mobile, centred card on desktop.
-              "absolute inset-x-0 bottom-0 rounded-t-[20px] bg-white px-5 pb-[calc(env(safe-area-inset-bottom)+24px)] pt-4 text-left shadow-[0_-12px_30px_rgba(0,44,21,0.16)]",
-              "sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[420px] sm:max-w-[calc(100vw-2rem)] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:p-5 sm:shadow-[0_16px_40px_rgba(0,44,21,0.18)]"
-            )}
-          >
-            <div className="mb-3 flex items-center justify-between gap-4">
-              <span className="block text-base font-medium tracking-[-0.02em] text-brand-ink">
-                Where the figure comes from
-              </span>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={() => setIsOpen(false)}
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-brand-ink/10 text-brand-ink/65 transition hover:border-brand-ink/25 hover:text-brand-ink"
-              >
-                <X className="size-4" aria-hidden />
-              </button>
-            </div>
-            <ul className="space-y-3">
-              {TIERS.map((tier) => (
-                <li key={tier.sourceType} className="flex items-start gap-2.5">
-                  <SourceBadge
-                    sourceType={tier.sourceType}
-                    compact
-                    className="shrink-0"
-                  />
-                  <span className="text-sm leading-5 text-brand-ink/70">
-                    {tier.meaning}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      ) : null}
+      {dialog}
     </>
   );
 }

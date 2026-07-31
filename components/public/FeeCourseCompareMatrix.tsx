@@ -673,23 +673,13 @@ function MobileComparison({ columns }: { columns: CourseCompareColumn[] }) {
 
   return (
     <div className="animate-compare-table-flow space-y-3 motion-reduce:animate-none md:hidden">
-      <div className="rounded-2xl border border-[#e5ebe5] bg-white px-4 py-4">
-        <p className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-          Compare at a glance
-        </p>
-        <p className="mt-1 text-sm leading-5 text-brand-ink/65">
-          The money comes first. Open each card to see where the difference
-          comes from.
-        </p>
-      </div>
-
       {MOBILE_METRICS.map((metric) => (
         <MobileMetricCard key={metric.key} metric={metric} columns={columns} />
       ))}
 
       <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4">
-        <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
-          Can you trust these numbers?
+        <p className="flex items-center gap-2 text-xs font-medium tracking-[0.08em] text-brand-ink/45">
+          <span className="uppercase">Can you trust these numbers?</span>
           <SourceTypeInfo />
         </p>
         <div className="mt-3 space-y-3">

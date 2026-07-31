@@ -85,7 +85,7 @@ export function FeeDetailBreakdown({
         <ConfidenceDisplay
           level={record.confidence_level}
           compact
-          align="center"
+          className="items-end text-right [&>p]:hidden md:items-center md:text-center md:[&>p]:block"
         />
       ),
     },
@@ -691,42 +691,28 @@ function MobileVerificationList({ rows }: { rows: VerificationRow[] }) {
         </p>
       </div>
       <dl className="divide-y divide-[#edf0ed]">
-        {rows.map((row) => {
-          const isConfidence = row.label === "Data confidence";
-
-          return (
-            <div key={row.label} className="px-5 py-4">
-              <div
-                className={cn(
-                  "gap-4",
-                  isConfidence
-                    ? "space-y-3"
-                    : "grid grid-cols-[minmax(0,1fr)_auto] items-center"
-                )}
-              >
-                <dt>
-                  <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
+        {rows.map((row) => (
+          <div key={row.label} className="px-5 py-4">
+            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+              <dt>
+                <span className="flex items-center gap-1.5">
+                  <span className="text-xs font-medium uppercase tracking-[0.08em] text-brand-ink/45">
                     {row.label}
-                    {row.info}
                   </span>
-                  {row.note && (
-                    <span className="mt-1 block text-sm leading-5 text-brand-ink/58">
-                      {row.note}
-                    </span>
-                  )}
-                </dt>
-                <dd
-                  className={cn(
-                    "text-base font-semibold leading-6 tracking-[-0.02em] text-brand-ink",
-                    isConfidence ? "mt-0" : "text-right"
-                  )}
-                >
-                  {row.value}
-                </dd>
-              </div>
+                  {row.info}
+                </span>
+                {row.note && (
+                  <span className="mt-1 block text-sm leading-5 normal-case text-brand-ink/58">
+                    {row.note}
+                  </span>
+                )}
+              </dt>
+              <dd className="text-right text-base font-semibold leading-6 tracking-[-0.02em] text-brand-ink">
+                {row.value}
+              </dd>
             </div>
-          );
-        })}
+          </div>
+        ))}
       </dl>
     </div>
   );

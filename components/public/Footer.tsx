@@ -14,7 +14,6 @@ const FOOTER_SECTIONS = [
     links: [
       { href: "/submit-fees", label: "Contribute" },
       { href: "/suggest-school", label: "Suggest a School" },
-      { href: "/submit-correction", label: "Report an Error" },
     ],
   },
   {

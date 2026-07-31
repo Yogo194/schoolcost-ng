@@ -369,9 +369,12 @@ function MobileSchoolFeeCard({
           <p className="text-base font-semibold leading-tight tracking-[-0.03em] text-[#355955]">
             {fee.course}
           </p>
-          <p className="mt-1 text-sm text-brand-ink/62">
-            {fee.level} <span aria-hidden>·</span> {fee.session}
-          </p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+            <p className="text-sm text-brand-ink/62">
+              {fee.level} <span aria-hidden>·</span> {fee.session}
+            </p>
+            <SourceBadge sourceType={fee.source_type} compact />
+          </div>
         </div>
         <ChevronRight
           className="mt-0.5 size-5 shrink-0 text-brand-ink/35 transition-transform group-hover:translate-x-0.5"
@@ -387,9 +390,6 @@ function MobileSchoolFeeCard({
           <p className="text-xl font-semibold leading-none tracking-[-0.04em] text-brand-ink">
             {formatCurrency(fee.compulsory_total)}
           </p>
-        </div>
-        <div className="mt-4 flex items-center justify-between">
-          <SourceBadge sourceType={fee.source_type} compact />
         </div>
       </div>
     </Link>

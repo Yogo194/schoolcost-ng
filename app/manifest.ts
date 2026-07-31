@@ -1,6 +1,5 @@
 import type { MetadataRoute } from "next";
 import { SITE_NAME } from "@/lib/seo";
-import { getSiteUrl } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -34,6 +33,10 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    id: getSiteUrl(),
+    // Relative so the app identity always resolves against the host that
+    // served the manifest. An absolute apex URL disagreed with start_url once
+    // the apex started redirecting to www, which can register the PWA under a
+    // different identity than the one it launches from.
+    id: "/",
   };
 }

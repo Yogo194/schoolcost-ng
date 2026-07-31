@@ -1,5 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import type { FeeDetailRecord } from "@/lib/mock/fee-detail";
+import { resolveSchoolLogoUrl } from "@/lib/schools/logo";
 import { SOURCE_TYPE_LABELS } from "@/types/fee";
 import type {
   ConfidenceLevel,
@@ -198,7 +199,10 @@ function mapFeeDetail(
     schoolAbbreviation: row.institutions.abbreviation,
     schoolState: row.institutions.state,
     schoolOwnership: row.institutions.ownership_type,
-    schoolLogoUrl: row.institutions.logo_url,
+    schoolLogoUrl: resolveSchoolLogoUrl(
+      row.institutions.slug,
+      row.institutions.logo_url
+    ),
     course: row.courses.name,
     session: row.academic_sessions.name,
     programmeDuration: `${duration}-year programme`,

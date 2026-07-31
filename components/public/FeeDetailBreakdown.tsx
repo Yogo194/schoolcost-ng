@@ -14,6 +14,7 @@ import {
 } from "@/lib/mock/fee-detail";
 import { formatCurrency } from "@/lib/utils/format";
 import { FeeCourseCompareMatrix } from "@/components/public/FeeCourseCompareMatrix";
+import type { CourseCompareColumn } from "@/lib/mock/course-compare";
 import { InfoPrompt } from "@/components/public/InfoPrompt";
 import {
   DetailViewTabs,
@@ -29,6 +30,8 @@ import type { ReactNode } from "react";
 
 interface FeeDetailBreakdownProps {
   record: FeeDetailRecord;
+  /** Real peers for the same course. Empty renders the current school alone. */
+  peerColumns?: CourseCompareColumn[];
 }
 
 interface VerificationRow {
@@ -39,7 +42,10 @@ interface VerificationRow {
   info?: ReactNode;
 }
 
-export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
+export function FeeDetailBreakdown({
+  record,
+  peerColumns,
+}: FeeDetailBreakdownProps) {
   const [level, setLevel] = useState(record.defaultLevel || "100L");
   const [paymentPlan, setPaymentPlan] = useState(
     record.paymentPlans[0]?.value ?? "full"
@@ -464,7 +470,11 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
             </div>
 
             <div className="mt-8">
-              <FeeCourseCompareMatrix record={record} level={level} />
+              <FeeCourseCompareMatrix
+                record={record}
+                level={level}
+                peerColumns={peerColumns}
+              />
             </div>
           </>
         )}

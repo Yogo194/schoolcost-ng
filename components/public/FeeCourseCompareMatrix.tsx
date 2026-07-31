@@ -28,8 +28,14 @@ import { SourceTypeInfo } from "@/components/public/SourceTypeInfo";
 interface FeeCourseCompareMatrixProps {
   record: FeeDetailRecord;
   level: string;
-  /** Live comparison rows from Supabase. Omit only for legacy detail-page demos. */
+  /** Live comparison rows from Supabase, used by the standalone compare page. */
   comparisonColumns?: CourseCompareColumn[];
+  /**
+   * Real peer schools for the same course, used by the fee detail page. Empty
+   * means there are no qualifying peers, which renders as the current school
+   * alone. Peers are never fabricated.
+   */
+  peerColumns?: CourseCompareColumn[];
   /**
    * Standalone compare page: start with no schools selected (slot-based
    * empty state) and let every column be removed. Embedded contexts (fee
@@ -131,17 +137,21 @@ const MOBILE_METRICS = METRICS.filter((metric) => metric.band === "money");
 
 const MAX_SCHOOLS = 3;
 
+/** Stable identity so the columns memo does not rerun on every render. */
+const EMPTY_PEERS: CourseCompareColumn[] = [];
+
 export function FeeCourseCompareMatrix({
   record,
   level,
   comparisonColumns,
+  peerColumns = EMPTY_PEERS,
   startEmpty = false,
   onChangeCourse,
   showExamples = true,
 }: FeeCourseCompareMatrixProps) {
   const generatedColumns = useMemo(
-    () => getCourseCompareColumns(record, level),
-    [record, level]
+    () => getCourseCompareColumns(record, level, peerColumns),
+    [record, level, peerColumns]
   );
   const allColumns = comparisonColumns ?? generatedColumns;
 
@@ -213,6 +223,30 @@ function FeeCourseCompareContent({
     setSelectedIds(ids.slice(0, MAX_SCHOOLS));
   }
 
+  // Built from the real peers we actually hold, so a suggested comparison can
+  // never name a school we have no published figure for.
+  const exampleSets = useMemo(() => {
+    const peers = allColumns.filter((column) => !column.isCurrent);
+    const nameOf = (column: CourseCompareColumn) =>
+      column.abbreviation || column.schoolName;
+    const sets: Array<{ label: string; ids: string[] }> = [];
+    const self = record.schoolAbbreviation ?? record.schoolName;
+
+    if (peers.length >= 2) {
+      sets.push({
+        label: `${self} vs ${nameOf(peers[0])} vs ${nameOf(peers[1])}`,
+        ids: [record.id, peers[0].id, peers[1].id],
+      });
+    }
+    if (peers.length >= 1) {
+      sets.push({
+        label: `${self} vs ${nameOf(peers[0])}`,
+        ids: [record.id, peers[0].id],
+      });
+    }
+    return sets;
+  }, [allColumns, record]);
+
   return (
     <div className="space-y-8 sm:space-y-10">
       <div className="rounded-2xl border border-[#e5ebe5] bg-white p-4 sm:p-5">
@@ -276,23 +310,20 @@ function FeeCourseCompareContent({
           })}
         </div>
 
-        {isEmpty && showExamples && (
+        {isEmpty && showExamples && exampleSets.length > 0 && (
           <div className="mt-5 border-t border-[#edf0ed] pt-4">
             <p className="flex items-center gap-1.5 text-sm font-medium tracking-[-0.02em] text-brand-ink/70">
               <Sparkles className="size-4 text-brand-ink/50" aria-hidden />
               New here? See a ready-made example:
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <ExampleChip
-                label={`${record.course}: UNILAG vs UI vs OAU`}
-                onClick={() =>
-                  loadExample([record.id, "demo-ui-cs", "demo-oau-cs"])
-                }
-              />
-              <ExampleChip
-                label={`${record.course}: UNILAG vs LASU`}
-                onClick={() => loadExample([record.id, "demo-lasu-cs"])}
-              />
+              {exampleSets.map((set) => (
+                <ExampleChip
+                  key={set.label}
+                  label={set.label}
+                  onClick={() => loadExample(set.ids)}
+                />
+              ))}
             </div>
           </div>
         )}

@@ -8,6 +8,7 @@ import {
   type SchoolSearchIndex,
 } from "@/lib/search/school-search";
 import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
+import { resolveSchoolLogoUrl } from "@/lib/schools/logo";
 import type { SearchSuggestion } from "@/lib/search/types";
 import { SEARCH_SUGGESTION_LIMIT } from "@/lib/search/types";
 
@@ -227,7 +228,7 @@ export async function getSearchSuggestions(
         label: item.name,
         meta: schoolMeta(item),
         href: `/schools/${item.slug}`,
-        logoUrl: item.logo_url,
+        logoUrl: resolveSchoolLogoUrl(item.slug, item.logo_url),
       }));
 
     const stateSuggestions: SearchSuggestion[] = stateIndex

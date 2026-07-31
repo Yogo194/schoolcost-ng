@@ -26,76 +26,14 @@ export interface CourseCompareColumn {
   isCurrent: boolean;
 }
 
-const COURSE_PEERS: Omit<CourseCompareColumn, "course" | "isCurrent">[] = [
-  {
-    id: "demo-ui-cs",
-    schoolName: "University of Ibadan",
-    schoolSlug: "university-of-ibadan",
-    abbreviation: "UI",
-    state: "Oyo",
-    ownership: "Federal",
-    level: "100L",
-    session: "2025/2026",
-    firstYearTotal: 228_000,
-    returningYearTotal: 198_000,
-    compulsoryTotal: 198_000,
-    accommodationTotal: 95_000,
-    estimatedDegreeTotal: 822_000,
-    paymentLabel: "Per semester or full",
-    lastReviewedLabel: "12 July 2026",
-    sourceLabel: "Official source",
-    source_type: "official_school_source",
-    confidenceLabel: "High",
-    feeRecordId: "demo-ui-cs",
-  },
-  {
-    id: "demo-lasu-cs",
-    schoolName: "Lagos State University",
-    schoolSlug: "lagos-state-university",
-    abbreviation: "LASU",
-    state: "Lagos",
-    ownership: "State",
-    level: "100L",
-    session: "2025/2026",
-    firstYearTotal: 295_000,
-    returningYearTotal: 265_000,
-    compulsoryTotal: 265_000,
-    accommodationTotal: 140_000,
-    estimatedDegreeTotal: 1_090_000,
-    paymentLabel: "Full session",
-    lastReviewedLabel: "5 July 2026",
-    sourceLabel: "Student evidence",
-    source_type: "student_portal_evidence",
-    confidenceLabel: "Medium",
-    feeRecordId: "demo-lasu-cs",
-  },
-  {
-    id: "demo-oau-cs",
-    schoolName: "Obafemi Awolowo University",
-    schoolSlug: "obafemi-awolowo-university",
-    abbreviation: "OAU",
-    state: "Osun",
-    ownership: "Federal",
-    level: "100L",
-    session: "2025/2026",
-    firstYearTotal: 205_000,
-    returningYearTotal: 172_500,
-    compulsoryTotal: 172_500,
-    accommodationTotal: 84_000,
-    estimatedDegreeTotal: 722_500,
-    paymentLabel: "Per session",
-    lastReviewedLabel: "8 July 2026",
-    sourceLabel: "Official source",
-    source_type: "official_fee_circular",
-    confidenceLabel: "High",
-    feeRecordId: "demo-oau-cs",
-  },
-];
-
-/** Same-course, same-level peers for the fee detail compare panel (mock). */
+/**
+ * Builds the compare columns for a fee detail page: the current record plus
+ * whatever real peers were passed in. Never fabricates peers.
+ */
 export function getCourseCompareColumns(
   record: FeeDetailRecord,
-  level: string
+  level: string,
+  peerColumns: CourseCompareColumn[] = []
 ): CourseCompareColumn[] {
   const totals =
     record.totalsByLevel[level] ?? record.totalsByLevel[record.defaultLevel];
@@ -128,7 +66,7 @@ export function getCourseCompareColumns(
     isCurrent: true,
   };
 
-  const peers = COURSE_PEERS.map((peer) => ({
+  const peers = peerColumns.map((peer) => ({
     ...peer,
     compulsoryTotal:
       level === "100L" ? peer.firstYearTotal : peer.returningYearTotal,

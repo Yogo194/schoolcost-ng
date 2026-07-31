@@ -6,6 +6,7 @@ import { FeeDetailHero } from "@/components/public/FeeDetailHero";
 import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { AnalyticsEvents } from "@/lib/analytics";
+import { getCoursePeers } from "@/lib/fees/get-course-peers";
 import { getLiveFeeDetail } from "@/lib/fees/get-fee-detail";
 import { feeJsonLd, publicPageMetadata } from "@/lib/seo";
 
@@ -40,6 +41,8 @@ export default async function FeeBreakdownPage({ params }: PageProps) {
     notFound();
   }
 
+  const peerColumns = await getCoursePeers(record.course, record.schoolSlug);
+
   return (
     <div>
       <TrackEvent
@@ -66,7 +69,7 @@ export default async function FeeBreakdownPage({ params }: PageProps) {
         })}
       />
       <FeeDetailHero record={record} />
-      <FeeDetailBreakdown record={record} />
+      <FeeDetailBreakdown record={record} peerColumns={peerColumns} />
       <SchoolSubmitCta />
     </div>
   );

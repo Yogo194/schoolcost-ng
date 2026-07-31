@@ -3,6 +3,7 @@ import {
   PRICE_COMPARABLE_STATUSES,
   PRICE_EXCLUDED_CONFIDENCE,
 } from "@/lib/fees/trust";
+import { resolveSchoolLogoUrl } from "@/lib/schools/logo";
 import type { CourseCompareColumn } from "@/lib/mock/course-compare";
 import type { ConfidenceLevel, SourceType, VerificationStatus } from "@/types/database";
 
@@ -94,7 +95,10 @@ export async function getCompareOptions(): Promise<CompareCourseOption[]> {
         abbreviation: row.institutions.abbreviation,
         state: row.institutions.state,
         ownership: row.institutions.ownership_type,
-        logoUrl: row.institutions.logo_url,
+        logoUrl: resolveSchoolLogoUrl(
+          row.institutions.slug,
+          row.institutions.logo_url
+        ),
         course: row.courses.name,
         level: row.level ?? "100L",
         session: row.academic_sessions.name,

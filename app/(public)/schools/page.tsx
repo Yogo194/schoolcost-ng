@@ -6,6 +6,7 @@ import { SchoolSubmitCta } from "@/components/public/SchoolSubmitCta";
 import { createServerClient } from "@/lib/supabase/server";
 import { fetchAllRows } from "@/lib/supabase/fetch-all-rows";
 import { canUseForPriceComparison } from "@/lib/fees/trust";
+import { resolveSchoolLogoUrl } from "@/lib/schools/logo";
 import { publicPageMetadata } from "@/lib/seo";
 import type { SchoolsDirectoryItem } from "@/lib/mock/schools-directory";
 import type { Institution } from "@/types/institution";
@@ -128,7 +129,7 @@ async function getDirectorySchools(): Promise<SchoolsDirectoryItem[]> {
       state: institution.state,
       institution_type: institution.institution_type,
       ownership_type: institution.ownership_type,
-      logo_url: institution.logo_url,
+      logo_url: resolveSchoolLogoUrl(institution.slug, institution.logo_url),
       courses: coursesByInstitution.get(institution.id) ?? [],
       first_year_from: lowestFees.get(institution.id) ?? null,
       has_published_fees: publishedFeeInstitutions.has(institution.id),

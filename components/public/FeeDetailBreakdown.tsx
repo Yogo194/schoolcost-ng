@@ -404,13 +404,13 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
             </div>
 
             {(record.evidence || record.reviewerNote) && (
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="mt-6 rounded-2xl border border-[#e5ebe5] bg-white p-4 sm:p-5">
                 {record.evidence && (
                   <a
                     href={record.evidence.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group flex items-center gap-3 rounded-2xl border border-[#e5ebe5] bg-white p-4 transition-colors hover:border-primary/30"
+                    className="group flex items-center gap-3 rounded-xl transition-colors"
                   >
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-lime-light text-brand-ink">
                       <FileText className="size-4" aria-hidden />
@@ -429,13 +429,11 @@ export function FeeDetailBreakdown({ record }: FeeDetailBreakdownProps) {
                     </span>
                   </a>
                 )}
+                {record.evidence && record.reviewerNote && (
+                  <div className="my-4 border-t border-[#e5ebe5]" />
+                )}
                 {record.reviewerNote && (
-                  <div
-                    className={cn(
-                      "rounded-2xl border border-[#e5ebe5] bg-white p-4",
-                      !record.evidence && "md:col-span-2"
-                    )}
-                  >
+                  <div>
                     <p className="text-[15px] font-medium tracking-[-0.02em] text-brand-ink">
                       Reviewer note
                     </p>
